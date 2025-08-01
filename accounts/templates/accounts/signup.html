@@ -1,0 +1,10 @@
+<h2>회원가입</h2>
+<form method="post">
+    {% csrf_token %}
+    <p>{{ form.username.label_tag }} {{ form.username }}</p>
+    <p>{{ form.nickname.label_tag }} {{ form.nickname }}</p>
+    <p>{{ form.location.label_tag }} {{ form.location }}</p>
+    <p>{{ form.password1.label_tag }} {{ form.password1 }}</p>
+    <p>{{ form.password2.label_tag }} {{ form.password2 }}</p>
+    <button type="submit">가입하기</button>
+</form>
