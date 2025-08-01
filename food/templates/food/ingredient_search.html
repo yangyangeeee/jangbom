@@ -1,0 +1,30 @@
+<h2>재료 검색</h2>
+
+<!-- 검색창 -->
+<form method="get">
+    <input type="text" name="q" value="{{ query }}" placeholder="예: 설탕, 물">
+    <button type="submit">검색</button>
+</form>
+
+<hr>
+
+<!-- 누적된 재료들 보여주기 -->
+{% if selected %}
+    <h3>추가할 재료</h3>
+    <ul>
+        {% for i in selected %}
+        <li>{{ i }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<!-- 전부 한 번에 제출 -->
+<form method="post">
+    {% csrf_token %}
+    {% for i in selected %}
+        <input type="hidden" name="ingredients" value="{{ i }}">
+    {% endfor %}
+    {% if selected %}
+        <button type="submit">추가 완료</button>
+    {% endif %}
+</form>

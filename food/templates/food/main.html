@@ -9,3 +9,7 @@
     <a href="{% url 'accounts:login' %}">로그인</a> |
     <a href="{% url 'accounts:signup' %}">회원가입</a>
 {% endif %}
+
+<form action="{% url 'food:recipe_input' %}" method="get">
+    <button type="submit">요리 입력하러 가기</button>
+</form>
