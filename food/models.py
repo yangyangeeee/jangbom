@@ -19,11 +19,10 @@ class Ingredient(models.Model):
     
 class ShoppingList(models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE)
-    destination = models.CharField(max_length=100, default="미지정")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.destination} - {self.created_at.date()}"
+        return f"장바구니 #{self.id} - {self.created_at.strftime('%Y-%m-%d')}"
 
 class ShoppingListIngredient(models.Model):
     shopping_list = models.ForeignKey(to=ShoppingList, on_delete=models.CASCADE)

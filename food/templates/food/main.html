@@ -3,13 +3,15 @@
 {% if user.is_authenticated %}
     <p>환영합니다, {{ user.nickname }}님!</p>
     <p>위치: {{ user.location }}</p>
+    <form action="{% url 'food:recipe_input' %}" method="get">
+        <button type="submit">요리를 할거야</button>
+    </form>
+        <form action="{% url 'food:ingredient_input' %}" method="get">
+    <button type="submit">식재료를 고를거야</button>
+    </form>
     <a href="{% url 'accounts:logout' %}">로그아웃</a>
 {% else %}
     <p>로그인 해주세요.</p>
     <a href="{% url 'accounts:login' %}">로그인</a> |
     <a href="{% url 'accounts:signup' %}">회원가입</a>
 {% endif %}
-
-<form action="{% url 'food:recipe_input' %}" method="get">
-    <button type="submit">요리 입력하러 가기</button>
-</form>
