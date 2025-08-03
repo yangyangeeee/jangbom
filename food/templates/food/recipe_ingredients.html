@@ -1,0 +1,33 @@
+<h2>{{ recipe }} 만들 때 필요한 재료</h2>
+
+<form method="post" action="{% url 'food:confirm_shopping_list' %}">
+    {% csrf_token %}
+    <h3> 기본 재료</h3>
+    {% if basic %}
+        {% for i in basic %}
+            <label><input type="checkbox" name="ingredients" value="{{ i }}" checked> {{ i }}</label><br>
+        {% endfor %}
+    {% else %}
+        <p>등록된 기본 재료가 없습니다.</p>
+    {% endif %}
+
+    <h3> 선택 재료</h3>
+    {% if optional %}
+        {% for i in optional %}
+            <label><input type="checkbox" name="ingredients" value="{{ i }}"> {{ i }}</label><br>
+        {% endfor %}
+    {% else %}
+        <p>등록된 선택 재료가 없습니다.</p>
+    {% endif %}
+
+    {% if extra_ingredients %}
+        <h3>직접 추가한 재료</h3>
+        {% for i in extra_ingredients %}
+            <label><input type="checkbox" name="ingredients" value="{{ i }}" checked> {{ i }}</label><br>
+        {% endfor %}
+    {% endif %}
+
+    <a href="{% url 'food:ingredient_search' %}"> 재료 직접 추가하기</a><br><br>
+
+    <button type="submit">장바구니 담기</button>
+</form>

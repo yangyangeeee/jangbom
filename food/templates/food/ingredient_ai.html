@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ ingredient_name }} 요리 추천</title>
+</head>
+<body>
+  <h2>🍽 {{ ingredient_name }} 요리 추천</h2>
+
+  {% if recipes %}
+    <form method="post" action="{% url 'food:add_ingredient_ai' %}">
+      {% csrf_token %}
+      {% for recipe in recipes %}
+        <div>
+          <h3>{{ recipe.name }}</h3>
+          <p>{{ recipe.description }}</p>
+          {% for ing in recipe.ingredients %}
+            <label>
+              <input type="checkbox" name="ingredients" value="{{ ing }}">
+              {{ ing }}
+            </label><br>
+          {% endfor %}
+          <hr>
+        </div>
+      {% endfor %}
+      <button type="submit">🛒 선택한 재료 장바구니에 추가</button>
+    </form>
+  {% else %}
+    <p>추천 결과를 불러오지 못했어요.</p>
+  {% endif %}
+</body>
+</html>
