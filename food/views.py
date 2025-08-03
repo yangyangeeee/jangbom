@@ -11,8 +11,8 @@ from django.urls import reverse
 def main(request):
     return render(request, 'food/main.html')
 
-#### 요리를 할거야
-# Step 1. 요리 입력
+# 1. 요리를 할거야
+# 요리 입력
 def recipe_input_view(request):
     initial_recipe = request.GET.get('recipe', '')  # GPT에서 넘겨준 요리명 (없으면 빈 문자열)
 
@@ -23,7 +23,7 @@ def recipe_input_view(request):
     
     return render(request, 'food/recipe_input.html', {'initial_recipe': initial_recipe})
 
-# Step 2. GPT 분석 결과 보여주기
+# GPT 분석 결과 보여주기
 def recipe_ingredient_result(request):
     recipe_name = request.GET.get('recipe') or request.session.get('recipe_input')
 
@@ -58,7 +58,7 @@ def recipe_ingredient_result(request):
         'extra_ingredients': extra_ingredients,
     })
 
-# Step 2. 직접 재료 검색 & 선택
+# 직접 재료 검색 & 선택
 def ingredient_search_view(request):
     # 기존 선택 재료 가져오기 (세션 or GET)
     selected = request.session.get('search_selected', [])
@@ -87,7 +87,7 @@ def ingredient_search_view(request):
         'selected': selected,
     })
 
-# Step 3. 장바구니 저장
+# 장바구니 저장
 @login_required
 def confirm_shopping_list(request):
     selected = request.POST.getlist('ingredients')  # 체크된 것만 들어옴
@@ -95,7 +95,6 @@ def confirm_shopping_list(request):
     # 로그인된 사용자로 장바구니 생성
     shopping_list = ShoppingList.objects.create(
         user=request.user,
-        destination="미지정"
     )
 
     added_ingredients = []  # 템플릿에 넘기기 위한 데이터 저장 리스트
@@ -107,7 +106,7 @@ def confirm_shopping_list(request):
         if not ShoppingListIngredient.objects.filter(shopping_list=shopping_list, ingredient=ing).exists():
             ShoppingListIngredient.objects.create(shopping_list=shopping_list, ingredient=ing)
 
-            # 이미지 URL 추가 (이미지 없으면 None)
+        # 이미지 URL 추가 (이미지 없으면 None)
         image_url = ing.image.url if ing.image else None
         added_ingredients.append({'name': ing.name, 'image_url': image_url})
 
@@ -121,7 +120,7 @@ def confirm_shopping_list(request):
 })
 
 
-# Step 4. 장바구니 결과 보여주기
+# 장바구니 결과 보여주기
 @login_required
 def shopping_list_result(request):
     list_id = request.session.get('shopping_list_id')
@@ -133,7 +132,18 @@ def shopping_list_result(request):
 
 def recipe_ai(request):
     if 'reset' in request.GET:
-        request.session.flush()  # 모든 세션 초기화
+        keys_to_clear = [
+            'recipe_input',
+            'basic',
+            'optional',
+            'extra_ingredients',
+            'search_selected',
+            'chat_history',
+            'latest_recipe',
+            'shopping_list_id'
+        ]
+        for key in keys_to_clear:
+            request.session.pop(key, None)
         return redirect('food:recipe_ai')
 
     # 대화 세션 초기화
@@ -249,7 +259,7 @@ def add_ingredient(request):
             except Ingredient.DoesNotExist:
                 messages.error(request, f"{name}은(는) 마트에서 판매하지 않습니다.")
 
-        # ✅ 리디렉션 시 선택된 카테고리를 포함해서 보냄
+        # 리디렉션 시 선택된 카테고리를 포함해서 보냄
         base_url = reverse('food:ingredient_input')
         query_string = urlencode({'category': selected_category}) if selected_category else ''
         url = f"{base_url}?{query_string}" if query_string else base_url
@@ -275,8 +285,6 @@ def delete_ingredient(request, name):
 
     return redirect('food:ingredient_input')
 
-
-@login_required
 @login_required
 def ingredient_result_view(request):
     list_id = request.session.get('shopping_list_id')
@@ -299,7 +307,7 @@ def ingredient_ai_view(request, name):
     ingredient_names = Ingredient.objects.values_list('name', flat=True)
     ingredient_list_str = ', '.join(ingredient_names)
 
-    # GPT 프롬프트 구성 (✅ tip 제거됨)
+    # GPT 프롬프트 구성 (tip 제거됨)
     prompt = (
         f"'{name}'에 대해 아래 형식의 JSON으로만 응답해줘. 다른 설명, 인사말, 공백, 줄바꿈 없이 JSON 데이터만 줘.\n\n"
         f"조건:\n"
