@@ -1,0 +1,17 @@
+<h2>재료가 궁금한 요리를 입력해주세요!</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="recipe" placeholder="예: 된장찌개, 김치볶음밥" value="{{ initial_recipe }}">
+        <button type="submit">확인</button>
+    </form>
+        
+<hr>
+
+<!-- 추천받기 버튼으로 챗봇 화면으로 이동 -->
+<h2>어떤 요리를 할지 고민이된다면? </h2>
+<form method="get" action="{% url 'food:recipe_ai' %}">
+    <button type="submit">GPT에게 요리 추천받기</button>
+</form>
+
+</body>
+</html>

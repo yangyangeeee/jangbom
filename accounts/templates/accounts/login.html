@@ -1,0 +1,20 @@
+<h2>로그인</h2>
+<form method="post">
+    {% csrf_token %}
+    <p>
+        {{ form.username.label_tag }}<br>
+        {{ form.username }}
+        {% if form.username.errors %}
+            <div class="error">{{ form.username.errors }}</div>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ form.password.label_tag }}<br>
+        {{ form.password }}
+        {% if form.password.errors %}
+            <div class="error">{{ form.password.errors }}</div>
+        {% endif %}
+    </p>
+    <button type="submit">로그인</button>
+</form>

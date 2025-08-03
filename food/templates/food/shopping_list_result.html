@@ -1,0 +1,14 @@
+<h2>장바구니</h2>
+<ul>
+  {% for item in ingredients %}
+    <li>
+      <strong>{{ item.name }}</strong><br>
+      {% if item.image_url %}
+        <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100px;">
+      {% else %}
+        <em>이미지 없음</em>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+<a href="{% url 'food:recipe_input' %}">다시 요리 선택하기</a>

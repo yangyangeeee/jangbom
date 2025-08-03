@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>재료 직접 추가하기</title>
+</head>
+<body>
+  <h2>식재료를 살거야</h2>
+
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <hr>
+
+  <h3>장바구니</h3>
+  <ul>
+    {% for ing in selected_ingredients %}
+      <li>
+        <form method="post" action="{% url 'food:delete_ingredient' ing.name %}" id="delete-form-{{ ing.id }}">
+          {% csrf_token %}
+          <input type="hidden" name="ingredient" value="{{ ing.name }}">
+          <a href="#" onclick="document.getElementById('delete-form-{{ ing.id }}').submit(); return false;">
+            {{ ing.name }}
+          </a>
+        </form>
+      </li>
+    {% empty %}
+      <li>장바구니에 담긴 재료가 없습니다.</li>
+    {% endfor %}
+  </ul>
+
+  <hr>
+
+  <!-- 🔍 재료 검색 -->
+  <form method="get" action="{% url 'food:ingredient_input' %}">
+    <label for="search">재료 검색:</label>
+    <input type="text" name="search" id="search" value="{{ request.GET.search }}" placeholder="예: 된장" />
+    <button type="submit">검색</button>
+  </form>
+
+  <hr>
+
+  <h3>재료 리스트</h3>
+
+  <!-- 📦 카테고리 선택 -->
+  <form method="get" action="{% url 'food:ingredient_input' %}">
+    <label for="category">카테고리 선택:</label>
+    <select name="category" id="category" onchange="this.form.submit()">
+      <option value="" {% if not selected_category %}selected{% endif %}>전체</option>
+      {% for cat in categories %}
+        <option value="{{ cat.name }}" {% if cat.name == selected_category %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <ul>
+    {% for ing in category_ingredients %}
+      <li>
+        <form method="post" action="{% url 'food:add_ingredient' %}" id="form-{{ ing.id }}">
+          {% csrf_token %}
+          <input type="hidden" name="ingredient" value="{{ ing.name }}">
+          {% if selected_category %}
+            <input type="hidden" name="category" value="{{ selected_category }}">
+          {% endif %}
+          <a href="#" onclick="document.getElementById('form-{{ ing.id }}').submit(); return false;" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+            {% if ing.image %}
+              <img src="{{ ing.image.url }}" alt="{{ ing.name }}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;" />
+            {% endif %}
+            <span>{{ ing.name }}</span>
+          </a>
+        </form>
+      </li>
+    {% empty %}
+      <li>조건에 맞는 재료가 없습니다.</li>
+    {% endfor %}
+  </ul>
+
+  <a href="{% url 'food:ingredient_result' %}">추가 완료</a>
+</body>
+</html>
