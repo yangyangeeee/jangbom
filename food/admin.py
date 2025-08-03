@@ -4,6 +4,5 @@ from .models import *
 # Register your models here.
 admin.site.register(Category)
 admin.site.register(Ingredient)
-admin.site.register(IngredientCategory)
 admin.site.register(ShoppingList)
 admin.site.register(ShoppingListIngredient)

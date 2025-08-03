@@ -11,18 +11,11 @@ class Category(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    category = models.ManyToManyField(to=Category, through='IngredientCategory', related_name='ingredients')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='ingredients')
     image = models.ImageField(upload_to='ingredients/', blank=True, null=True)
 
     def __str__(self):
         return self.name
-
-class IngredientCategory(models.Model):
-    ingredient = models.ForeignKey(to=Ingredient, on_delete=models.CASCADE, related_name='ingredient_categories')
-    category = models.ForeignKey(to=Category, on_delete=models.CASCADE, related_name='ingredient_categories')
-
-    def __str__(self):
-        return f"{self.ingredient.name} in {self.category.name}"
     
 class ShoppingList(models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE)
