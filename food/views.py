@@ -12,8 +12,8 @@ from django.urls import reverse
 def main(request):
     return render(request, 'food/main.html')
 
-#### 요리를 할거야
-# Step 1. 요리 입력
+# 1. 요리를 할거야
+# 요리 입력
 def recipe_input_view(request):
     initial_recipe = request.GET.get('recipe', '')  # GPT에서 넘겨준 요리명 (없으면 빈 문자열)
 
@@ -24,7 +24,7 @@ def recipe_input_view(request):
     
     return render(request, 'food/recipe_input.html', {'initial_recipe': initial_recipe})
 
-# Step 2. GPT 분석 결과 보여주기
+# GPT 분석 결과 보여주기
 def recipe_ingredient_result(request):
     recipe_name = request.GET.get('recipe') or request.session.get('recipe_input')
 
@@ -59,7 +59,7 @@ def recipe_ingredient_result(request):
         'extra_ingredients': extra_ingredients,
     })
 
-# Step 2. 직접 재료 검색 & 선택
+# 직접 재료 검색 & 선택
 def ingredient_search_view(request):
     # 기존 선택 재료 가져오기 (세션 or GET)
     selected = request.session.get('search_selected', [])
@@ -88,7 +88,7 @@ def ingredient_search_view(request):
         'selected': selected,
     })
 
-# Step 3. 장바구니 저장
+# 장바구니 저장
 @login_required
 def confirm_shopping_list(request):
     selected = request.POST.getlist('ingredients')  # 체크된 것만 들어옴
@@ -105,7 +105,7 @@ def confirm_shopping_list(request):
         if not ShoppingListIngredient.objects.filter(shopping_list=shopping_list, ingredient=ing).exists():
             ShoppingListIngredient.objects.create(shopping_list=shopping_list, ingredient=ing)
 
-            # 이미지 URL 추가 (이미지 없으면 None)
+        # 이미지 URL 추가 (이미지 없으면 None)
         image_url = ing.image.url if ing.image else None
         added_ingredients.append({'name': ing.name, 'image_url': image_url})
 
@@ -119,7 +119,7 @@ def confirm_shopping_list(request):
 })
 
 
-# Step 4. 장바구니 결과 보여주기
+# 장바구니 결과 보여주기
 @login_required
 def recipe_result_view(request):
     list_id = request.session.get('shopping_list_id')
@@ -131,7 +131,18 @@ def recipe_result_view(request):
 
 def recipe_ai(request):
     if 'reset' in request.GET:
-        request.session.flush()  # 모든 세션 초기화
+        keys_to_clear = [
+            'recipe_input',
+            'basic',
+            'optional',
+            'extra_ingredients',
+            'search_selected',
+            'chat_history',
+            'latest_recipe',
+            'shopping_list_id'
+        ]
+        for key in keys_to_clear:
+            request.session.pop(key, None)
         return redirect('food:recipe_ai')
 
     # 대화 세션 초기화
@@ -272,7 +283,6 @@ def delete_ingredient(request, name):
             messages.error(request, f"{name}은(는) 존재하지 않습니다.")
 
     return redirect('food:ingredient_input')
-
 
 @login_required
 def ingredient_result_view(request):
