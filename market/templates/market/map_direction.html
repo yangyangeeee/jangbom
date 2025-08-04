@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ market.name }}로 가는 길</title>
+    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_key }}&autoload=true"></script>
+</head>
+<body>
+    <h3>{{ market.name }}로 걸어가는 중</h3>
+    <p>{{ expected_time }}분 소요 예정</p>
+
+    <div id="map" style="width:100%; height:400px;"></div>
+
+    <button onclick="window.location.href='tel:{{ market.phone }}'">전화 걸기</button>
+    <button>채팅 하기</button>
+
+
+    <script>
+        const polylinePoints = {{ polyline|safe }};
+        console.log("Polyline points:", polylinePoints);
+
+        if (!polylinePoints.length) {
+            alert("도보 경로를 불러올 수 없습니다.");
+        }
+
+        const mapContainer = document.getElementById('map');
+        const mapOption = {
+            center: new kakao.maps.LatLng(polylinePoints[0][0], polylinePoints[0][1]),
+            level: 5
+        };
+
+        const map = new kakao.maps.Map(mapContainer, mapOption);
+
+        const path = polylinePoints.map(coord => new kakao.maps.LatLng(coord[0], coord[1]));
+
+        const polylineLine = new kakao.maps.Polyline({
+            path: path,
+            strokeWeight: 5,
+            strokeColor: '#1E90FF',
+            strokeOpacity: 0.9,
+            strokeStyle: 'solid'
+        });
+        polylineLine.setMap(map);
+
+        // 출발지 마커
+        new kakao.maps.Marker({
+            position: path[0],
+            map: map,
+            title: "출발지"
+        });
+
+        // 도착지 마커
+        new kakao.maps.Marker({
+            position: path[path.length - 1],
+            map: map,
+            title: "도착지"
+        });
+    </script>
+
+
+    <br>
+    <p>도착 시 +{{ point_earned }}포인트!</p>
+    <button>도착했어요</button>
+
+    <!-- 구매 재료 확인 영역 --> <br><br><br>
+    <h3>구매할 재료 확인하기</h3>
+
+    <div class="ingredient-list">
+    {% for item in matched_ingredients %}
+        <div class="ingredient-box">
+            {% if item.image %}
+                <img src="{{ item.image }}" alt="{{ item.name }}">
+            {% else %}
+                <div class="no-img-box"></div>
+            {% endif %}
+            <div>{{ item.name }}</div>
+        </div>
+    {% endfor %}
+</div>
+
+<br><br>
+
+    {% if unmatched_ingredients %}
+        {% for item in unmatched_ingredients %}
+            {{ item }}
+        {% endfor %}
+            은(는) 해당 마트에서 판매하고 있지 않습니다.
+    {% endif %}
+</body>
+</html>

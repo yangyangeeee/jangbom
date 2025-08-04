@@ -11,4 +11,6 @@
     </li>
   {% endfor %}
 </ul>
-<a href="{% url 'food:recipe_input' %}">다시 요리 선택하기</a>
+    <form action="{% url 'market:nearest_market' %}" method="get">
+      <button type="submit">우리 동네에서 장 보러 가기</button>
+    </form>
