@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>가장 가까운 마켓</title>
+</head>
+<body>
+    <h2>가장 가까운 마켓</h2>
+
+    <h3>{{ market.name }}</h3>
+    <p>{{ market.address }}</p>
+
+    {% if market.image %}
+        <img src="{{ market.image.url }}" alt="{{ market.name }} 이미지" width="200">
+    {% endif %}
+
+    <p>예상 도착 시간: {{ travel_time_min }}분</p>
+
+    <p>예상 획득 포인트: {{ point_earned }}P</p>
+
+    {% if market.market_type == '전통시장' %}
+        <h4>시장 내 가게 목록: {{ store_count }}곳</h4>        
+        <ul>
+            {% for store in market.stores.all %}
+                <li>{{ store.name }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if market.market_type == '마켓' %}      
+        <p>예상 거리: {{ distance_m }}m</p>
+    {% endif %}
+
+    {% if closing_in_minutes <= 30 and closing_in_minutes > 0 %}
+        <p><strong>영업종료까지 {{ closing_in_minutes }}분 남았어요!</strong></p>
+    {% elif closing_in_minutes == 0 %}
+        <p><strong>이미 영업이 종료되었어요.</strong></p>
+    {% endif %}
+
+    {% if closing_in_minutes > 0 %}
+        <a href="{% url 'market:map_direction' %}?market_id={{ market.id }}&expected_time={{ travel_time_min }}&point_earned={{ point_earned }}">
+            길찾기 시작
+        </a>
+    {% endif %}
+</body>
+</html>

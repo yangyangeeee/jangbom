@@ -29,5 +29,7 @@
 
     <a href="{% url 'food:ingredient_search' %}"> 재료 직접 추가하기</a><br><br>
 
-    <button type="submit">장바구니 담기</button>
+    <form action="{% url 'food:recipe_result' %}" method="get">
+      <button type="submit">완료</button>
+    </form>
 </form>

@@ -2,6 +2,7 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from .ai import *
 from .models import *
+from market.models import ShoppingList, ShoppingListIngredient
 from django.contrib import messages
 from django.db.models import Q
 from django.utils.http import urlencode
@@ -93,9 +94,7 @@ def confirm_shopping_list(request):
     selected = request.POST.getlist('ingredients')  # 체크된 것만 들어옴
 
     # 로그인된 사용자로 장바구니 생성
-    shopping_list = ShoppingList.objects.create(
-        user=request.user,
-    )
+    shopping_list = ShoppingList.objects.create(user=request.user)
 
     added_ingredients = []  # 템플릿에 넘기기 위한 데이터 저장 리스트
 
@@ -114,7 +113,7 @@ def confirm_shopping_list(request):
     request.session['extra_ingredients'] = []  # 직접 추가했던 재료 초기화
     request.session['search_selected'] = []  # 검색 상태 초기화
 
-    return render(request, 'food/shopping_list_result.html', {
+    return render(request, 'food/recipe_result.html', {
     'shopping_list': shopping_list,
     'ingredients': added_ingredients
 })
@@ -122,11 +121,11 @@ def confirm_shopping_list(request):
 
 # 장바구니 결과 보여주기
 @login_required
-def shopping_list_result(request):
+def recipe_result_view(request):
     list_id = request.session.get('shopping_list_id')
     shopping_list = get_object_or_404(ShoppingList, id=list_id, user=request.user)
 
-    return render(request, 'food/shopping_list_result.html', {
+    return render(request, 'food/recipe_result.html', {
         'shopping_list': shopping_list,
     })
 
@@ -313,10 +312,10 @@ def ingredient_ai_view(request, name):
         f"조건:\n"
         f"- 'recipes'는 요리 2개를 추천. 각각:\n"
         f"  • name: 요리 이름\n"
-        f"  • description: 간단한 요리 설명\n"
-        f"  • ingredients: 해당 요리에 필요한 재료들. 우리 재료 DB 내에서만 선택해서 3~5개\n\n"
+        f"  • description: 간단한 요리 설명(100자 이내) 말투는 조금 귀엽게\n"
+        f"  • ingredients: 해당 요리에 필요한 재료들. 우리 재료 DB 내에서만 선택해서 3~6개. 단 {name}은 제외하고 나머지 재료들만 출력 필수\n\n"
         f"사용 가능한 재료 목록:\n{ingredient_list_str}\n\n"
-        f"JSON 형식 예시는 아래와 같아. 반드시 이와 똑같은 키 이름을 쓰고, 형식은 변형하지 마:\n\n"
+        f"JSON 형식 예시는 아래와 같아. 반드시 이와 똑같은 키 이름을 쓰고, 형식은 변형하지 마.:\n\n"
         f"{{\n"
         f'  "recipes": [\n'
         f'    {{\n'
@@ -359,15 +358,19 @@ def ingredient_ai_view(request, name):
 def add_ingredient_ai(request):
     if request.method == "POST":
         selected_names = request.POST.getlist("ingredients")
+
+        # 유효한 재료만 필터링
         selected_ingredients = Ingredient.objects.filter(name__in=selected_names)
 
-        # 현재 유저의 ShoppingList 가져오기 (또는 세션에서 list_id 활용해도 됨)
+        # 현재 유저의 쇼핑리스트 (없으면 생성)
         shopping_list, _ = ShoppingList.objects.get_or_create(user=request.user)
 
         for ingredient in selected_ingredients:
+            # 중복 방지: 이미 있으면 추가 안함
             ShoppingListIngredient.objects.get_or_create(
                 shopping_list=shopping_list,
                 ingredient=ingredient
             )
 
-    return redirect('food:ingredient_result')
+    return redirect('food:ingredient_result') 
+

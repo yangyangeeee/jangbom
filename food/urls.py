@@ -9,10 +9,10 @@ urlpatterns = [
     path('recipe/start/', recipe_input_view, name='recipe_input'),
     path('recipe/ingredients/', recipe_ingredient_result, name='recipe_ingredients'),
     path('recipe/confirm/', confirm_shopping_list, name='confirm_shopping_list'),
-    path('recipe/result/', shopping_list_result, name='shopping_list_result'),
+    path('recipe/result/', recipe_result_view, name='recipe_result'),
     path('recipe/ai/', recipe_ai, name='recipe_ai'),
     path('recipe/search/', ingredient_search_view, name='ingredient_search'),
-
+    
     # 식재료를 고를거야
     path('ingredient/', ingredient_input_view, name='ingredient_input'),
     path('ingredient/add/', add_ingredient, name='add_ingredient'),

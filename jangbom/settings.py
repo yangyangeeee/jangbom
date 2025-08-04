@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'food',
+    'market',
 ]
 
 MIDDLEWARE = [
@@ -128,8 +130,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-from dotenv import load_dotenv
-
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-KAKAO_MAP_KEY = os.getenv("KAKAO_MAP_KEY")
+KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
+KAKAO_JS_API_KEY = os.getenv("KAKAO_JS_API_KEY")
