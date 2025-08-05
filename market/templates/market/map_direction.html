@@ -59,8 +59,7 @@
 
 
     <br>
-    <p>도착 시 +{{ point_earned }}포인트!</p>
-    <button>도착했어요</button>
+
 
     <!-- 구매 재료 확인 영역 --> <br><br><br>
     <h3>구매할 재료 확인하기</h3>
@@ -78,7 +77,7 @@
     {% endfor %}
 </div>
 
-<br><br>
+<br>
 
     {% if unmatched_ingredients %}
         {% for item in unmatched_ingredients %}
@@ -86,5 +85,27 @@
         {% endfor %}
             은(는) 해당 마트에서 판매하고 있지 않습니다.
     {% endif %}
+
+
+<!-- 업체 정보 확인 영역 --> <br><br><br>
+<h3>업체 정보 확인하기</h3>
+<p>{{ market.name }} ({{ market.market_type }})</p>
+<p>{{ market.address }} ({{ market.dong }})</p>
+<p>{{ distance_m }}m</p>
+{% if market.image %}
+        <img src="{{ market.image.url }}" alt="{{ market.name }} 이미지" width="200"><br>
+    {% endif %}
+
+<button onclick="window.location.href='tel:{{ market.phone }}'">전화 걸기</button>
+<button>채팅 하기</button>
+
+<br>
+
+<p>도착 시 +{{ point_earned }}포인트!</p>
+
+<form method="get" action="{% url 'market:market_arrival' shopping_list.id %}">
+    <button type="submit">도착 완료</button>
+</form>
+
 </body>
 </html>

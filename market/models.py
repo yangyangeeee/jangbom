@@ -15,6 +15,7 @@ class Market(models.Model):
     name = models.CharField(max_length=100)
     market_type = models.CharField(max_length=20, choices=MARKET_TYPE_CHOICES)
     address = models.CharField(max_length=200)
+    dong = models.CharField(max_length=10, blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
     phone = models.CharField(max_length=20, blank=True)
@@ -39,7 +40,6 @@ class MarketStore(models.Model):
 class MarketStock(models.Model):
     market = models.ForeignKey(Market, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
     last_updated = models.DateTimeField(auto_now=True)
 
     def clean(self):
@@ -47,26 +47,26 @@ class MarketStock(models.Model):
             raise ValidationError('전통시장에는 MarketStock을 등록할 수 없습니다. MarketStore를 이용하세요.')
 
     def __str__(self):
-        return f"{self.market.name} - {self.ingredient.name} ({self.quantity})"
+        return f"{self.market.name} - {self.ingredient.name}"
 
 
 class StoreStock(models.Model):
     store = models.ForeignKey(MarketStore, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
     last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.store.name} - {self.ingredient.name} ({self.quantity})"
+        return f"{self.store.name} - {self.ingredient.name}"
 
 
 class ShoppingList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    market = models.ForeignKey(Market, on_delete=models.SET_NULL, null=True, blank=True)  # 실제 사용한 마트
+    market = models.ForeignKey(Market, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_done = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.username} - {self.created_at.date()}"
+        return f"{self.id} - {self.user.username} - {self.created_at.date()}"
 
 
 class ShoppingListIngredient(models.Model):

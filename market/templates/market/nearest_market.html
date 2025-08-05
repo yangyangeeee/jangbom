@@ -30,7 +30,7 @@
     {% if market.market_type == '마켓' %}      
         <p>예상 거리: {{ distance_m }}m</p>
     {% endif %}
-
+    
     {% if closing_in_minutes <= 30 and closing_in_minutes > 0 %}
         <p><strong>영업종료까지 {{ closing_in_minutes }}분 남았어요!</strong></p>
     {% elif closing_in_minutes == 0 %}

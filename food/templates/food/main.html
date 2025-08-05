@@ -6,9 +6,29 @@
     <form action="{% url 'food:recipe_input' %}" method="get">
         <button type="submit">요리를 할거야</button>
     </form>
-        <form action="{% url 'food:ingredient_input' %}" method="get">
-    <button type="submit">식재료를 고를거야</button>
+    <!-- '식재료를 고를거야' 버튼 누르고 접속했다는 값 기록 / ingredient_result.html에서 다음 페이지로 넘어갈 때 recipe/ingredient 각 경로가 다름 -->
+    <form action="{% url 'food:ingredient_input' %}" method="get">
+        <input type="hidden" name="from" value="main">
+        <button type="submit">식재료를 고를거야</button>   
     </form>
+
+
+    {% if warn %}
+    <div style="border: 1px solid red; padding: 10px; margin-bottom: 20px;">
+        <p><strong>예전에 만든 장바구니가 아직 있어요.</strong></p>
+        <p>그대로 사용할까요?</p>
+        <form action="{% url 'food:ingredient_input' %}" method="get" style="display:inline;">
+            <input type="hidden" name="from" value="main">
+            <button type="submit">네</button>
+        </form>
+        <form action="{% url 'food:reset_shoppinglist' %}" method="POST" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="shoppinglist_id" value="{{ shoppinglist_id }}">
+            <button type="submit">아니요</button>
+        </form>
+    </div>
+
+{% endif %}
     <a href="{% url 'accounts:logout' %}">로그아웃</a>
 {% else %}
     <p>로그인 해주세요.</p>
