@@ -1,0 +1,18 @@
+<h2>최근 장바구니 재료 선택</h2>
+<form method="POST" action="{% url 'food:find_recipes_with_gpt' %}">
+    {% csrf_token %}
+    {% for item in ingredients %}
+        <div style="margin-bottom: 1em;">
+            <label>
+                <input type="checkbox" name="ingredient_ids" value="{{ item.ingredient.id }}">
+                {{ item.ingredient.name }}
+            </label><br>
+        {% if item.ingredient.image %}
+            <img src="{{ item.ingredient.image.url }}" alt="{{ item.ingredient.name }}" width="100" height="100">
+        {% else %}
+            <span style="color: gray;">이미지 없음</span>
+        {% endif %}
+        </div>
+    {% endfor %}
+    <button type="submit">요리법 찾기</button>
+</form>

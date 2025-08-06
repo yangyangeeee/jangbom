@@ -1,0 +1,15 @@
+<h2>세부 활동 내역</h2>
+
+<p>마트: {{ shopping_list.market.name }}</p>
+<p>날짜: {{ shopping_list.created_at|date:"Y.m.d H:i" }}</p>
+<p>획득 포인트: +{{ point_earned }}P</p>
+
+<h3>구매한 재료:</h3>
+<ul>
+    {% for item in ingredients %}
+        <li>{{ item.ingredient.name }}</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'food:show_recent_ingredients' %}">남은 식재료 활용법 추천</a> <br>
+<a href="{% url 'accounts:activity_log' %}">돌아가기</a>

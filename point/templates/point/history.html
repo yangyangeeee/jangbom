@@ -1,0 +1,14 @@
+<h2>나의 적립 내역</h2>
+<a href="{% url 'food:main' %}">장 보러 가기</a> <br>
+
+<table>
+    {% for log in logs %}
+        <tr>
+            <td>{{ log.visited_at|date:"y.m.d" }}</td>
+            <td>+{{ log.point_earned }}P</td>
+            <td>
+                <a href="{% url 'accounts:activity_detail' log.shopping_list.id %}">세부 활동 보기</a>
+            </td>
+        </tr>
+    {% endfor %}
+</table>

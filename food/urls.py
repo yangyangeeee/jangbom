@@ -20,4 +20,8 @@ urlpatterns = [
     path('ingredient/result/', ingredient_result_view, name='ingredient_result'),
     path('ingredient/ai/<str:name>/', ingredient_ai_view, name='ingredient_ai'),
     path("ingredient/add_ai/", add_ingredient_ai, name="add_ingredient_ai"),
+
+    #레시피 저장
+    path('leftover/', show_recent_ingredients, name='show_recent_ingredients'),
+    path('leftover/result/', find_recipes_with_gpt, name='find_recipes_with_gpt'),
 ]

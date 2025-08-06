@@ -8,6 +8,8 @@ from django.db.models import Q
 from django.utils.http import urlencode
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.conf import settings
+from openai import OpenAI
 
 def main(request):
     return render(request, 'food/main.html')
@@ -374,3 +376,65 @@ def add_ingredient_ai(request):
 
     return redirect('food:ingredient_result') 
 
+
+@login_required
+def show_recent_ingredients(request):
+    # 가장 최근 장바구니
+    latest_list = ShoppingList.objects.filter(user=request.user).order_by('-created_at').first()
+    if not latest_list:
+        return render(request, 'food/save_no_ingredients.html')
+
+    ingredients = ShoppingListIngredient.objects.filter(
+        shopping_list=latest_list
+    ).select_related('ingredient')
+
+    return render(request, 'food/save_recent_ingredients.html', {
+        'ingredients': ingredients,
+    })
+
+
+@login_required
+def find_recipes_with_gpt(request):
+    if request.method == 'POST':
+        selected = request.POST.getlist('ingredient_ids')
+        ingredients = Ingredient.objects.filter(id__in=selected)
+        names = [i.name for i in ingredients]
+
+        prompt = (
+            f"다음 재료를 활용한 간단한 요리법을 추천해줘: {', '.join(names)}. "
+            "아래 형식을 반드시 지켜줘:\n\n"
+            "1. 첫 줄에는 요리 이름만 간결하게 써줘 (예: 달걀볶음밥)\n"
+            "2. 두 번째 줄부터는 '필요한 재료:' 라고 적고, 사용할 재료 목록을 써줘\n"
+            "3. 그 다음에는 '조리 방법:'이라고 적고, 총 5단계로 나눠서 설명해줘\n"
+            "4. 말투는 친절하고 초보자도 이해하기 쉽게 써줘\n"
+            "5. 다른 말은 하지 말고 위 형식만 지켜줘"
+        )
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "넌 사용자의 재료를 활용해 요리를 추천하는 요리 전문가야."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            result = response.choices[0].message.content.strip()
+        except Exception as e:
+            messages.error(request, f"AI 응답 실패: {e}")
+            return redirect('food:show_recent_ingredients')
+
+        lines = [line.strip() for line in result.splitlines() if line.strip()]
+        title = lines[0].strip() if lines else "추천 요리"
+
+        SavedRecipe.objects.create(
+            user=request.user,
+            title=title,
+            description=result
+        )
+
+        return render(request, 'food/save_gpt_recipe_result.html', {
+            'result': result,
+            'title': title
+        })
+
+    return redirect('food:show_recent_ingredients')
