@@ -6,9 +6,12 @@
     <form action="{% url 'food:recipe_input' %}" method="get">
         <button type="submit">요리를 할거야</button>
     </form>
-        <form action="{% url 'food:ingredient_input' %}" method="get">
-    <button type="submit">식재료를 고를거야</button>
+    <form action="{% url 'food:ingredient_input' %}" method="get">
+        <button type="submit">식재료를 고를거야</button>
     </form>
+
+    <a href="{% url 'accounts:activity_log' %}">내 활동</a> <br>
+    <a href="{% url 'point:point_home' %}">내 포인트</a> <br>
     <a href="{% url 'accounts:logout' %}">로그아웃</a>
 {% else %}
     <p>로그인 해주세요.</p>

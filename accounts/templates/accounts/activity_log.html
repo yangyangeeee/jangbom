@@ -1,0 +1,37 @@
+{% load humanize %}
+
+<p>{{ user.nickname }} - {{ user.location }}</p>
+
+{% if user_rank %}
+    <p>랭킹: {{ user_rank }}</p>
+{% else %}
+    <p>아직 랭킹이 없습니다. 활동을 시작해보세요!</p>
+{% endif %}
+
+<h2>나의 장보기 통계</h2>
+<ul>
+    <li>총 장봄 횟수: <strong>{{ total_logs }}</strong>회</li>
+    <li>전통시장 방문: <strong>{{ market_visits }}</strong>회</li>
+    <li>누적 걸음 수: <strong>{{ total_steps|intcomma }}</strong> 걸음</li>
+    <li>CO₂ 절감량: <strong>{{ co2_saved_kg }}</strong> kg</li>
+</ul>
+
+<a href="{% url 'food:main' %}">장 보러 가기</a> <br>
+<a href="{% url 'accounts:my_recipes' %}">내 요리법 목록</a><br>
+<a href="{% url 'food:show_recent_ingredients' %}">남은 식재료 활용법 추천</a> <br>
+
+<hr>
+
+<h2>활동 내역</h2>
+
+{% for log in log_data %}
+    <div class="log-entry">
+        <p><strong>{{ log.visited_at|date:"Y.m.d H:i" }}</strong></p>
+        <p>마트: {{ log.market_name }}</p>
+
+        <a href="{% url 'accounts:activity_detail' log.shopping_list_id %}">세부 활동 내역 보기 →</a>
+        <hr>
+    </div>
+{% empty %}
+    <p>아직 활동 내역이 없습니다.</p>
+{% endfor %}

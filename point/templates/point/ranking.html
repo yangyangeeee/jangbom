@@ -1,0 +1,9 @@
+<h2>도봉구 포인트 랭킹</h2>
+<ol>
+    {% for r in rankings %}
+        <li>{{ forloop.counter }}위 - {{ r.user__location }} {{ r.user__username }} ({{ r.total_points }}P)</li>
+    {% endfor %}
+</ol>
+
+<a href="{% url 'food:main' %}">장 보러 가기</a> <br>
+<a href="{% url 'point:point_history' %}">내 포인트 적립 내역 확인하기</a>
