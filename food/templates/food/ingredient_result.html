@@ -7,39 +7,32 @@
 <body>
   <h2>🛒 내 장바구니</h2>
 
-  {% if messages %}
-    <ul>
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+{% if shopping_list.shoppinglistingredient_set.exists %}
+  <ul>
+    {% for item in shopping_list.shoppinglistingredient_set.all %}
+      <li>
+        <form method="post" action="{% url 'food:delete_ingredient' item.ingredient.name %}" id="delete-form-{{ item.ingredient.id }}" style="display: inline;">
+          {% csrf_token %}
+          <input type="hidden" name="ingredient" value="{{ item.ingredient.name }}">
+          {% if item.ingredient.image %}
+            <img src="{{ item.ingredient.image.url }}" alt="{{ item.ingredient.name }}">
+          {% endif %}
+          {{ item.ingredient.name }}
+        </form>
 
-  {% if shopping_list.shoppinglistingredient_set.all %}
-    <ul>
-      {% for item in shopping_list.shoppinglistingredient_set.all %}
-        <li>
-          <!-- 삭제용 폼 -->
-          <form method="post" action="{% url 'food:delete_ingredient' item.ingredient.name %}" id="delete-form-{{ item.ingredient.id }}" style="display: inline;">
-            {% csrf_token %}
-            <input type="hidden" name="ingredient" value="{{ item.ingredient.name }}">
-            {% if item.ingredient.image %}
-              <img src="{{ item.ingredient.image.url }}" alt="{{ item.ingredient.name }}">
-            {% endif %}
-            {{ item.ingredient.name }}
-          </form>
+        <form method="get" action="{% url 'food:ingredient_ai' item.ingredient.name %}" style="display: inline;">
+          <button type="submit">></button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>장바구니에 담긴 재료가 없습니다.</p>
+{% endif %}
 
-          <!-- 요리 추천 버튼 -->
-          <form method="get" action="{% url 'food:ingredient_ai' item.ingredient.name %}" style="display: inline;">
-            <button type="submit">></button>
-          </form>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>장바구니에 담긴 재료가 없습니다.</p>
-  {% endif %}
-    <a href="{% url 'food:shopping_list_result' %}">완료</a>
+    <form action="{% url 'market:nearest_market' %}" method="get">
+      <button type="submit">우리 동네에서 장 보러 가기</button>
+    </form>
     </form>
 </body>
 </html>

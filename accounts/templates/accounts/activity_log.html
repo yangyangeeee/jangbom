@@ -35,3 +35,9 @@
 {% empty %}
     <p>아직 활동 내역이 없습니다.</p>
 {% endfor %}
+
+
+<br><hr><br>
+<a href="{% url 'food:main' %}">홈</a> |
+<a href="{% url 'accounts:activity_log' %}">내 활동</a> |
+<a href="{% url 'point:point_home' %}">포인트</a>

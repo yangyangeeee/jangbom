@@ -7,10 +7,12 @@
         
 <hr>
 
-<!-- 추천받기 버튼으로 챗봇 화면으로 이동 -->
-<h2>어떤 요리를 할지 고민이된다면? </h2>
 <form method="get" action="{% url 'food:recipe_ai' %}">
-    <button type="submit">GPT에게 요리 추천받기</button>
+    <button type="submit">어떤 요리를 만들지 추천해줘</button>
+</form>
+
+<form method="get" action="{% url 'food:show_recent_ingredients' %}">
+    <button type="submit">이전에 구매하고 남은 식재료로 요리할래</button>
 </form>
 
 </body>

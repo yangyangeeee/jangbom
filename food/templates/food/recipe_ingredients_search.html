@@ -21,16 +21,16 @@
   <ul>
     {% for ing in selected_ingredients %}
       <li>
-        <form method="post" action="{% url 'food:delete_ingredient' ing.name %}" id="delete-form-{{ ing.id }}">
-          {% csrf_token %}
-          <input type="hidden" name="ingredient" value="{{ ing.name }}">
-          <!-- ⬇️ 현재 필터 상태 유지 -->
-          <input type="hidden" name="category" value="{{ selected_category }}">
-          <input type="hidden" name="search" value="{{ request.GET.search }}">
-          <a href="#" onclick="document.getElementById('delete-form-{{ ing.id }}').submit(); return false;">
-            {{ ing.name }}
-          </a>
-        </form>
+        {% if ing.name in extra_names %}
+          <form method="post" action="{% url 'food:delete_extra_ingredient' ing.name %}" id="delete-form-{{ ing.id }}">
+            {% csrf_token %}
+            <a href="#" onclick="document.getElementById('delete-form-{{ ing.id }}').submit(); return false;">
+              {{ ing.name }}
+            </a>
+          </form>
+        {% else %}
+          {{ ing.name }}  {# 기본 재료는 표시만 #}
+        {% endif %}
       </li>
     {% empty %}
       <li>장바구니에 담긴 재료가 없습니다.</li>
@@ -39,7 +39,7 @@
 
   <hr>
 
-  <!-- 🔍 재료 검색 -->
+  <!-- 재료 검색 -->
   <form method="get" action="{% url 'food:ingredient_search' %}">
     <label for="search">재료 검색:</label>
     <input type="text" name="search" id="search" value="{{ request.GET.search }}" placeholder="예: 된장" />
@@ -50,7 +50,7 @@
 
   <h3>재료 리스트</h3>
 
-  <!-- 카테고리 선택 -->
+  <!-- 📦 카테고리 선택 -->
   <form method="get" action="{% url 'food:ingredient_search' %}">
     <label for="category">카테고리 선택:</label>
     <select name="category" id="category" onchange="this.form.submit()">
@@ -59,21 +59,17 @@
         <option value="{{ cat.name }}" {% if cat.name == selected_category %}selected{% endif %}>{{ cat.name }}</option>
       {% endfor %}
     </select>
-    <!-- 검색어 유지 -->
-    <input type="hidden" name="search" value="{{ request.GET.search }}">
   </form>
 
   <ul>
     {% for ing in category_ingredients %}
       <li>
-        <form method="post" action="{% url 'food:add_ingredient' %}" id="form-{{ ing.id }}">
+        <form method="post" action="{% url 'food:add_extra_ingredient' %}" id="form-{{ ing.id }}">
           {% csrf_token %}
           <input type="hidden" name="ingredient" value="{{ ing.name }}">
           {% if selected_category %}
             <input type="hidden" name="category" value="{{ selected_category }}">
           {% endif %}
-          <!-- 검색어 유지 -->
-          <input type="hidden" name="search" value="{{ request.GET.search }}">
           <a href="#" onclick="document.getElementById('form-{{ ing.id }}').submit(); return false;" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
             {% if ing.image %}
               <img src="{{ ing.image.url }}" alt="{{ ing.name }}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;" />
@@ -87,6 +83,5 @@
     {% endfor %}
   </ul>
 
-  <a href="{% url 'food:ingredient_result' %}">추가 완료</a>
+  <a href="{% url 'food:recipe_ingredients' %}">추가 완료</a>
 </body>
-</html>

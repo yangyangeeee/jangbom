@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>도착</title>
+</head>
+<body>
+<h2>도착 완료</h2>
+    {% if market.image %}
+        <img src="{{ market.image.url }}" alt="{{ market.name }} 이미지" width="200">
+    {% endif %}
+
+<!-- 버튼 -->
+<form method="get" action="{% url 'market:secret_input' market.id %}">
+  <input type="hidden" name="shoppinglist_id" value="{{ shopping_list.id }}">
+  <button type="submit">
+    구매 인증하고 {{ point_earned }}P 받기
+  </button>
+</form>
+
+<!-- 설명 -->
+<p>✔ 배달 포장 없는 장 보기</p>
+<p>✔ 탄소 없는 도보 쇼핑</p>
+</body>
+</html>

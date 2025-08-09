@@ -39,8 +39,7 @@ def logout_view(request):
 @login_required
 def activity_log_view(request):
     user = request.user
-    logs = ActivityLog.objects.filter(user=user).select_related('shopping_list__market').order_by('-visited_at')
-
+    logs = ActivityLog.objects.filter(user=user, shopping_list__is_done=True).select_related('shopping_list__market').order_by('-visited_at')
     # 누적 거리 계산 (거리 = point / 100)
     total_points = logs.aggregate(total=Sum('point_earned'))['total'] or 0
     total_distance_km = total_points / 100

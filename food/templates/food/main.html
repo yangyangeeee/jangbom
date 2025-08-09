@@ -3,18 +3,41 @@
 {% if user.is_authenticated %}
     <p>환영합니다, {{ user.nickname }}님!</p>
     <p>위치: {{ user.location }}</p>
+
     <form action="{% url 'food:recipe_input' %}" method="get">
         <button type="submit">요리를 할거야</button>
     </form>
+
     <form action="{% url 'food:ingredient_input' %}" method="get">
-        <button type="submit">식재료를 고를거야</button>
+        <button type="submit">식재료를 고를거야</button>   
     </form>
 
-    <a href="{% url 'accounts:activity_log' %}">내 활동</a> <br>
-    <a href="{% url 'point:point_home' %}">내 포인트</a> <br>
-    <a href="{% url 'accounts:logout' %}">로그아웃</a>
-{% else %}
-    <p>로그인 해주세요.</p>
-    <a href="{% url 'accounts:login' %}">로그인</a> |
-    <a href="{% url 'accounts:signup' %}">회원가입</a>
-{% endif %}
+    {% if warn %}
+        <p><strong>장바구니에 남아있는 식재료들이 있어요.</strong></p>
+
+        {% if ingredients %}
+            <p>장바구니에 남아있는 재료:</p>
+            <ul>
+                {% for ing in ingredients %}
+                    <li>{{ ing }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <p>위 재료들로 마저 장을 볼건가요?</p>
+        <form action="{% url 'food:ingredient_result' %}" method="get" style="display:inline;">
+            <input type="hidden" name="hide_warn" value="1">
+            <button type="submit">네</button>
+        </form>
+        <form action="{% url 'food:reset_shoppinglist' %}" method="POST" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="shoppinglist_id" value="{{ shoppinglist_id }}">
+            <button type="submit">아니요</button>
+        </form>
+    {% endif %}
+        <br><hr><br>
+        <a href="{% url 'food:main' %}">홈</a> |
+        <a href="{% url 'accounts:activity_log' %}">내 활동</a> |
+        <a href="{% url 'point:point_home' %}">포인트</a>
+        <br><br><br>
+        <a href="{% url 'accounts:logout' %}">[로그아웃]</a>
