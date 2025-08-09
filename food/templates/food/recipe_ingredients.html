@@ -1,35 +1,45 @@
 <h2>{{ recipe }} 만들 때 필요한 재료</h2>
 
-<form method="post" action="{% url 'food:confirm_shopping_list' %}">
-    {% csrf_token %}
-    <h3> 기본 재료</h3>
-    {% if basic %}
-        {% for i in basic %}
-            <label><input type="checkbox" name="ingredients" value="{{ i }}" checked> {{ i }}</label><br>
-        {% endfor %}
-    {% else %}
-        <p>등록된 기본 재료가 없습니다.</p>
-    {% endif %}
+<form method="post">
+  {% csrf_token %}
 
-    <h3> 선택 재료</h3>
-    {% if optional %}
-        {% for i in optional %}
-            <label><input type="checkbox" name="ingredients" value="{{ i }}"> {{ i }}</label><br>
-        {% endfor %}
-    {% else %}
-        <p>등록된 선택 재료가 없습니다.</p>
-    {% endif %}
-    <br>
-    {% if extra_ingredients %}
-        <h3>직접 추가한 재료</h3>
-        {% for i in extra_ingredients %}
-            <label><input type="checkbox" name="ingredients" value="{{ i }}" checked> {{ i }}</label><br>
-        {% endfor %}
-    {% endif %}
+  <h3>기본 재료</h3>
+  {% if basic %}
+    {% for i in basic %}
+      <label>
+        <input type="checkbox" name="ingredients" value="{{ i }}" checked>
+        {{ i }}
+      </label><br>
+    {% endfor %}
+  {% else %}
+    <p>등록된 기본 재료가 없습니다.</p>
+  {% endif %}
 
-    <a href="{% url 'food:ingredient_input' %}"> 재료 직접 추가하기</a><br><br>
+  <h3>선택 재료</h3>
+  {% if optional %}
+    {% for i in optional %}
+      <label>
+        <input type="checkbox" name="ingredients" value="{{ i }}"
+               {% if optional_selected and i in optional_selected %}checked{% endif %}>
+        {{ i }}
+      </label><br>
+    {% endfor %}
+  {% else %}
+    <p>등록된 선택 재료가 없습니다.</p>
+  {% endif %}
 
-    <form action="{% url 'food:recipe_result' %}" method="get">
-      <button type="submit">완료</button>
-    </form>
+  {% if extra_ingredients %}
+    <br><h3>직접 추가한 재료</h3>
+    {% for i in extra_ingredients %}
+      <label>
+        <input type="checkbox" name="ingredients" value="{{ i }}" checked>
+        {{ i }}
+      </label><br>
+    {% endfor %}
+  {% endif %}
+
+  <br>
+  <!-- 두 버튼 모두 같은 form 내에서 동작 -->
+  <button type="submit" name="next" value="search">재료 직접 추가하기</button>
+  <button type="submit" name="next" value="confirm">완료</button>
 </form>

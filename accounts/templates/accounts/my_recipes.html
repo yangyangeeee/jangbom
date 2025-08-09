@@ -1,0 +1,15 @@
+<h2>내가 저장한 요리법</h2>
+
+<ul>
+    {% for recipe in recipes %}
+        <li>
+            <a href="{% url 'accounts:recipe_detail' recipe.id %}">
+                {{ recipe.title }} ({{ recipe.created_at|date:"Y.m.d H:i" }})
+            </a>
+        </li>
+    {% empty %}
+        <li>저장한 요리법이 없습니다.</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'accounts:activity_log' %}">내 활동으로 돌아가기</a>

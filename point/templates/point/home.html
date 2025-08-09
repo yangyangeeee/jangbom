@@ -1,0 +1,7 @@
+<h2>일주일 동안 {{ weekly_points }}포인트나 모았어요!</h2>
+<div>{{ total_points }} 포인트</div>
+<p>{{user.nickname}} - {{ user_address }} {{ my_rank }}등</p>
+
+<a href="{% url 'food:main' %}">장 보러 가기</a>
+<a href="{% url 'point:point_history' %}">나의 적립 내역</a>
+<a href="{% url 'point:point_ranking' %}">도봉구 포인트 랭킹</a>

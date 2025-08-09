@@ -1,0 +1,7 @@
+<h2>{{ recipe.title }}</h2>
+<p><strong>저장한 날짜:</strong> {{ recipe.created_at|date:"Y.m.d H:i" }}</p>
+
+<h3>요리법 설명</h3>
+<pre>{{ recipe.description }}</pre>
+
+<a href="{% url 'accounts:my_recipes' %}">요리법 목록으로 돌아가기</a>
