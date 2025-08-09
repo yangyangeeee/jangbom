@@ -35,9 +35,10 @@
             <button type="submit">아니요</button>
         </form>
     {% endif %}
-        <br><hr><br>
-        <a href="{% url 'food:main' %}">홈</a> |
-        <a href="{% url 'accounts:activity_log' %}">내 활동</a> |
-        <a href="{% url 'point:point_home' %}">포인트</a>
-        <br><br><br>
-        <a href="{% url 'accounts:logout' %}">[로그아웃]</a>
+{% endif %}
+    <br><hr><br>
+    <a href="{% url 'food:main' %}">홈</a> |
+    <a href="{% url 'accounts:activity_log' %}">내 활동</a> |
+    <a href="{% url 'point:point_home' %}">포인트</a>
+    <br><br><br>
+    <a href="{% url 'accounts:logout' %}">[로그아웃]</a>
