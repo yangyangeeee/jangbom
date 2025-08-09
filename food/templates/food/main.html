@@ -41,10 +41,3 @@
         <a href="{% url 'point:point_home' %}">포인트</a>
         <br><br><br>
         <a href="{% url 'accounts:logout' %}">[로그아웃]</a>
-
-
-{% else %}
-    <p>로그인 해주세요.</p>
-    <a href="{% url 'accounts:login' %}">로그인</a> |
-    <a href="{% url 'accounts:signup' %}">회원가입</a>
-{% endif %}

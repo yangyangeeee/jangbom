@@ -82,7 +82,6 @@ def reset_shoppinglist_view(request):
     return redirect('food:main')
 
 # ------ 1. 요리를 할거야  ------
-
 # Step 1. 요리 입력
 def recipe_input_view(request):
     initial_recipe = request.GET.get('recipe', '')  # GPT에서 넘겨준 요리명 (없으면 빈 문자열)
@@ -100,9 +99,7 @@ def recipe_input_view(request):
 
     return render(request, 'food/recipe_input.html', {'initial_recipe': initial_recipe})
 
-
 # Step 2-1. GPT 분석 결과 보여주기
-
 @login_required
 def recipe_ingredient_result(request):
     recipe_name = request.GET.get('recipe') or request.session.get('recipe_input')
@@ -227,6 +224,7 @@ def confirm_shopping_list(request):
         "extra_ingredients": checked_extra_ingredients,
     })
 
+  
 @login_required
 def ingredient_search_view(request):
     search_query = request.GET.get('search', '').strip()
@@ -329,7 +327,7 @@ def delete_extra_ingredient(request, name):
     return redirect('food:ingredient_search')
 
 
-# Step 4. 장바구니 결과 보여주기
+# 장바구니 결과 보여주기
 @login_required
 def recipe_result_view(request):
     list_id = request.session.get('shopping_list_id')
@@ -569,6 +567,8 @@ def add_ingredient_ai(request):
 
     return redirect('food:ingredient_result')
 
+ 
+# ------ 3. 남은 식재료로 요리 추천받기 ------
 @login_required
 def show_recent_ingredients(request):
     # 가장 최근 장바구니
@@ -584,8 +584,6 @@ def show_recent_ingredients(request):
         'ingredients': ingredients,
     })
 
-
-# ------ 3. 남은 식재료로 요리 추천받기 ------
 
 @login_required
 def find_recipes_with_gpt(request):
