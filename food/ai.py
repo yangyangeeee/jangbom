@@ -100,7 +100,7 @@ def extract_ingredients_from_recipe_v2(recipe_name, allowed_ingredients=None):
 
 def gpt_conversational_cook(chat_history):
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         messages=chat_history,
         temperature=0.7,
     )

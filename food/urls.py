@@ -25,6 +25,6 @@ urlpatterns = [
     path("ingredient/add_ai/", add_ingredient_ai, name="add_ingredient_ai"),
 
     # 3. 남은 식재료로 요리 추천받기
-    path('leftover/', show_recent_ingredients, name='show_recent_ingredients'),
-    path('leftover/result/', find_recipes_with_gpt, name='find_recipes_with_gpt'),
+    path('recipe/leftover/', show_recent_ingredients, name='show_recent_ingredients'),
+    path('recipe/leftover/result/', find_recipes_with_gpt, name='find_recipes_with_gpt'),
 ]
