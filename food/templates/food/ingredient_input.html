@@ -24,7 +24,7 @@
         <form method="post" action="{% url 'food:delete_ingredient' ing.name %}" id="delete-form-{{ ing.id }}">
           {% csrf_token %}
           <input type="hidden" name="ingredient" value="{{ ing.name }}">
-          <!-- ⬇️ 현재 필터 상태 유지 -->
+          <!--  현재 필터 상태 유지 -->
           <input type="hidden" name="category" value="{{ selected_category }}">
           <input type="hidden" name="search" value="{{ request.GET.search }}">
           <a href="#" onclick="document.getElementById('delete-form-{{ ing.id }}').submit(); return false;">
@@ -39,8 +39,8 @@
 
   <hr>
 
-  <!-- 🔍 재료 검색 -->
-  <form method="get" action="{% url 'food:ingredient_search' %}">
+  <!-- 재료 검색 -->
+  <form method="get" action="{% url 'food:ingredient_input' %}">
     <label for="search">재료 검색:</label>
     <input type="text" name="search" id="search" value="{{ request.GET.search }}" placeholder="예: 된장" />
     <button type="submit">검색</button>
@@ -51,7 +51,7 @@
   <h3>재료 리스트</h3>
 
   <!-- 카테고리 선택 -->
-  <form method="get" action="{% url 'food:ingredient_search' %}">
+  <form method="get" action="{% url 'food:ingredient_input' %}">
     <label for="category">카테고리 선택:</label>
     <select name="category" id="category" onchange="this.form.submit()">
       <option value="" {% if not selected_category %}selected{% endif %}>전체</option>

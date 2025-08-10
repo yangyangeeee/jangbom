@@ -1,45 +1,71 @@
-<h2>{{ recipe }} 만들 때 필요한 재료</h2>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ recipe }} 재료 선택</title>
+</head>
+<body>
+  <h2>{{ recipe }} 만들 때 필요한 재료</h2>
 
-<form method="post">
-  {% csrf_token %}
-
-  <h3>기본 재료</h3>
-  {% if basic %}
-    {% for i in basic %}
-      <label>
-        <input type="checkbox" name="ingredients" value="{{ i }}" checked>
-        {{ i }}
-      </label><br>
-    {% endfor %}
-  {% else %}
-    <p>등록된 기본 재료가 없습니다.</p>
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
   {% endif %}
 
-  <h3>선택 재료</h3>
-  {% if optional %}
-    {% for i in optional %}
-      <label>
-        <input type="checkbox" name="ingredients" value="{{ i }}"
-               {% if optional_selected and i in optional_selected %}checked{% endif %}>
-        {{ i }}
-      </label><br>
-    {% endfor %}
-  {% else %}
-    <p>등록된 선택 재료가 없습니다.</p>
-  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <!-- (선택) 뷰가 세션도 보지만, 안정적으로 현재 레시피명을 넘겨두자 -->
+    <input type="hidden" name="recipe" value="{{ recipe }}">
 
-  {% if extra_ingredients %}
-    <br><h3>직접 추가한 재료</h3>
-    {% for i in extra_ingredients %}
-      <label>
-        <input type="checkbox" name="ingredients" value="{{ i }}" checked>
-        {{ i }}
-      </label><br>
-    {% endfor %}
-  {% endif %}
+    <!-- 기본 재료 -->
+    <h3>기본 재료</h3>
+    {% if basic and basic|length > 0 %}
+      {% for i in basic %}
+        <label>
+          <input type="checkbox" name="ingredients" value="{{ i }}" checked>
+          {{ i }}
+        </label><br>
+      {% endfor %}
+    {% else %}
+      <p>등록된 기본 재료가 없습니다.</p>
+    {% endif %}
 
-  <br>
-  <!-- 두 버튼 모두 같은 form 내에서 동작 -->
-  <button type="submit" name="next" value="search">재료 직접 추가하기</button>
-  <button type="submit" name="next" value="confirm">완료</button>
-</form>
+    <!-- 선택 재료 -->
+    <h3>선택 재료</h3>
+    {% if optional and optional|length > 0 %}
+      {% for i in optional %}
+        <label>
+          <input
+            type="checkbox"
+            name="ingredients"
+            value="{{ i }}"
+            {% if optional_selected and i in optional_selected %}checked{% endif %}
+          >
+          {{ i }}
+        </label><br>
+      {% endfor %}
+    {% else %}
+      <p>등록된 선택 재료가 없습니다.</p>
+    {% endif %}
+
+    <!-- 직접 추가한 재료 (GPT 목록에 없는 장바구니 항목) -->
+    {% if extra_ingredients and extra_ingredients|length > 0 %}
+      <br><h3>직접 추가한 재료</h3>
+      {% for i in extra_ingredients %}
+        <label>
+          <input type="checkbox" name="ingredients" value="{{ i }}" checked>
+          {{ i }}
+        </label><br>
+      {% endfor %}
+    {% endif %}
+
+    <br>
+    <!-- 두 버튼 모두 같은 form 내에서 동작 (뷰에서 next 값으로 분기) -->
+    <button type="submit" name="next" value="search">재료 직접 추가하기</button>
+    <button type="submit" name="next" value="confirm">완료</button>
+  </form>
+</body>
+</html>
