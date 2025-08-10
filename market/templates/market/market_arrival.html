@@ -21,5 +21,21 @@
 <!-- 설명 -->
 <p>✔ 배달 포장 없는 장 보기</p>
 <p>✔ 탄소 없는 도보 쇼핑</p>
-</body>
+
+<!-- 구매 재료 확인 영역 --> <br><br><br>
+{% if ingredients %}
+  <h3>구매할 재료</h3>
+  <ul>
+    {% for item in ingredients %}
+      <li style="display:flex;align-items:center;gap:8px;">
+        {% if item.image %}
+          <img src="{{ item.image }}" alt="{{ item.name }}" width="40" height="40" style="object-fit:cover;">
+        {% endif %}
+        <span>{{ item.name }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>이 마켓에서 구매 가능한 장바구니 재료가 없습니다.</p>
+{% endif %}
 </html>

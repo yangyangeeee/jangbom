@@ -238,17 +238,23 @@ def market_arrival_view(request, shoppinglist_id):
     shopping_list = get_object_or_404(ShoppingList, id=shoppinglist_id, user=user)
     market = shopping_list.market
 
+    # 이동 포인트 계산
     _, _, point_earned = get_travel_info(
         user.latitude, user.longitude,
         market.latitude, market.longitude
     )
 
+    # 진행 중 장바구니의 재료들 → 마켓 재고와 매칭
+    shopping_ingredients_set = get_latest_shopping_ingredients(user)
+    matched_ingredients, unmatched_names = match_ingredients(market, shopping_ingredients_set)
+
     context = {
         'market': market,
         'point_earned': point_earned,
         'shopping_list': shopping_list,
+        'ingredients': matched_ingredients,  
+        'missing_names': unmatched_names,     
     }
-
     return render(request, 'market/market_arrival.html', context)
 
 
