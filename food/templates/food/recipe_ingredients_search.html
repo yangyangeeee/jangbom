@@ -5,8 +5,12 @@
   <title>재료 직접 추가하기</title>
 </head>
 <body>
+  <!-- 상단 X: 저장 없이 레시피 재료 화면으로 돌아가기 -->
+  <a href="{% url 'food:recipe_ingredients' %}" aria-label="뒤로가기">✕</a>
+
   <h2>식재료를 살거야</h2>
 
+  <!-- 메시지 영역 -->
   {% if messages %}
     <ul>
       {% for message in messages %}
@@ -17,20 +21,20 @@
 
   <hr>
 
+  <!-- 장바구니(이미 확정된 항목: optional_selected 기준) -->
   <h3>장바구니</h3>
   <ul>
     {% for ing in selected_ingredients %}
       <li>
-        {% if ing.name in extra_names %}
-          <form method="post" action="{% url 'food:delete_extra_ingredient' ing.name %}" id="delete-form-{{ ing.id }}">
-            {% csrf_token %}
-            <a href="#" onclick="document.getElementById('delete-form-{{ ing.id }}').submit(); return false;">
-              {{ ing.name }}
-            </a>
-          </form>
-        {% else %}
-          {{ ing.name }}  {# 기본 재료는 표시만 #}
-        {% endif %}
+        <!-- 삭제: 세션+DB 동시에 제거, 검색어 유지용 hidden -->
+        <form method="post" action="{% url 'food:delete_extra_ingredient' ing.name %}">
+          {% csrf_token %}
+          <input type="hidden" name="search" value="{{ request.GET.search }}">
+          <!-- JS 없이 버튼을 텍스트처럼 보이게 -->
+          <button type="submit" style="background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;">
+            {{ ing.name }}
+          </button>
+        </form>
       </li>
     {% empty %}
       <li>장바구니에 담긴 재료가 없습니다.</li>
@@ -39,49 +43,48 @@
 
   <hr>
 
-  <!-- 재료 검색 -->
+  <!-- 재료 검색 (GET) -->
   <form method="get" action="{% url 'food:ingredient_search' %}">
     <label for="search">재료 검색:</label>
-    <input type="text" name="search" id="search" value="{{ request.GET.search }}" placeholder="예: 된장" />
+    <input type="text" id="search" name="search"
+           value="{{ request.GET.search }}" placeholder="예: 된장" required>
     <button type="submit">검색</button>
   </form>
 
+  <!-- 최근 검색어 -->
+  <h3>최근 검색어</h3>
+  <div>
+    {% if recent_searches %}
+      {% for word in recent_searches %}
+        <span style="margin-right:12px;">
+          <a href="{% url 'food:ingredient_search' %}?search={{ word|urlencode }}">{{ word }}</a>
+          <a href="{% url 'food:delete_recent_search' word %}" aria-label="{{ word }} 삭제">×</a>
+        </span>
+      {% endfor %}
+      <a href="{% url 'food:clear_recent_searches' %}">전체삭제</a>
+    {% else %}
+      <span>최근 검색어가 없습니다.</span>
+    {% endif %}
+  </div>
+
   <hr>
 
-  <h3>재료 리스트</h3>
-
-  <!-- 📦 카테고리 선택 -->
-  <form method="get" action="{% url 'food:ingredient_search' %}">
-    <label for="category">카테고리 선택:</label>
-    <select name="category" id="category" onchange="this.form.submit()">
-      <option value="" {% if not selected_category %}selected{% endif %}>전체</option>
-      {% for cat in categories %}
-        <option value="{{ cat.name }}" {% if cat.name == selected_category %}selected{% endif %}>{{ cat.name }}</option>
-      {% endfor %}
-    </select>
-  </form>
-
-  <ul>
-    {% for ing in category_ingredients %}
-      <li>
-        <form method="post" action="{% url 'food:add_extra_ingredient' %}" id="form-{{ ing.id }}">
-          {% csrf_token %}
-          <input type="hidden" name="ingredient" value="{{ ing.name }}">
-          {% if selected_category %}
-            <input type="hidden" name="category" value="{{ selected_category }}">
-          {% endif %}
-          <a href="#" onclick="document.getElementById('form-{{ ing.id }}').submit(); return false;" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-            {% if ing.image %}
-              <img src="{{ ing.image.url }}" alt="{{ ing.name }}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;" />
-            {% endif %}
-            <span>{{ ing.name }}</span>
-          </a>
-        </form>
-      </li>
-    {% empty %}
-      <li>조건에 맞는 재료가 없습니다.</li>
-    {% endfor %}
-  </ul>
-
-  <a href="{% url 'food:recipe_ingredients' %}">추가 완료</a>
+  <!-- 검색 결과: 체크 후 '완료' 한 번에 저장 -->
+  {% if category_ingredients %}
+    <form method="post" action="{% url 'food:add_extra_ingredient' %}">
+      {% csrf_token %}
+      <ul>
+        {% for ing in category_ingredients %}
+          <li>
+            <label>
+              <input type="checkbox" name="ingredients" value="{{ ing.name }}">
+              {{ ing.name }}
+            </label>
+          </li>
+        {% endfor %}
+      </ul>
+      <button type="submit">완료</button>
+    </form>
+  {% endif %}
 </body>
+</html>
