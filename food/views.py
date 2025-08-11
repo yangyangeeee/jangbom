@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.conf import settings
 import json
 from openai import OpenAI
+import re
+from typing import List, Tuple
 
 
 
@@ -625,7 +627,7 @@ def add_ingredient_ai(request):
 
     return redirect('food:ingredient_result')
 
- 
+
 # ------ 3. 남은 식재료로 요리 추천받기 ------
 @login_required
 def show_recent_ingredients(request):
@@ -642,34 +644,101 @@ def show_recent_ingredients(request):
         'ingredients': ingredients,
     })
 
+def extract_valid_ingredient_names(result: str) -> Tuple[List[str], List[str]]:
+    lines = [l.strip() for l in result.splitlines()]
+    # 시작/종료 위치
+    try:
+        start = next(i for i, l in enumerate(lines) if '필요한 재료' in l) + 1
+    except StopIteration:
+        return [], []
+    try:
+        end = next(i for i, l in enumerate(lines) if '조리 방법' in l)
+    except StopIteration:
+        end = len(lines)
+
+    # 파싱
+    raw = []
+    for l in lines[start:end]:
+        if not l:
+            continue
+        l = re.sub(r'^[\-\*\•\·\d\.\)\s]+', '', l)
+        parts = [p.strip() for p in re.split(r'[,\u3001/]', l) if p.strip()]
+        raw.extend(parts)
+
+    # 정리
+    seen, parsed = set(), []
+    for item in raw:
+        item = re.sub(r'\(.*?\)', '', item).strip()
+        if item and item not in seen:
+            seen.add(item)
+            parsed.append(item)
+
+    # DB 필터
+    db_names = set(Ingredient.objects.filter(name__in=parsed).values_list('name', flat=True))
+    valid = [n for n in parsed if n in db_names]
+    dropped = [n for n in parsed if n not in db_names]
+    return valid, dropped
+
 
 @login_required
 def find_recipes_with_gpt(request):
-    if request.method == 'POST':
-        selected = request.POST.getlist('ingredient_ids')
-        ingredients = Ingredient.objects.filter(id__in=selected)
-        names = [i.name for i in ingredients]
-        ingredient_names = Ingredient.objects.values_list('name', flat=True)
-        ingredient_list_str = ', '.join(ingredient_names)
+    if request.method != 'POST':
+        return redirect('food:show_recent_ingredients')
 
-        try:
-            result = generate_recipe_with_ingredients(names, ingredient_list_str)
-        except Exception as e:
-            messages.error(request, f"AI 응답 실패: {e}")
-            return redirect('food:show_recent_ingredients')
+    selected_ids = request.POST.getlist('ingredient_ids')
+    ingredients = Ingredient.objects.filter(id__in=selected_ids)
+    names = [i.name for i in ingredients]
 
-        lines = [line.strip() for line in result.splitlines() if line.strip()]
-        title = lines[0].strip() if lines else "추천 요리"
+    ingredient_names = Ingredient.objects.values_list('name', flat=True)
+    ingredient_list_str = ', '.join(ingredient_names)
 
-        SavedRecipe.objects.create(
-            user=request.user,
-            title=title,
-            description=result
-        )
+    try:
+        result = generate_recipe_with_ingredients(names, ingredient_list_str)
+    except Exception as e:
+        messages.error(request, f"AI 응답 실패: {e}")
+        return redirect('food:show_recent_ingredients')
 
-        return render(request, 'food/save_gpt_recipe_result.html', {
-            'result': result,
-            'title': title
-        })
+    lines = [line.strip() for line in result.splitlines() if line.strip()]
+    title = lines[0].strip() if lines else "추천 요리"
 
-    return redirect('food:show_recent_ingredients')
+    valid_names, dropped = extract_valid_ingredient_names(result)
+    final_names = valid_names or names
+
+    if dropped:
+        messages.info(request, f"DB에 없어 제외된 재료: {', '.join(dropped)}")
+
+    SavedRecipe.objects.create(user=request.user, title=title, description=result)
+
+    return render(request, 'food/save_gpt_recipe_result.html', {
+        'result': result,
+        'title': title,
+        'final_names': final_names,
+    })
+
+
+@login_required
+def apply_gpt_result_to_recipe_flow(request):
+    if request.method != 'POST':
+        return redirect('food:show_recent_ingredients')
+
+    recipe_title = (request.POST.get('recipe_title') or '').strip()
+    names = [n.strip() for n in request.POST.getlist('ingredient_names') if n.strip()]
+
+    if not recipe_title:
+        messages.warning(request, "레시피 제목이 없습니다.")
+        return redirect('food:show_recent_ingredients')
+
+    # DB 필터만 한 번 더
+    valid_names = list(Ingredient.objects.filter(name__in=names).values_list('name', flat=True))
+    if not valid_names:
+        messages.warning(request, "담을 재료가 없습니다.")
+        return redirect('food:show_recent_ingredients')
+
+    for k in ('basic', 'optional', 'optional_selected', 'extra_ingredients'):
+        request.session.pop(k, None)
+
+    request.session['recipe_input'] = recipe_title
+    request.session['basic'] = valid_names
+    request.session['optional'] = []
+
+    return redirect('food:recipe_ingredients')
