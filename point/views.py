@@ -2,56 +2,52 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from market.models import *
+from .models import *
 from accounts.models import CustomUser
+from datetime import timedelta
+from django.utils import timezone
 
 # Create your views here.
 @login_required
 def point_home(request):
     user = request.user
-    
-    # 1. 전체 사용자 포인트 랭킹 계산
-    rankings = ActivityLog.objects.values('user') \
-        .annotate(total_points=Sum('point_earned')) \
-        .order_by('-total_points')
 
-    # 2. 내 포인트
-    my_total = 0
-    for rank, entry in enumerate(rankings, start=1):
-        if entry['user'] == user.id:
-            my_total = entry['total_points']
-            my_rank = rank
-            break
-    else:
-        my_total = 0
-        my_rank = None  # 아직 활동 기록이 없는 경우
+    # 내 총 포인트 (누적 테이블 사용)
+    up, _ = UserPoint.objects.get_or_create(user=user)
+    my_total = up.total_point
 
-    # 3. 주간 포인트
-    from datetime import timedelta
-    from django.utils import timezone
+    # 내 랭킹: 나보다 점수 큰 사람 수 + 1
+    my_rank = UserPoint.objects.filter(total_point__gt=my_total).count() + 1 if my_total > 0 else None
 
-    now = timezone.now()
-    start_of_week = now - timedelta(days=now.weekday())
-    weekly_points = ActivityLog.objects.filter(user=user, visited_at__gte=start_of_week) \
+    # 이번 주 월요일 날짜 구하기
+    today = timezone.localdate()  # 현지 날짜
+    week_start_date = today - timedelta(days=today.weekday())
+
+    # 날짜 기준으로 필터
+    weekly_points = (
+        ActivityLog.objects
+        .filter(user=user, visited_at__date__gte=week_start_date)
         .aggregate(total=Sum('point_earned'))['total'] or 0
+    )
 
     return render(request, 'point/home.html', {
         'total_points': my_total,
         'weekly_points': weekly_points,
-        'user_address': user.location or '미등록',
+        'user_address': getattr(user, 'location', None) or '미등록',
         'my_rank': my_rank,
     })
-
 
 @login_required
 def point_history(request):
     logs = ActivityLog.objects.filter(user=request.user).order_by('-visited_at')
     return render(request, 'point/history.html', {'logs': logs})
 
-
 @login_required
 def point_ranking(request):
-    rankings = ActivityLog.objects.values('user__location', 'user__username') \
-        .annotate(total_points=Sum('point_earned')) \
-        .order_by('-total_points')
-
+    # 전체 랭킹은 누적 테이블(UserPoint) 기준
+    rankings = (
+        UserPoint.objects.select_related('user')
+        .order_by('-total_point', 'user_id')
+    )
+    # 템플릿에서 entry.user.username / entry.user.location / entry.total_point 사용
     return render(request, 'point/ranking.html', {'rankings': rankings})
