@@ -1,16 +1,25 @@
-<h2>장바구니</h2>
+<!-- 장바구니, 바코드는 추후 예정-->
+<a href="{% url 'food:recipe_ingredients' %}">⟨</a> {{ total_point }}P
+
+<h2>재료 선택 완료</h2>
+<p>장 보러 갈 준비 되었나요?</p>
 <ul>
   {% for item in ingredients %}
-    <li>
-      <strong>{{ item.name }}</strong><br>
-      {% if item.image_url %}
-        <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100px;">
-      {% else %}
-        <em>이미지 없음</em>
-      {% endif %}
-    </li>
+    {% if item.image_url %}
+      <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100px;"><br>
+    {% else %}
+      이미지 없음<br>
+    {% endif %}
+    <strong>{{ item.name }}</strong><br><br>
   {% endfor %}
 </ul>
-    <form action="{% url 'market:nearest_market' %}" method="get">
-      <button type="submit">우리 동네에서 장 보러 가기</button>
-    </form>
+
+<!-- 상점 필터 기능 추후 예정-->
+<form action="{% url 'market:nearest_market' %}" method="get">
+  <button type="submit">장 보러 가기</button>
+</form>
+
+<br><hr><br>
+<a href="{% url 'food:main' %}">홈</a> |
+<a href="{% url 'accounts:activity_log' %}">내 활동</a> |
+<a href="{% url 'point:point_home' %}">포인트</a> 

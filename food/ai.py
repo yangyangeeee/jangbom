@@ -59,45 +59,96 @@ def extract_ingredients_from_recipe(recipe_name):
         return [], []  # GPT 호출 실패 시도 빈 리스트 반환
     
 
-def extract_ingredients_from_recipe_v2(recipe_name, allowed_ingredients=None):
+def extract_ingredients_from_recipe_v2(recipe_name, allowed_ingredients=None, model="gpt-4o"):
     """
-    - recipe_name: 요리 이름 (필수)
-    - allowed_ingredients: DB에 존재하는 재료 이름 리스트 (선택)
-    - 반환: (basic:list[str], optional:list[str])
-    - GPT는 JSON으로만 응답하도록 강제
+    주어진 요리명으로 필요한 재료를 GPT에 물어보고 (basic, optional) 리스트를 돌려준다.
+    - allowed_ingredients가 주어지면 그 목록에 '정규화 매핑'으로 매칭되는 항목만 반환.
+    - 항상 문자열 리스트 2개를 반환하며, 실패 시 ([], []).
     """
+
+    def norm(s: str) -> str:
+        # 공백 제거 + 소문자화로 너그럽게 매칭
+        return re.sub(r"\s+", "", str(s)).strip().casefold()
+
+    # 허용 재료 매핑 (정규화된 키 -> 원본 DB명)
+    allowed_map = None
     allowed_block = ""
     if allowed_ingredients:
-        allowed_block = (
-            "\n사용 가능한 재료 목록(이 중에서만 선택):\n" +
-            ", ".join(allowed_ingredients)
-        )
+        allowed_map = {norm(a): a for a in allowed_ingredients}
+        allowed_block = "\n사용 가능한 재료 목록(이 중에서만 선택):\n" + ", ".join(allowed_ingredients)
 
-    prompt = (
-        f'"{recipe_name}"를 만들기 위한 재료를 아래 JSON 형식으로만 응답해줘. '
-        f'다른 설명, 인사말, 공백 없이 **JSON 데이터만** 줘.\n\n'
-        f'응답 형식 예시:\n'
-        '{\n  "basic": ["재료1","재료2"],\n  "optional": ["재료3","재료4"]\n}\n'
-        f'{allowed_block}'
-    )
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "당신은 주어진 요리의 재료만을 JSON으로 반환하는 도우미입니다. "
+                "설명/인사/코드블록/추가 텍스트 금지. 오직 JSON 오브젝트만 출력하세요."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f'"{recipe_name}"를 만들기 위한 재료를 아래 JSON 형식으로만 응답해줘.\n'
+                '응답 형식:\n{"basic": ["재료1","재료2"], "optional": ["재료3","재료4"]}\n'
+                + allowed_block
+            ),
+        },
+    ]
 
     try:
         res = client.chat.completions.create(
-            model="gpt-4o",      
-            messages=[{"role": "user", "content": prompt}],
+            model=model,
+            messages=messages,
             temperature=0.2,
         )
-        content = res.choices[0].message.content.strip()
+        content = (res.choices[0].message.content or "").strip()
+
+        # ```json ... ``` 제거
+        if content.startswith("```"):
+            content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content, flags=re.IGNORECASE | re.DOTALL)
+
+        # 혹시 앞뒤에 잡텍스트가 섞였으면 첫 번째 JSON 오브젝트만 추출
+        if not content.lstrip().startswith("{"):
+            m = re.search(r"\{[\s\S]*\}", content)
+            if m:
+                content = m.group(0)
+
         data = json.loads(content)
-        basic = data.get("basic", [])
-        optional = data.get("optional", [])
-        # 문자열만 남기고 정리
-        basic = [str(x).strip() for x in basic if isinstance(x, (str, int, float))]
-        optional = [str(x).strip() for x in optional if isinstance(x, (str, int, float))]
-        return basic, optional
     except Exception:
-        # v2 실패 시 빈 리스트 반환 (뷰에서 v1로 폴백)
         return [], []
+
+    def clean_list(x):
+        if not isinstance(x, list):
+            return []
+        out, seen = [], set()
+        for item in x:
+            s = str(item).strip()
+            if not s:
+                continue
+            if s not in seen:
+                seen.add(s)
+                out.append(s)
+        return out
+
+    basic = clean_list(data.get("basic", []))
+    optional = clean_list(data.get("optional", []))
+
+    # 허용 재료 필터링 + DB 원본명으로 복구
+    if allowed_map is not None:
+        def map_and_filter(seq):
+            mapped, seen = [], set()
+            for item in seq:
+                k = norm(item)
+                if k in allowed_map:
+                    val = allowed_map[k]
+                    if val not in seen:
+                        seen.add(val)
+                        mapped.append(val)
+            return mapped
+        basic = map_and_filter(basic)
+        optional = map_and_filter(optional)
+
+    return basic, optional
     
 
 def gpt_conversational_cook(chat_history):

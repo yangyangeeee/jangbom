@@ -14,15 +14,16 @@ urlpatterns = [
     path('recipe/ingredients/search/delete/<str:name>/', delete_extra_ingredient, name='delete_extra_ingredient'),
     path('recipe/ingredients/recent/delete/<str:keyword>/', delete_recent_search, name='delete_recent_search'),
     path('recipe/ingredients/recent/clear/', clear_recent_searches, name='clear_recent_searches'),
-    path('ingredients/search/cancel/', cancel_ingredient_search, name='cancel_ingredient_search'),
+    path('recipe/ingredients/search/cancel/', cancel_ingredient_search, name='cancel_ingredient_search'),
     path('recipe/confirm/', confirm_shopping_list, name='confirm_shopping_list'),
-    path('recipe/result/', recipe_result_view, name='recipe_result'),
     path('recipe/ai/', recipe_ai, name='recipe_ai'),
 
     # 2. 식재료를 고를거야
     path('ingredient/', ingredient_input_view, name='ingredient_input'),
     path('ingredient/add/', add_ingredient, name='add_ingredient'),
     path('ingredient/delete/<str:name>/', delete_ingredient, name='delete_ingredient'),
+    path('ingredient/recent/delete/<str:keyword>/', delete_recent_ingredient, name='delete_recent_ingredient'),
+    path('ingredient/recent/clear/', clear_recent_ingredient, name='clear_recent_ingredient'),
     path('ingredient/result/', ingredient_result_view, name='ingredient_result'),
     path('ingredient/ai/<str:name>/', ingredient_ai_view, name='ingredient_ai'),
     path("ingredient/add_ai/", add_ingredient_ai, name="add_ingredient_ai"),

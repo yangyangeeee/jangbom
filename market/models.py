@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from food.models import Ingredient
+from django.conf import settings
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -29,14 +31,6 @@ class Market(models.Model):
         return self.name
 
 
-class MarketStore(models.Model):
-    market = models.ForeignKey(Market, on_delete=models.CASCADE, related_name='stores')
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.market.name} - {self.name}"
-
-
 class MarketStock(models.Model):
     market = models.ForeignKey(Market, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
@@ -44,19 +38,10 @@ class MarketStock(models.Model):
 
     def clean(self):
         if self.market.market_type == '전통시장':
-            raise ValidationError('전통시장에는 MarketStock을 등록할 수 없습니다. MarketStore를 이용하세요.')
+            raise ValidationError('전통시장에는 MarketStock을 등록할 수 없습니다.')
 
     def __str__(self):
         return f"{self.market.name} - {self.ingredient.name}"
-
-
-class StoreStock(models.Model):
-    store = models.ForeignKey(MarketStore, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    last_updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.store.name} - {self.ingredient.name}"
 
 
 class ShoppingList(models.Model):
@@ -85,3 +70,45 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.point_earned}P"
+    
+
+
+
+
+
+
+"""class MarketFilterSetting(models.Model):
+    class TypePref(models.TextChoices):
+        NONE = 'none', '상관 없어요'
+        MART = 'mart', '동네 마트를 우선'
+        TRAD = 'trad', '전통 시장을 우선'
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='market_filter'
+    )
+    # 거리 제한 (미설정이면 상관없음). UI에서 1km 체크면 1000 저장.
+    radius_m = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text='단위: m, 비우면 상관없음'
+    )
+    # 마켓 타입 우선순위
+    type_preference = models.CharField(
+        max_length=10,
+        choices=TypePref.choices,
+        default=TypePref.NONE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(radius_m__gt=0) | Q(radius_m__isnull=True),
+                name='radius_positive_or_null'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user} filter'"""
