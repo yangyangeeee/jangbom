@@ -170,22 +170,12 @@ def nearest_market_view(request):
         else:
             closing_in_minutes = 0
 
-    # 전통시장 가게 정보
-    store_names = []
-    store_count = 0
-    if nearest.market_type == '전통시장':
-        stores_qs = nearest.stores.all()
-        store_names = list(stores_qs.values_list('name', flat=True))
-        store_count = stores_qs.count()
-
     return render(request, 'market/nearest_market.html', {
         "market": nearest,
         "distance_m": distance_m,
         "travel_time_min": expected_time,
         "closing_in_minutes": closing_in_minutes,
         "point_earned": point_earned,
-        "store_names": store_names,
-        "store_count": store_count,
     })
 
 

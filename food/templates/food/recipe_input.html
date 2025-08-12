@@ -1,18 +1,27 @@
-<h2>재료가 궁금한 요리를 입력해주세요!</h2>
-    <form method="post">
-        {% csrf_token %}
-        <input type="text" name="recipe" placeholder="예: 된장찌개, 김치볶음밥" value="{{ initial_recipe }}">
-        <button type="submit">확인</button>
-    </form>
-        
-<hr>
+<!-- 장바구니, 바코드는 추후 예정-->
+<a href="{% url 'food:main' %}">⟨</a> {{ total_point }}P
+
+<h3>{{ user.addr_level3 }} {{ user.nickname }}님,</h3>
+<h3>어떤 요리를 만드실 건가요?</h3>
+
+<p>-----------{{ today_str }}-----------</p>
+
+<br>
 
 <form method="get" action="{% url 'food:recipe_ai' %}">
-    <button type="submit">어떤 요리를 만들지 추천해줘</button>
+    <button type="submit">아직 할 요리를 정하지 못했다면 요리 추천 받기</button>
 </form>
 
 <form method="get" action="{% url 'food:show_recent_ingredients' %}">
-    <button type="submit">이전에 구매하고 남은 식재료로 요리할래</button>
+    <button type="submit">냉장고 속 재료가 신경 쓰인다면 갖고 있는 식재료로 요리하기</button>
+</form>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="recipe" placeholder="요리명을 입력해주세요" value="{{ initial_recipe }}">
+    <button type="submit">→</button>
+    <br>
+    <button type="submit">재료 담기</button>
 </form>
 
 </body>

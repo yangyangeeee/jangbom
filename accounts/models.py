@@ -14,7 +14,7 @@ class CustomUser(AbstractUser):
     )
 
     # (미러 필드) 대표 주소 정보 복사본
-    location      = models.CharField(max_length=200, blank=True, null=True)  # 전체 주소
+    address      = models.CharField(max_length=200, blank=True, null=True)  # 전체 주소
     addr_level1   = models.CharField(max_length=20, blank=True, null=True)   # 시·도
     addr_level2   = models.CharField(max_length=30, blank=True, null=True)   # 시·군·구
     addr_level3   = models.CharField(max_length=40, blank=True, null=True)   # 읍·면·동
@@ -37,7 +37,7 @@ class Address(models.Model):
         related_name='addresses'
     )
 
-    location      = models.CharField(max_length=200)          # 전체 주소
+    address      = models.CharField(max_length=200)          # 전체 주소
     addr_level1   = models.CharField(max_length=20)            # 시·도
     addr_level2   = models.CharField(max_length=30)            # 시·군·구
     addr_level3   = models.CharField(max_length=40, blank=True) # 읍·면·동
@@ -47,4 +47,4 @@ class Address(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.location
+        return f"{self.user.username} - {self.address}"

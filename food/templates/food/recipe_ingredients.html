@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ recipe }} 재료 선택</title>
-</head>
-<body>
-  <h2>{{ recipe }} 만들 때 필요한 재료</h2>
+<html>
+  <!-- 장바구니, 바코드는 추후 예정-->
+<a href="{% url 'food:recipe_input' %}">⟨</a> {{ total_point }}P
 
-  {% if messages %}
-    <ul>
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  <h3>{{ recipe }} 재료 담기</h3>
+  <p>인근 마트에 재고가 있는 재료만 보여요!</p>
+  <p>이 중 구매할 재료를 장바구니에 담아주세요</p>
+
+  <hr>
 
   <form method="post">
     {% csrf_token %}
@@ -64,8 +57,17 @@
 
     <br>
     <!-- 두 버튼 모두 같은 form 내에서 동작 (뷰에서 next 값으로 분기) -->
-    <button type="submit" name="next" value="search">재료 직접 추가하기</button>
-    <button type="submit" name="next" value="confirm">완료</button>
+    <button type="submit" name="next" value="search">재료 직접 담기</button> <button type="submit" name="next" value="confirm">다음</button>
   </form>
+
+<!-- 메시지 영역 -->
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
+  </ul>
+{% endif %}
+
 </body>
 </html>

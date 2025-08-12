@@ -2,14 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .ai import *
 from .models import *
 from market.models import ShoppingList, ShoppingListIngredient
+from point.models import UserPoint
 from django.contrib import messages
-from django.db import transaction
-from django.db.models import Case, When, Value, IntegerField
-from django.utils.http import urlencode
+from urllib.parse import urlencode
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
 import json
 from openai import OpenAI
 import re
@@ -57,6 +58,20 @@ def get_active_shopping_list_from_session(request):
     return sl
 
 
+# 사용자 포인트
+def get_user_total_point(user):
+    """해당 사용자의 보유 포인트를 정수로 반환. 없으면 0."""
+    if not getattr(user, "is_authenticated", False):
+        return 0
+    val = (
+        UserPoint.objects
+        .filter(user=user)
+        .values_list("total_point", flat=True)
+        .first()
+    )
+    return int(val) if val is not None else 0
+
+
 # ---------- 뷰 함수 ----------
 
 @login_required
@@ -75,7 +90,7 @@ def main(request):
     return render(request, 'food/main.html', {
         'warn': warn,
         'shoppinglist_id': shopping_list.id if shopping_list else None,
-        'ingredients': ingredients,  # 여기 추가
+        'ingredients': ingredients,
     })
 
 
@@ -94,138 +109,126 @@ def reset_shoppinglist_view(request):
 
 # ------ 1. 요리를 할거야  ------
 # Step 1. 요리 입력
+@login_required
 def recipe_input_view(request):
-    initial_recipe = request.GET.get('recipe', '')  # GPT에서 넘겨준 요리명 (없으면 빈 문자열)
+    user = request.user
+    initial_recipe = request.GET.get('recipe', '')
 
     if request.method == 'POST':
         recipe_name = request.POST.get('recipe')
         request.session['recipe_input'] = recipe_name
 
         # 새 요리를 입력했으므로 이전 재료들 초기화
-        request.session.pop('basic', None)
-        request.session.pop('optional', None)
-        request.session.pop('extra_ingredients', None)
+        for k in ('basic', 'optional', 'extra_selected'):
+            request.session.pop(k, None)
 
         return redirect('food:recipe_ingredients')
 
-    return render(request, 'food/recipe_input.html', {'initial_recipe': initial_recipe})
+    total_point = get_user_total_point(user)
+    today = timezone.localdate()            # 날짜만 (로컬 타임존 기준)
+    today_str = today.strftime('%Y년 %m월 %d일')  # 템플릿에서 문자열이 더 편하면 사용
+
+    return render(request, 'food/recipe_input.html', {
+        'initial_recipe': initial_recipe,
+        'total_point': total_point,
+        'today': today,          # date 객체
+        'today_str': today_str,  # 필요 시 문자열
+    })
+
 
 # Step 2-1. GPT 분석 결과 보여주기
+@login_required
 def recipe_ingredient_result(request):
-    # --- 기본 컨텍스트/세션 체크 ---
     recipe_name = (request.GET.get('recipe') or request.session.get('recipe_input') or "").strip()
-    print(f"[INGR_DBG] ENTER recipe_ingredient_result method={request.method} recipe_name={recipe_name!r}")
     if not recipe_name:
-        print("[INGR_DBG] recipe_name is empty → redirect to recipe_input")
         return redirect('food:recipe_input')
 
     prev_recipe = request.session.get('recipe_input')
-    print(f"[INGR_DBG] prev_recipe={prev_recipe!r}")
 
     # 레시피 변경 시 세션 초기화
     if prev_recipe != recipe_name:
-        print("[INGR_DBG] recipe changed → reset session ingredients")
         request.session['recipe_input'] = recipe_name
-        for k in ('basic', 'optional', 'optional_selected', 'extra_ingredients'):
+        for k in ('basic', 'optional', 'optional_selected', 'extra_selected'):
             request.session.pop(k, None)
 
-    # --- POST 분기 ---
     if request.method == "POST":
-        selected = request.POST.getlist('ingredients')
+        # 폼에서 체크된 재료들만 사용
+        selected = request.POST.getlist('ingredients')  # 모든 섹션에서 name="ingredients"로 넘어와야 함
+        selected = list(dict.fromkeys(s for s in selected if s))  # 중복 제거 + 빈 값 제거
         next_action = request.POST.get('next')
-        print(f"[INGR_DBG] POST selected={selected} next={next_action}")
 
-        basic = set(request.session.get('basic', []))
-        optional_selected = [name for name in selected if name not in basic]
-        request.session['optional_selected'] = optional_selected
-        print(f"[INGR_DBG] session.basic={list(basic)} optional_selected={optional_selected}")
+        # 검색 화면에서 장바구니(선택 목록) 보여주기 위해 세션에 현재 선택 상태 저장
+        # (이 키를 검색 화면에서 사용중이라면 그대로 재활용)
+        request.session['optional_selected'] = selected
 
         if next_action == 'search':
-            print("[INGR_DBG] goto ingredient_search (recipe flow)")
             return redirect('food:ingredient_search')
 
         if next_action == 'confirm':
-            extra = request.session.get('extra_ingredients', [])
-            selected_names = list(dict.fromkeys(list(basic) + optional_selected + extra))
-            print(f"[INGR_DBG] confirm selected_names={selected_names}")
-
-            if not selected_names:
+            if not selected:
                 messages.warning(request, "선택된 재료가 없습니다.")
-                return redirect('food:confirm_shopping_list')
+                return redirect('food:recipe_ingredients')
 
-            # 반드시 동일 쇼핑리스트 사용
             shopping_list = get_active_shopping_list_from_session(request)
-            print(f"[INGR_DBG] confirm SL id={shopping_list.id}")
 
             from django.db import transaction
             with transaction.atomic():
+                # 기존 장바구니 비우고
                 ShoppingListIngredient.objects.filter(shopping_list=shopping_list).delete()
+                # 체크된 것만 저장
                 ing_map = {
                     n: i for n, i in Ingredient.objects
-                    .filter(name__in=selected_names)
+                    .filter(name__in=selected)
                     .values_list('name', 'id')
                 }
                 bulk = [
                     ShoppingListIngredient(shopping_list=shopping_list, ingredient_id=ing_map[n])
-                    for n in selected_names if n in ing_map
+                    for n in selected if n in ing_map
                 ]
-                print(f"[INGR_DBG] bulk_create size={len(bulk)}")
                 if bulk:
                     ShoppingListIngredient.objects.bulk_create(bulk)
 
             request.session['shopping_list_id'] = shopping_list.id
             return redirect('food:confirm_shopping_list')
 
-        print("[INGR_DBG] POST other → redirect self")
+        # 기타 버튼 동작 시 자기 자신으로
         return redirect('food:recipe_ingredients')
 
-    # --- GET 분기: 분석 필요 여부 판정 ---
+    # ---- GET 분기 (기존 그대로) ----
     basic_filtered = request.session.get('basic')
     optional_filtered = request.session.get('optional')
-    print(f"[INGR_DBG] session.basic={basic_filtered} session.optional={optional_filtered}")
 
     need_fetch = (
         prev_recipe != recipe_name or
         basic_filtered is None or optional_filtered is None or
-        (len(basic_filtered) == 0 and len(optional_filtered) == 0)
+        (len(basic_filtered or []) == 0 and len(optional_filtered or []) == 0)
     )
-    print(f"[INGR_DBG] need_fetch={need_fetch}")
 
     if need_fetch:
         try:
             basic_raw, optional_raw = extract_ingredients_from_recipe(recipe_name)
-
             db_names = set(Ingredient.objects.values_list('name', flat=True))
-            basic_filtered = [x for x in (basic_raw or []) if x in db_names]
+            basic_filtered    = [x for x in (basic_raw or [])    if x in db_names]
             optional_filtered = [x for x in (optional_raw or []) if x in db_names]
-
             request.session['basic'] = basic_filtered
             request.session['optional'] = optional_filtered
-            print(f"[INGR_DBG] fetched basic={basic_filtered} optional={optional_filtered}")
         except Exception as e:
-            print(f"[INGR_DBG] fetch error: {e}")
             messages.error(request, f"재료 분석에 실패했습니다: {e}")
             basic_filtered = basic_filtered or []
             optional_filtered = optional_filtered or []
 
-    # --- extra 계산: 반드시 같은 쇼핑리스트에서 가져오기 ---
-    shopping_list = get_active_shopping_list_from_session(request)
-    print(f"[INGR_DBG] SL id={shopping_list.id} is_done={shopping_list.is_done}")
-    gpt_all = set((basic_filtered or []) + (optional_filtered or []))
-    selected_ings = get_shopping_list_ingredients(shopping_list)
-    extra_ingredients = [ing.name for ing in selected_ings if ing.name not in gpt_all]
-    request.session['extra_ingredients'] = extra_ingredients
-    print(f"[INGR_DBG] extra_ingredients={extra_ingredients}")
+    total_point = get_user_total_point(request.user)
 
-    # 어떤 템플릿을 렌더하는지 명확히 찍자
-    print("[INGR_DBG] RENDER → food/recipe_ingredients.html")
-
+    # extra는 여기서 굳이 합치지 않음(체크된 것만 저장하기 때문)
     return render(request, 'food/recipe_ingredients.html', {
         'recipe': recipe_name,
         'basic': basic_filtered or [],
         'optional': optional_filtered or [],
-        'extra_ingredients': extra_ingredients,
+        # 검색화면 장바구니에서 보여줄 현재 선택 상태
         'optional_selected': request.session.get('optional_selected', []),
+        # 템플릿에서 extra 섹션을 보여준다면 세션 값 그대로 넘겨도 OK
+        'extra_ingredients': request.session.get('extra_selected', []),
+        'total_point' : total_point,
     })
 
 # Step 3. 장바구니 저장
@@ -233,72 +236,99 @@ def recipe_ingredient_result(request):
 def confirm_shopping_list(request):
     shopping_list = get_or_create_active_shopping_list(request.user)
 
-    # 1) 예전 흐름(POST로 직접 이 뷰를 호출): 넘어온 재료를 추가
+    # 1) 최종 선택 목록 수집
     if request.method == 'POST':
-        selected = request.POST.getlist('ingredients')  # 체크된 항목 (이름 리스트)
-        if selected:
-            add_ingredients_to_list(shopping_list, selected)
-
-        # extra_ingredients 중 실제로 체크된 항목만 (POST일 때만 의미 있음)
-        all_extra = request.session.get('extra_ingredients', [])
-        checked_extra_ingredients = [name for name in all_extra if name in selected]
+        # 폼에서 체크된 항목만
+        selected_names = list(dict.fromkeys(request.POST.getlist('ingredients')))
     else:
-        # 2) 새로운 흐름(PRG): 이미 이전 단계에서 DB에 저장했으므로 DB에서 읽기만
-        checked_extra_ingredients = request.session.get('extra_ingredients', [])
+        # PRG(GET)으로 들어온 경우: 직전 단계에서 세션에 저장해둔 "체크된 목록"만 사용
+        # (우리가 recipe_ingredient_result에서 request.session['optional_selected'] = selected 로 저장했음)
+        selected_names = list(dict.fromkeys(request.session.get('optional_selected', [])))
 
-    # 화면 표시용으로 현재 장바구니 내용을 DB에서 읽어와서 ingredients 형태로 맞춰줌
+    # 2) DB 갱신(교체 저장): 체크된 것만 저장
+    with transaction.atomic():
+        ShoppingListIngredient.objects.filter(shopping_list=shopping_list).delete()
+        if selected_names:
+            name_to_id = dict(
+                Ingredient.objects.filter(name__in=selected_names).values_list('name', 'id')
+            )
+            bulk = [
+                ShoppingListIngredient(shopping_list=shopping_list, ingredient_id=name_to_id[n])
+                for n in selected_names if n in name_to_id
+            ]
+            if bulk:
+                ShoppingListIngredient.objects.bulk_create(bulk)
+
+    # 3) 화면 표시용 현재 장바구니 조회
     items_qs = Ingredient.objects.filter(
         shoppinglistingredient__shopping_list=shopping_list
     ).order_by('name')
-
     ingredients_ctx = [
         {"name": ing.name, "image_url": (ing.image.url if getattr(ing, "image", None) else None)}
         for ing in items_qs
     ]
 
+    # 4) 템플릿 호환: extra_ingredients는 '선택된 것 중' extra 후보에 속하는 것만 표시
+    extra_pool = set(request.session.get('extra_selected', []))
+    checked_extra_ingredients = [n for n in selected_names if n in extra_pool]
+
     request.session['shopping_list_id'] = shopping_list.id
+    total_point = get_user_total_point(request.user)
 
     return render(request, 'food/recipe_result.html', {
         "shopping_list": shopping_list,
-        "ingredients": ingredients_ctx,              # 현재 장바구니 전체(이미 DB 저장된 내용)
+        "ingredients": ingredients_ctx,              # 현재 장바구니(체크된 항목만 저장된 결과)
         "extra_ingredients": checked_extra_ingredients,
+        "total_point": total_point,
     })
 
-# 재료 직접 추가
+
+PER_CART_SESSION_KEYS = (
+    'extra_selected',
+    'optional_selected',
+    'ing_search_started',
+    'optional_selected_snapshot',
+    'ing_added_temp',
+)
+
 @login_required
 def ingredient_search_view(request):
+    # 장바구니가 바뀌었는지 확인하고, 바뀌었다면 per-cart 세션 키 초기화
+    sl = get_or_create_active_shopping_list(request.user)
+    prev_sl_id = request.session.get('shopping_list_id')
+    if prev_sl_id != sl.id:
+        for k in PER_CART_SESSION_KEYS:
+            request.session.pop(k, None)
+        request.session['shopping_list_id'] = sl.id
+
     raw = request.GET.get('search')
     search_query = (raw or '').strip()
+    did_click_search = request.GET.get('action') == 'search'
 
-    # 빈 검색어 제출 시 경고 후 리다이렉트
-    if 'search' in request.GET and search_query == '':
+    if did_click_search and search_query == '':
         messages.warning(request, "검색어를 입력해주세요.")
         return redirect('food:ingredient_search')
 
-    # 최근 검색어 업데이트 (최신순, 최대 10개)
-    if search_query:
+    # 최근 검색어 업데이트(원하면 이건 유지해도 됨)
+    if did_click_search and search_query:
         recent = request.session.get('recent_searches', [])
         if search_query in recent:
             recent.remove(search_query)
         recent.insert(0, search_query)
-        request.session['recent_searches'] = recent[:10]
+        request.session['recent_searches'] = recent[:6]
 
-    # 화면의 장바구니는 세션의 optional_selected 기준으로만 표시
-    optional_selected = request.session.get('optional_selected', [])
-    selected_ingredients = Ingredient.objects.filter(
-        name__in=optional_selected
-    ).order_by('name')
+    # 장바구니 후보(세션 기반)
+    extra_selected = request.session.get('extra_selected', [])
+    selected_ingredients = Ingredient.objects.filter(name__in=extra_selected).order_by('name')
 
-    # 검색했을 때만 결과 표시; 이미 선택된 건 검색 결과에서 제외
     if search_query:
-        category_ingredients = Ingredient.objects.filter(
-            name__icontains=search_query
-        ).order_by('name')
-        if optional_selected:
-            category_ingredients = category_ingredients.exclude(name__in=optional_selected)
-
-        # 결과 0개면 안내만 (추천어 X)
-        if not category_ingredients.exists():
+        category_ingredients = (
+            Ingredient.objects
+            .filter(name__icontains=search_query)
+            .exclude(name__in=extra_selected)
+            .order_by('name')
+        )
+        if did_click_search and not category_ingredients.exists():
             messages.info(request, f"‘{search_query}’에 해당하는 재료가 없습니다.")
     else:
         category_ingredients = Ingredient.objects.none()
@@ -310,94 +340,51 @@ def ingredient_search_view(request):
         'recent_searches': request.session.get('recent_searches', []),
     })
 
+
+# 체크박스 클릭 → 즉시 '세션(extra_selected)'에만 추가
 @login_required
 def add_extra_ingredient(request):
     if request.method != 'POST':
         return redirect('food:ingredient_search')
 
-    # 체크된 재료들
-    selected_names = request.POST.getlist('ingredients')
-    if not selected_names:
-        messages.info(request, "선택한 재료가 없습니다.")
+    name = (request.POST.get('ingredient') or '').strip()
+    search = (request.POST.get('search') or '').strip()
+    if not name:
         return redirect('food:ingredient_search')
 
-    # 유효한 재료만 조회
-    ingredients = list(Ingredient.objects.filter(name__in=selected_names))
-    if not ingredients:
-        messages.warning(request, "선택한 재료가 유효하지 않습니다.")
-        return redirect('food:ingredient_search')
+    # 유효성(존재 재료) 체크만
+    if not Ingredient.objects.filter(name=name).exists():
+        messages.error(request, f"{name} 재료를 찾을 수 없습니다.")
+    else:
+        extra_selected = request.session.get('extra_selected', [])
+        if name not in extra_selected:
+            extra_selected.append(name)
+            request.session['extra_selected'] = extra_selected
+        else:
+            messages.info(request, f"{name}은(는) 이미 담겨 있어요.")
 
-    sl = get_active_shopping_list_from_session(request)
-
-    name_set = {i.name for i in ingredients}
-
-    # 이미 장바구니(DB)에 있는 항목
-    existing = set(
-        ShoppingListIngredient.objects
-        .filter(shopping_list=sl, ingredient__name__in=name_set)
-        .values_list('ingredient__name', flat=True)
-    )
-
-    # 새로 추가할 객체 준비
-    to_create = [
-        ShoppingListIngredient(shopping_list=sl, ingredient=i)
-        for i in ingredients if i.name not in existing
-    ]
-    if to_create:
-        ShoppingListIngredient.objects.bulk_create(to_create)
-
-    # 세션 optional_selected 업데이트 (중복 제거 + 순서 보존)
-    optional_selected = request.session.get('optional_selected', [])
-    final = list(dict.fromkeys(optional_selected + [i.name for i in ingredients]))
-    request.session['optional_selected'] = final
-
-    # 메시지
-    created_names = [obj.ingredient.name for obj in to_create]
-    if created_names:
-        messages.success(request, f"{', '.join(created_names)} 추가 완료!")
-    if existing:
-        messages.info(request, f"{', '.join(sorted(existing))} 이미 장바구니에 있어요.")
-
-    # 완료 후 레시피 재료 화면으로 이동
-    return redirect('food:recipe_ingredients')
+    base = reverse('food:ingredient_search')
+    return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
 
 
+# (세션에서만) 장바구니 후보 제거
 @login_required
 def delete_extra_ingredient(request, name):
-    if request.method == 'POST':
-        search = request.POST.get('search', '').strip()
+    if request.method != 'POST':
+        return redirect('food:ingredient_search')
 
-        # optional_selected 세션에서 제거
-        optional_selected = request.session.get('optional_selected', [])
-        if name in optional_selected:
-            optional_selected.remove(name)
-            request.session['optional_selected'] = optional_selected
-            messages.success(request, f"{name}을(를) 장바구니에서 제거했어요.")
-        else:
-            messages.info(request, f"{name}은(는) 장바구니에 없어요.")
+    search = (request.POST.get('search') or '').strip()
 
-        # DB에서도 제거
-        shopping_list = get_active_shopping_list_from_session(request)
-        ShoppingListIngredient.objects.filter(
-            shopping_list=shopping_list,
-            ingredient__name=name
-        ).delete()
+    extra_selected = request.session.get('extra_selected', [])
+    if name in extra_selected:
+        extra_selected.remove(name)
+        request.session['extra_selected'] = extra_selected
+    else:
+        messages.info(request, f"{name}은(는) 후보에 없어요.")
 
-        redirect_url = reverse('food:ingredient_search')
-        if search:
-            redirect_url += f'?search={search}'
-        return redirect(redirect_url)
+    base = reverse('food:ingredient_search')
+    return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
 
-    return redirect('food:ingredient_search')
-
-# 장바구니 결과 보여주기
-@login_required
-def recipe_result_view(request):
-    list_id = request.session.get('shopping_list_id')
-    shopping_list = get_object_or_404(ShoppingList, id=list_id, user=request.user)
-    ingredients = get_shopping_list_ingredients(shopping_list)
-
-    return render(request, 'food/recipe_result.html', {'shopping_list': shopping_list, 'ingredients': ingredients})
 
 # 최근 검색어 삭제
 @login_required
@@ -408,21 +395,24 @@ def delete_recent_search(request, keyword):
         request.session['recent_searches'] = recent_searches
     return redirect('food:ingredient_search')
 
-# 전체 삭제
+
+# 최근 검색어 전체 삭제
 @login_required
 def clear_recent_searches(request):
     request.session['recent_searches'] = []
     return redirect('food:ingredient_search')
 
-# 4) X(취소) → 원복 후 돌아가기
+
+# X(취소) → 이번 화면에서 새로 담은 것만 롤백(DB/세션 복원) 후 검색 화면으로
 @login_required
 def cancel_ingredient_search(request):
     if request.session.get('ing_search_started'):
-        shopping_list = get_active_shopping_list_from_session(request)  # ← 네 함수
+        sl = get_active_shopping_list_from_session(request)
+
         added = request.session.get('ing_added_temp', [])
         if added:
             ShoppingListIngredient.objects.filter(
-                shopping_list=shopping_list,
+                shopping_list=sl,
                 ingredient__name__in=added
             ).delete()
 
@@ -446,13 +436,21 @@ def recipe_ai(request):
         return redirect('food:recipe_ai')
 
     # 대화 세션 초기화 + system 가이드 주입
+
+    ingredient_names = list(Ingredient.objects.values_list('name', flat=True))
+    ingredient_list_str = ', '.join(ingredient_names)
+
     if 'chat_history' not in request.session:
         request.session['chat_history'] = [{
             "role": "system",
             "content": (
                 "넌 사용자의 기분과 상황을 듣고 요리를 제안하는 친절한 요리 도우미야. "
                 "반드시 **하나의 요리만** 추천하고, 추천 끝에 요리명을 큰따옴표(\")로 감싸서 제시해. "
-                "예: 추천 요리: \"된장찌개\". 간단한 설명과 필요한 재료도 덧붙여."
+                "간단한 설명과 필요한 재료도 덧붙여."
+                "추천 요리는 반드시 사용할 수 있는 재료 목록에서 만들 수 있는 요리만 추천해"
+                "재료도 마찬가지로 반드시 사용할 수 있는 재료 목록에서 설명해줘"
+                f"- 사용할 수 있는 재료 목록: {ingredient_list_str}\n"
+                "한 문장이 끝나면 줄바꿈을 해"
             )
         }]
 
@@ -518,89 +516,142 @@ def recipe_ai(request):
 
 @login_required
 def ingredient_input_view(request):
-    user = request.user
-    search_query = request.GET.get('search', '').strip()
-    selected_category = request.GET.get('category', '').strip()
+    # 검색어/액션
+    raw = request.GET.get('search')
+    search_query = (raw or '').strip()
+    did_click_search = request.GET.get('action') == 'search'  # 검색 버튼 눌렀는지 여부
 
-    categories = Category.objects.all().order_by('name')
-    shopping_list = get_or_create_active_shopping_list(user)
-    selected_ingredients = get_shopping_list_ingredients(shopping_list)
+    # 빈 검색어 제출 방지
+    if did_click_search and search_query == '':
+        messages.warning(request, "검색어를 입력해주세요.")
+        return redirect('food:ingredient_input')
 
-    if search_query:
-        ingredients = Ingredient.objects.filter(name__icontains=search_query).order_by('name')
-        if ingredients.exists():
-            messages.success(request, f"'{search_query}' 관련 검색 결과입니다.")
-        else:
-            messages.error(request, f"'{search_query}'과(와) 관련된 재료가 없습니다.")
-    elif selected_category:
-        ingredients = Ingredient.objects.filter(category__name=selected_category).order_by('name')
+    # 최근 검색어 업데이트(검색 버튼 눌렀을 때만)
+    if did_click_search and search_query:
+        recent = request.session.get('recent_searches', [])
+        if search_query in recent:
+            recent.remove(search_query)
+        recent.insert(0, search_query)
+        request.session['recent_searches'] = recent[:6]
+
+    # 장바구니(확정된 항목): optional_selected 세션 기준
+    optional_selected = request.session.get('optional_selected', [])
+    selected_ingredients = Ingredient.objects.filter(name__in=optional_selected).order_by('name')
+
+    # 검색 버튼 눌렀을 때만 결과 계산/표시, 이미 담긴 것 제외
+    if did_click_search and search_query:
+        category_ingredients = (
+            Ingredient.objects
+            .filter(name__icontains=search_query)
+            .exclude(name__in=optional_selected)
+            .order_by('name')
+        )
+        if not category_ingredients.exists():
+            messages.info(request, f"‘{search_query}’에 해당하는 재료가 없습니다.")
     else:
-        ingredients = Ingredient.objects.all().order_by('name')
+        category_ingredients = Ingredient.objects.none()
 
-    context = {
-        'selected_category': selected_category,
+    return render(request, 'food/ingredient_input.html', {
         'search_query': search_query,
-        'category_ingredients': ingredients,
-        'categories': categories,
+        'category_ingredients': category_ingredients,
         'selected_ingredients': selected_ingredients,
-    }
-    return render(request, 'food/ingredient_input.html', context)
+        'recent_searches': request.session.get('recent_searches', []),
+    })
+
 
 # Step 1-1. 원하는 식재료 장바구니에 추가하기
 @login_required
 def add_ingredient(request):
-    if request.method == 'POST':
-        name = request.POST.get('ingredient', '').strip()
-        category = request.POST.get('category', '').strip()
+    if request.method != 'POST':
+        return redirect('food:ingredient_input')
 
-        if not name:
-            messages.error(request, "내용을 입력해 주세요.")
-            return redirect('food:ingredient_input')
+    name = (request.POST.get('ingredient') or '').strip()
+    search = (request.POST.get('search') or '').strip()
 
-        try:
-            ingredient = Ingredient.objects.get(name=name)
-        except Ingredient.DoesNotExist:
-            messages.error(request, f"{name}은(는) 마트에서 판매하지 않습니다.")
-            return redirect('food:ingredient_input')
+    if not name:
+        messages.error(request, "내용을 입력해 주세요.")
+        base = reverse('food:ingredient_input')
+        return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
 
-        shopping_list = get_or_create_active_shopping_list(request.user)
+    try:
+        ingredient = Ingredient.objects.get(name=name)
+    except Ingredient.DoesNotExist:
+        messages.error(request, f"{name}은(는) 존재하지 않습니다.")
+        base = reverse('food:ingredient_input')
+        return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
 
-        if not ShoppingListIngredient.objects.filter(shopping_list=shopping_list, ingredient=ingredient).exists():
-            ShoppingListIngredient.objects.create(shopping_list=shopping_list, ingredient=ingredient)
-        else:
-            messages.info(request, f"{name}은(는) 이미 추가되어 있어요.")
+    shopping_list = get_or_create_active_shopping_list(request.user)
 
-        redirect_url = reverse('food:ingredient_input')
-        if category:
-            redirect_url += f'?category={category}'
-        return redirect(redirect_url)
+    # DB 추가 (중복 생성 방지)
+    _, created = ShoppingListIngredient.objects.get_or_create(
+        shopping_list=shopping_list,
+        ingredient=ingredient
+    )
 
-    return redirect('food:ingredient_input')
+    # 세션(optional_selected) 동기화
+    optional_selected = request.session.get('optional_selected', [])
+    if name not in optional_selected:
+        optional_selected.append(name)
+        request.session['optional_selected'] = optional_selected
+
+    messages.success(request, f"{name}을(를) 장바구니에 담았어요.") if created \
+        else messages.info(request, f"{name}은(는) 이미 추가되어 있어요.")
+
+    base = reverse('food:ingredient_input')
+    return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
+
 
 # Step 1-2. 장바구니에 담은 식재료 제거하기
 @login_required
 def delete_ingredient(request, name):
-    if request.method == 'POST':
-        category = request.POST.get('category', '').strip()
+    if request.method != 'POST':
+        return redirect('food:ingredient_input')
 
-        try:
-            ingredient = Ingredient.objects.get(name=name)
-        except Ingredient.DoesNotExist:
-            messages.error(request, f"{name}은(는) 존재하지 않습니다.")
-            return redirect('food:ingredient_input')
+    search = (request.POST.get('search') or '').strip()
 
-        shopping_list = get_or_create_active_shopping_list(request.user)
+    try:
+        ingredient = Ingredient.objects.get(name=name)
+    except Ingredient.DoesNotExist:
+        messages.error(request, f"{name}은(는) 존재하지 않습니다.")
+        base = reverse('food:ingredient_input')
+        return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
 
-        ShoppingListIngredient.objects.filter(
-            shopping_list=shopping_list, ingredient=ingredient
-        ).delete()
+    shopping_list = get_or_create_active_shopping_list(request.user)
 
-        redirect_url = reverse('food:ingredient_input')
-        if category:
-            redirect_url += f'?category={category}'
-        return redirect(redirect_url)
+    # DB 제거
+    ShoppingListIngredient.objects.filter(
+        shopping_list=shopping_list, ingredient=ingredient
+    ).delete()
 
+    # 세션(optional_selected) 동기화
+    optional_selected = request.session.get('optional_selected', [])
+    if name in optional_selected:
+        optional_selected.remove(name)
+        request.session['optional_selected'] = optional_selected
+
+    messages.success(request, f"{name}을(를) 장바구니에서 제거했어요.")
+
+    base = reverse('food:ingredient_input')
+    return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
+
+
+# 최근 검색어 삭제
+@login_required
+def delete_recent_ingredient(request, keyword):
+    recent = request.session.get('recent_searches', [])
+    if keyword in recent:
+        recent.remove(keyword)
+        request.session['recent_searches'] = recent
     return redirect('food:ingredient_input')
+
+
+# 최근 검색어 전체 삭제
+@login_required
+def clear_recent_ingredient(request):
+    request.session['recent_searches'] = []
+    return redirect('food:ingredient_input')
+
+
 
 
 # Step 2. 장바구니에 담은 식재료 모아보기
