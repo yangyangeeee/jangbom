@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from market.models import *
 from .models import *
 from accounts.models import CustomUser
@@ -37,17 +37,76 @@ def point_home(request):
         'my_rank': my_rank,
     })
 
+PERIODS = {
+    '1m': 30, '3m': 90, '6m': 180, '1y': 365, 'all': None,
+}
+
 @login_required
 def point_history(request):
-    logs = ActivityLog.objects.filter(user=request.user).order_by('-visited_at')
-    return render(request, 'point/history.html', {'logs': logs})
+    period = request.GET.get('period', '1m')   # 1m,3m,6m,1y,all
+    sort = request.GET.get('sort', 'latest')   # latest, points
+
+    qs = ActivityLog.objects.filter(user=request.user)
+
+    if period in PERIODS and PERIODS[period] is not None:
+        cutoff = timezone.now() - timedelta(days=PERIODS[period])
+        qs = qs.filter(visited_at__gte=cutoff)
+
+    sort_field = 'visited_at' if sort == 'latest' else 'point_earned'
+    qs = qs.order_by(f'-{sort_field}')
+
+    summary = qs.aggregate(total_points=Sum('point_earned'), count=Count('id'))
+
+    return render(request, 'point/history.html', {
+        'logs': qs,
+        'summary': summary,
+        'selected': {'period': period, 'sort': sort},
+        'PERIODS': PERIODS,
+    })
+
+def _my_district(user) -> str | None:
+    """대표 주소의 addr_level2 우선, 없으면 미러 필드 사용."""
+    addr = getattr(user, "active_address", None)
+    if addr and addr.addr_level2:
+        return addr.addr_level2
+    return getattr(user, "addr_level2", None)
 
 @login_required
 def point_ranking(request):
-    # 전체 랭킹은 누적 테이블(UserPoint) 기준
-    rankings = (
-        UserPoint.objects.select_related('user')
-        .order_by('-total_point', 'user_id')
+    district = _my_district(request.user)
+    local_users = (
+        CustomUser.objects.filter(addr_level2=district) if district
+        else CustomUser.objects.all()
     )
-    # 템플릿에서 entry.user.username / entry.user.location / entry.total_point 사용
-    return render(request, 'point/ranking.html', {'rankings': rankings})
+
+    now = timezone.now()
+    start_of_week = (now - timedelta(days=now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    next_week = start_of_week + timedelta(days=7)
+
+    # 이번 주, 같은 구의 전체 로그
+    base_qs = ActivityLog.objects.filter(
+        user__in=local_users,
+        visited_at__gte=start_of_week,
+        visited_at__lt=next_week,
+    )
+
+    # 헤더 카드(이번 주 전체 기준)
+    header_stats = {
+        "shopper_count": base_qs.values("user_id").distinct().count(),
+        "total_points": base_qs.aggregate(s=Sum("point_earned"))["s"] or 0,
+    }
+
+    # 주간 TOP 30
+    weekly_top30 = (
+        base_qs.values("user_id", "user__nickname", "user__addr_level3")
+        .annotate(points=Sum("point_earned"))
+        .order_by("-points", "user_id")[:30]
+    )
+
+    return render(request, "point/ranking.html", {
+        "district": district,
+        "weekly_top30": weekly_top30,
+        "header_stats": header_stats,
+    })

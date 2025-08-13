@@ -6,6 +6,9 @@ from django.db.models.functions import Rank
 from market.models import *
 from food.models import *
 from django.contrib.auth.decorators import login_required
+from datetime import timedelta
+from django.utils import timezone
+from django.db.models import Q
 
 # Create your views here.
 def signup_view(request):
@@ -88,6 +91,8 @@ def activity_log_view(request):
         'co2_saved_kg': co2_saved_kg,
         'user_rank': user_rank,
     })
+STEPS_PER_KM = 1300       # 1km ≈ 1,300걸음(평균 보폭 기준 대략치)
+KCAL_PER_KM  = 50         # 1km당 약 50kcal(평균 체중/보행 속도 가정)
 
 @login_required
 def activity_detail_view(request, shopping_list_id):
@@ -97,26 +102,114 @@ def activity_detail_view(request, shopping_list_id):
         user=request.user
     )
 
-    ingredients = ShoppingListIngredient.objects.filter(
-        shopping_list=shopping_list
-    ).select_related('ingredient')
+    ingredients = (ShoppingListIngredient.objects.filter(shopping_list=shopping_list).select_related('ingredient'))
 
     # 연결된 ActivityLog에서 포인트 가져오기
     log = ActivityLog.objects.filter(user=request.user, shopping_list=shopping_list).first()
     point_earned = log.point_earned if log else 0
 
+    # ---- 포인트 기반 추정치 계산 ----
+    # points = round(distance_km * 100)  =>  distance_km ≈ points / 100
+    distance_km = point_earned / 100.0
+    steps = int(round(distance_km * STEPS_PER_KM))
+    calories_kcal = int(round(distance_km * KCAL_PER_KM))
+
     return render(request, 'accounts/activity_detail.html', {
         'shopping_list': shopping_list,
         'ingredients': ingredients,
         'point_earned': point_earned,
+
+        # 추가된 컨텍스트
+        'distance_km': distance_km,
+        'steps': steps,
+        'calories_kcal': calories_kcal,
     })
 
 @login_required
 def my_recipes(request):
-    recipes = SavedRecipe.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'accounts/my_recipes.html', {'recipes': recipes})
+    q = request.GET.get('q', '').strip()        # 검색어
+    sort = request.GET.get('sort', 'latest')    # 정렬 기준 (기본: 최신순)
+
+    recipes = SavedRecipe.objects.filter(user=request.user)
+
+    # 검색 필터
+    if q:
+        recipes = recipes.filter(title__icontains=q)
+
+    # 정렬 조건
+    if sort == 'latest':
+        recipes = recipes.order_by('-created_at')
+    elif sort == 'alpha':  # 가나다/알파벳순
+        recipes = recipes.order_by('title')
+
+    return render(request, 'accounts/my_recipes.html', {
+        'recipes': recipes,
+        'q': q,
+        'sort': sort,
+    })
 
 @login_required
 def recipe_detail(request, recipe_id):
     recipe = get_object_or_404(SavedRecipe, id=recipe_id, user=request.user)
     return render(request, 'accounts/recipe_detail.html', {'recipe': recipe})
+
+_PERIODS = {
+    "1m": timedelta(days=30),
+    "3m": timedelta(days=90),
+    "6m": timedelta(days=180),
+    "1y": timedelta(days=365),
+    "all": None,
+}
+
+@login_required
+def activity_history_view(request):
+    user = request.user
+
+    # 현재 선택값 (없으면 기본값)
+    q = (request.GET.get("q") or "").strip()
+    period = request.GET.get("period") or "1m"
+    sort = request.GET.get("sort") or "latest"
+
+    # 기본 쿼리
+    qs = (
+        ActivityLog.objects
+        .filter(user=user)
+        .select_related("shopping_list__market")
+    )
+
+    # 기간 필터
+    if period not in _PERIODS:
+        period = "1m"
+    delta = _PERIODS[period]
+    if delta is not None:
+        since = timezone.now() - delta
+        qs = qs.filter(visited_at__gte=since)
+
+    # 검색: 마트 이름만
+    if q:
+        qs = qs.filter(shopping_list__market__name__icontains=q)
+
+    # 정렬
+    if sort == "points":
+        qs = qs.order_by("-point_earned")  # 포인트 높은 순
+    else:
+        sort = "latest"
+        qs = qs.order_by("-visited_at")
+
+    # 템플릿용 최소 데이터
+    log_data = []
+    for log in qs:
+        sl = log.shopping_list
+        market_name = sl.market.name if (sl and sl.market) else "미지정"
+        log_data.append({
+            "visited_at": log.visited_at,
+            "market_name": market_name,
+            "shopping_list_id": sl.id if sl else None,
+        })
+
+    return render(request, "accounts/activity_history.html", {
+        "q": q,
+        "period": period,
+        "sort": sort,
+        "log_data": log_data,
+    })

@@ -1,0 +1,49 @@
+{% load humanize %}
+
+<h2>세부 활동 내역</h2>
+
+<!-- 검색 폼: period/sort 값을 hidden으로 함께 보냄 (검색만 바꿔도 필터 유지) -->
+<form method="get" action="">
+    <input type="hidden" name="period" value="{{ period }}">
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <input type="text" name="q" value="{{ q|default:'' }}" placeholder="검색어를 입력하세요">
+    <button type="submit">검색</button>
+    <a href="?">초기화</a>
+</form>
+
+<!-- 필터 폼: q 값을 hidden으로 함께 보냄 (필터만 바꿔도 검색어 유지) -->
+<form method="get" action="">
+    <input type="hidden" name="q" value="{{ q }}">
+    <select name="period" onchange="this.form.submit()">
+        <option value="1m" {% if period == '1m' %}selected{% endif %}>최근 1개월</option>
+        <option value="3m" {% if period == '3m' %}selected{% endif %}>최근 3개월</option>
+        <option value="6m" {% if period == '6m' %}selected{% endif %}>최근 6개월</option>
+        <option value="1y" {% if period == '1y' %}selected{% endif %}>최근 1년</option>
+        <option value="all" {% if period == 'all' %}selected{% endif %}>전체</option>
+    </select>
+
+    <label>
+        <input type="radio" name="sort" value="latest" onchange="this.form.submit()" {% if sort == 'latest' %}checked{% endif %}>
+        최신순
+    </label>
+    <label>
+        <input type="radio" name="sort" value="points" onchange="this.form.submit()" {% if sort == 'points' %}checked{% endif %}>
+        포인트순
+    </label>
+</form>
+
+<!-- 결과 리스트 -->
+{% if log_data %}
+    <div>
+        {% for log in log_data %}
+        <a href="{% url 'accounts:activity_detail' log.shopping_list_id %}">
+            <div>
+            <div>{{ log.market_name }}</div>
+            <div>{{ log.visited_at|date:"Y.m.d" }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p>해당 조건의 활동 내역이 없습니다.</p>
+{% endif %}
