@@ -1,0 +1,53 @@
+<h2>{{ selected_names|join:", " }}로 이런 요리를 할 수 있어요!</h2>
+
+<hr>
+
+<!-- 채팅 영역 -->
+<div>
+    <h3>대화</h3>
+    <div>
+        {% for m in chat %}
+            {% if m.role == "user" %}
+            <p><strong>나:</strong> {{ m.content }}</p>
+            {% else %}
+            <p><strong>AI:</strong>{{ m.content }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <textarea name="message" rows="3" placeholder="질문이나 요청을 입력하세요 (예: 두부는 빼줘, 10분 안에 가능한 버전으로)"></textarea>
+    <div>
+        <button type="submit">보내기</button>
+    </div>
+</form>
+
+<hr>
+
+<!-- 저장 -->
+<form method="post" action="{% url 'food:save_last_recipe' %}">
+    {% csrf_token %}
+    <button type="submit">
+        {% if last_recipe_title %}
+            "{{ last_recipe_title }}" 저장하기
+        {% else %}
+            요리법 저장하기
+        {% endif %}
+    </button>
+</form>
+
+
+<!-- 초기화 -->
+<div>
+    <a href="{% url 'food:clear_recipe_chat' %}">대화 초기화</a>
+</div>
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

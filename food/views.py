@@ -15,7 +15,8 @@ import json
 from openai import OpenAI
 import re
 from typing import List, Tuple
-
+import hashlib
+from django.utils.html import escape
 
 
 # ---------- 유틸 함수 ----------
@@ -717,116 +718,118 @@ def add_ingredient_ai(request):
 
 
 # ------ 3. 남은 식재료로 요리 추천받기 ------
+
+def _parse_title_and_description(text: str):
+    lines = [l for l in (text or "").splitlines() if l.strip()]
+    if not lines:
+        return "이름 미상", text or ""
+    return lines[0].strip(), "\n".join(lines[1:]).strip()
+
+def _ids_seed(ids: List[int]) -> str:
+    s = ",".join(map(str, sorted(map(int, ids))))
+    return hashlib.sha1(s.encode()).hexdigest()
+
+# ---------- 1) 재료 선택 ----------
 @login_required
-def show_recent_ingredients(request):
-    # 가장 최근 장바구니
-    latest_list = ShoppingList.objects.filter(user=request.user).order_by('-created_at').first()
+def select_recent_ingredients(request):
+    latest_list = (
+        ShoppingList.objects.filter(user=request.user)
+        .order_by('-created_at')
+        .first()
+    )
     if not latest_list:
-        return render(request, 'food/save_no_ingredients.html')
+        return render(request, 'food/leftover_save_no_ingredients.html')
 
-    ingredients = ShoppingListIngredient.objects.filter(
-        shopping_list=latest_list
-    ).select_related('ingredient')
+    ingredients = (
+        ShoppingListIngredient.objects
+        .filter(shopping_list=latest_list)
+        .select_related('ingredient')
+    )
 
-    return render(request, 'food/save_recent_ingredients.html', {
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('ingredient_ids')  # ['3','8',...]
+        if not selected_ids:
+            messages.error(request, "재료를 최소 1개 선택해주세요.")
+            return redirect('food:select_recent_ingredients')
+
+        request.session['selected_ingredient_ids'] = selected_ids
+        request.session['selected_seed'] = _ids_seed(selected_ids)
+        request.session['recipe_chat'] = []            # 새 선택이므로 초기화
+        request.session['last_recipe_text'] = None
+        return redirect('food:chat_with_selected_ingredients')
+
+    return render(request, 'food/leftover_select_recent_ingredients.html', {
         'ingredients': ingredients,
     })
 
-def extract_valid_ingredient_names(result: str) -> Tuple[List[str], List[str]]:
-    lines = [l.strip() for l in result.splitlines()]
-    # 시작/종료 위치
-    try:
-        start = next(i for i, l in enumerate(lines) if '필요한 재료' in l) + 1
-    except StopIteration:
-        return [], []
-    try:
-        end = next(i for i, l in enumerate(lines) if '조리 방법' in l)
-    except StopIteration:
-        end = len(lines)
-
-    # 파싱
-    raw = []
-    for l in lines[start:end]:
-        if not l:
-            continue
-        l = re.sub(r'^[\-\*\•\·\d\.\)\s]+', '', l)
-        parts = [p.strip() for p in re.split(r'[,\u3001/]', l) if p.strip()]
-        raw.extend(parts)
-
-    # 정리
-    seen, parsed = set(), []
-    for item in raw:
-        item = re.sub(r'\(.*?\)', '', item).strip()
-        if item and item not in seen:
-            seen.add(item)
-            parsed.append(item)
-
-    # DB 필터
-    db_names = set(Ingredient.objects.filter(name__in=parsed).values_list('name', flat=True))
-    valid = [n for n in parsed if n in db_names]
-    dropped = [n for n in parsed if n not in db_names]
-    return valid, dropped
-
-
+# ---------- 2) 채팅(자동 추천) ----------
 @login_required
-def find_recipes_with_gpt(request):
-    if request.method != 'POST':
-        return redirect('food:show_recent_ingredients')
+def chat_with_selected_ingredients(request):
+    selected_ids = request.session.get('selected_ingredient_ids', [])
+    if not selected_ids:
+        messages.error(request, "먼저 재료를 선택해주세요.")
+        return redirect('food:select_recent_ingredients')
 
-    selected_ids = request.POST.getlist('ingredient_ids')
-    ingredients = Ingredient.objects.filter(id__in=selected_ids)
-    names = [i.name for i in ingredients]
+    ingredients = Ingredient.objects.filter(id__in=selected_ids).order_by('name')
+    selected_names = [i.name for i in ingredients]
 
-    ingredient_names = Ingredient.objects.values_list('name', flat=True)
-    ingredient_list_str = ', '.join(ingredient_names)
+    chat = request.session.get('recipe_chat', [])
+    last_recipe = request.session.get('last_recipe_text')
 
-    try:
-        result = generate_recipe_with_ingredients(names, ingredient_list_str)
-    except Exception as e:
-        messages.error(request, f"AI 응답 실패: {e}")
-        return redirect('food:show_recent_ingredients')
+    # 첫 진입이면 자동 추천 1회
+    if not chat:
+        try:
+            first = call_gpt(selected_names)
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('food:select_recent_ingredients')
+        chat = [{"role": "assistant", "content": first}]
+        request.session['recipe_chat'] = chat
+        request.session['last_recipe_text'] = first
+        last_recipe = first
 
-    lines = [line.strip() for line in result.splitlines() if line.strip()]
-    title = lines[0].strip() if lines else "추천 요리"
+    # 후속 질문 처리
+    if request.method == 'POST':
+        followup = request.POST.get('message', '').strip()
+        if followup:
+            try:
+                answer = call_gpt(selected_names, followup)
+            except Exception as e:
+                messages.error(request, str(e))
+                return redirect('food:chat_with_selected_ingredients')
 
-    valid_names, dropped = extract_valid_ingredient_names(result)
-    final_names = valid_names or names
+            chat.append({"role": "user", "content": followup})
+            chat.append({"role": "assistant", "content": answer})
+            request.session['recipe_chat'] = chat
+            request.session['last_recipe_text'] = answer
+            last_recipe = answer
+        return redirect('food:chat_with_selected_ingredients')
 
-    if dropped:
-        messages.info(request, f"DB에 없어 제외된 재료: {', '.join(dropped)}")
-
-    SavedRecipe.objects.create(user=request.user, title=title, description=result)
-
-    return render(request, 'food/save_gpt_recipe_result.html', {
-        'result': result,
-        'title': title,
-        'final_names': final_names,
+    return render(request, 'food/leftover_chat_with_ingredients.html', {
+        'selected_names': selected_names,
+        'chat': chat,
+        'last_recipe': last_recipe,
+        'last_recipe_title': _parse_title_and_description(last_recipe)[0] if last_recipe else None,
     })
 
-
+# ---------- 3) 저장 ----------
 @login_required
-def apply_gpt_result_to_recipe_flow(request):
-    if request.method != 'POST':
-        return redirect('food:show_recent_ingredients')
+def save_last_recipe(request):
+    text = request.session.get('last_recipe_text')
+    if not text:
+        messages.error(request, "저장할 레시피가 없습니다.")
+        return redirect('food:chat_with_selected_ingredients')
 
-    recipe_title = (request.POST.get('recipe_title') or '').strip()
-    names = [n.strip() for n in request.POST.getlist('ingredient_names') if n.strip()]
+    title, desc = _parse_title_and_description(text)
+    SavedRecipe.objects.create(user=request.user, title=title[:200], description=desc)
+    messages.success(request, f"'{escape(title)}' 레시피를 저장했어요.")
 
-    if not recipe_title:
-        messages.warning(request, "레시피 제목이 없습니다.")
-        return redirect('food:show_recent_ingredients')
+    return redirect('accounts:my_recipes')
 
-    # DB 필터만 한 번 더
-    valid_names = list(Ingredient.objects.filter(name__in=names).values_list('name', flat=True))
-    if not valid_names:
-        messages.warning(request, "담을 재료가 없습니다.")
-        return redirect('food:show_recent_ingredients')
-
-    for k in ('basic', 'optional', 'optional_selected', 'extra_ingredients'):
-        request.session.pop(k, None)
-
-    request.session['recipe_input'] = recipe_title
-    request.session['basic'] = valid_names
-    request.session['optional'] = []
-
-    return redirect('food:recipe_ingredients')
+# (선택) 대화 초기화
+@login_required
+def clear_recipe_chat(request):
+    request.session.pop('recipe_chat', None)
+    request.session.pop('last_recipe_text', None)
+    messages.info(request, "대화를 초기화했어요.")
+    return redirect('food:chat_with_selected_ingredients')
