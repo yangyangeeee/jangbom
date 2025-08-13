@@ -1,15 +1,35 @@
-<h2>내가 저장한 요리법</h2>
+<h2>나의 레시피</h2>
 
+<!-- 검색 폼 -->
+<form method="get" action="">
+    <input type="text" name="q" value="{{ q|default:'' }}" placeholder="검색어를 입력하세요">
+    <button type="submit">검색</button>
+</form>
+
+<!-- 정렬 폼 -->
+<form method="get" action="">
+    <!-- 검색어 유지 -->
+    <input type="hidden" name="q" value="{{ q|default:'' }}">
+    
+    <label>
+        <input type="radio" name="sort" value="latest" {% if sort == 'latest' %}checked{% endif %} onchange="this.form.submit()">
+        최신순
+    </label>
+    <label>
+        <input type="radio" name="sort" value="alpha" {% if sort == 'alpha' %}checked{% endif %} onchange="this.form.submit()">
+        가나다순
+    </label>
+</form>
+
+<!-- 레시피 리스트 -->
 <ul>
     {% for recipe in recipes %}
         <li>
             <a href="{% url 'accounts:recipe_detail' recipe.id %}">
-                {{ recipe.title }} ({{ recipe.created_at|date:"Y.m.d H:i" }})
+                {{ recipe.title }} ({{ recipe.created_at|date:"Y.m.d" }})
             </a>
         </li>
     {% empty %}
-        <li>저장한 요리법이 없습니다.</li>
+        <li>저장된 레시피가 없습니다.</li>
     {% endfor %}
 </ul>
-
-<a href="{% url 'accounts:activity_log' %}">내 활동으로 돌아가기</a>

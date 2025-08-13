@@ -1,14 +1,32 @@
-<h2>도봉구 포인트 랭킹</h2>
+<h2>{{ district|default:"전체" }} 포인트 랭킹</h2>
 
+<!-- 상단 카드 -->
+<div>
+    <div>
+        총 장보미 수<br>
+        <strong>{{ header_stats.shopper_count }}명</strong>
+    </div>
+    <div>
+        총 장봄 포인트<br>
+        <strong>{{ header_stats.total_points }} P</strong>
+    </div>
+</div>
+
+<!-- 이번 주 TOP 30 -->
+<h3>이번주 TOP 30</h3>
 <ol>
-    {% for r in rankings %}
-        <li{% if r.user.id == request.user.id %} style="font-weight:bold"{% endif %}>
-            {{ forloop.counter }}위 - {{ r.user.location|default:"미등록" }} {{ r.user.username }} ({{ r.total_point }}P)
+    {% for row in weekly_top30 %}
+        <li{% if row.user_id == request.user.id %} style="font-weight:bold"{% endif %}>
+        {{ forloop.counter }}위 -
+        {{ row.user__addr_level3|default:"" }} {{ row.user__nickname }} ({{ row.points }}P)
         </li>
     {% empty %}
-        <li>아직 랭킹이 없습니다.</li>
+        <li>이번 주 적립 내역이 없습니다.</li>
     {% endfor %}
 </ol>
 
-<a href="{% url 'food:main' %}">장 보러 가기</a><br>
-<a href="{% url 'point:point_history' %}">내 포인트 적립 내역 확인하기</a>
+<!-- 하단 링크 -->
+<div style="margin-top:20px;">
+    <a href="{% url 'food:main' %}">장 보러 가기</a><br>
+    <a href="{% url 'point:point_history' %}">내 포인트 적립 내역 확인하기</a>
+</div>
