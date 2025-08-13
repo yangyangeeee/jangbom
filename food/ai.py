@@ -4,6 +4,8 @@ import os, time
 from openai import OpenAI
 from django.conf import settings
 from .models import Ingredient
+from typing import List
+import time
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -211,10 +213,15 @@ def get_recipes_using_ingredient(name):
     
 
 # ------ 3. 남은 식재료로 요리 추천받기 ------
-def _build_prompt(selected_names: List[str], ingredient_db_list: str) -> str:
+def _all_ingredient_names() -> str:
+    """DB의 전체 재료명을 줄바꿈으로 나열 (캐시 없이 실시간 반영)."""
+    names = Ingredient.objects.values_list("name", flat=True).order_by("name")
+    return "\n".join(names)
+
+def _build_prompt(selected_names: List[str], ingredient_db_list: str, followup: str = "") -> str:
     max_chars = 8000
     safe_db = (ingredient_db_list or "")[:max_chars]
-    return (
+    base = (
         f"다음 재료를 활용한 간단한 요리법을 추천해줘: {', '.join(selected_names)}.\n"
         "아래 형식을 반드시, 정확히 지켜줘. 다른 말은 절대 쓰지 마:\n\n"
         "1) 첫 줄: 요리 이름만 (예: 달걀볶음밥)\n"
@@ -226,33 +233,35 @@ def _build_prompt(selected_names: List[str], ingredient_db_list: str) -> str:
         "아래는 전체 식재료 DB 목록이야. 이 목록에 있는 재료만 써야 해.\n"
         f"{safe_db}\n"
     )
+    if followup.strip():
+        base += f"\n[사용자 추가 요청]\n{followup.strip()}\n"
+    return base
 
-def generate_recipe_with_ingredients(selected_names: List[str], ingredient_db_list: str) -> str:
-    if not selected_names:
-        return "재료가 비어 있습니다."
+def call_gpt(selected_names: List[str], followup: str = "") -> str:
+    """선택 재료 + (옵션) 후속요청을 넣어 완성 텍스트 반환."""
+    prompt = _build_prompt(selected_names, _all_ingredient_names(), followup)
+    system_msg = {
+        "role": "system",
+        "content": (
+            "넌 사용자가 가진 재료로 요리를 설계하는 한국어 요리 비서야. "
+            "요청 형식을 반드시 지켜야 하며, 사족을 절대 덧붙이지 마."
+        ),
+    }
+    user_msg = {"role": "user", "content": prompt}
 
-    prompt = _build_prompt(selected_names, ingredient_db_list)
-
-    for attempt in range(2):  # 0~1번 시도 (간단 재시도)
+    for attempt in range(2):
         try:
             resp = client.chat.completions.create(
                 model="gpt-4o",
                 temperature=0.2,
                 max_tokens=700,
-                messages=[
-                    {"role": "system",
-                    "content": (
-                        "넌 사용자가 가진 재료로 요리를 설계하는 한국어 요리 비서야. "
-                        "요청 형식을 반드시 지켜야 하며, 사족을 절대 덧붙이지 마."
-                    )},
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[system_msg, user_msg],
             )
             text = (resp.choices[0].message.content or "").strip()
             if not text:
-                raise Exception("빈 응답")
+                raise RuntimeError("빈 응답")
             return text
         except Exception as e:
             if attempt == 1:
                 raise RuntimeError(f"AI 응답 실패: {e}")
-            time.sleep(0.8)  # 짧게 한 번만 대기 후 재시도
+            time.sleep(0.7)

@@ -1,0 +1,19 @@
+<h2>가장 최근 장바구니 재료 선택</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    {% if ingredients %}
+        <div>
+            {% for item in ingredients %}
+            <label style="display:block; margin:4px 0;">
+                <input type="checkbox" name="ingredient_ids" value="{{ item.ingredient.id }}">
+                {{ item.ingredient.name }}
+            </label>
+            {% endfor %}
+        </div>
+        <button type="submit">선택 완료</button>
+    {% else %}
+        <p>장바구니에 재료가 없습니다.</p>
+    {% endif %}
+</form>

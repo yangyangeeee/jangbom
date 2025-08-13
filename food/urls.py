@@ -29,7 +29,8 @@ urlpatterns = [
     path("ingredient/add_ai/", add_ingredient_ai, name="add_ingredient_ai"),
 
     # 3. 남은 식재료로 요리 추천받기
-    path('recipe/leftover/', show_recent_ingredients, name='show_recent_ingredients'),
-    path('recipe/leftover/result/', find_recipes_with_gpt, name='find_recipes_with_gpt'),
-    path('recipe/leftover/apply/', apply_gpt_result_to_recipe_flow, name='apply_gpt_result_to_recipe_flow'),
+    path("leftover/select/", select_recent_ingredients, name="select_recent_ingredients"),
+    path("leftover/chat/", chat_with_selected_ingredients, name="chat_with_selected_ingredients"),
+    path("leftover/save/", save_last_recipe, name="save_last_recipe"),
+    path("leftover/clear/", clear_recipe_chat, name="clear_recipe_chat"),
 ]
