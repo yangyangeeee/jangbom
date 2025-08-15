@@ -1,10 +1,25 @@
 <h2>회원가입</h2>
 <form method="post">
     {% csrf_token %}
-    <p>{{ form.username.label_tag }} {{ form.username }}</p>
-    <p>{{ form.nickname.label_tag }} {{ form.nickname }}</p>
-    <p>{{ form.location.label_tag }} {{ form.location }}</p>
-    <p>{{ form.password1.label_tag }} {{ form.password1 }}</p>
-    <p>{{ form.password2.label_tag }} {{ form.password2 }}</p>
+
+    {{ form.non_field_errors }}
+
+    <p>
+        아이디: {{ form.username }}
+        {{ form.username.errors }}
+    </p>
+    <p>
+        닉네임: {{ form.nickname }}
+        {{ form.nickname.errors }}
+    </p>
+    <p>
+        비밀번호: {{ form.password1 }}
+        {{ form.password1.errors }}
+    </p>
+    <p>
+        비밀번호 확인: {{ form.password2 }}
+        {{ form.password2.errors }}
+    </p>
+
     <button type="submit">가입하기</button>
 </form>

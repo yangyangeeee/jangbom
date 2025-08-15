@@ -4,11 +4,10 @@ from .models import CustomUser
 
 class CustomUserCreationForm(UserCreationForm):
     nickname = forms.CharField(max_length=30)
-    location = forms.CharField(max_length=100, required=False)
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'nickname', 'location', 'password1', 'password2')
+        fields = ('username', 'nickname', 'password1', 'password2')
 
 
 class CustomLoginForm(AuthenticationForm):
