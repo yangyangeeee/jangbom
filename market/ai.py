@@ -7,19 +7,32 @@ AI_TEMPERATURE_DEFAULT = getattr(settings, "AI_TEMPERATURE_DEFAULT", 0.6)
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 def generate_tip_text(name: str, followup: str | None = None) -> str:
-    # 형식 강제: 마크다운/기호 금지, 접두사 없이 문장만 줄바꿈으로
-    system_prompt = (
-        "너는 신선식품 구매 도우미야. 출력 형식을 반드시 지켜.\n"
-        "형식: 줄마다 한 문장, 줄 앞에 어떤 기호도 붙이지 말 것(하이픈, 별표, 불릿, 번호 금지), "
-        "마크다운 금지, 굵게 금지. 예:\n"
-        "\n색: ...\n향: ...\n식감: ...\n크기: ...\n손상: ...\n벌레: ...\n보관법: ..."
-    )
+    """
+    followup 이 None이면: 구매 TIP을 '주제: 설명' 형식으로 간결하게.
+    followup 이 있으면: 자유로운 대화체로 친근하게 답변.
+    """
     if followup:
-        user_prompt = f"{name}에 대해 사용자가 이렇게 물었어: '{followup}'. 3~6줄의 문장으로 답해줘."
+        # 자유로운 대화체(후속 질문 응답)
+        system_prompt = (
+            "너는 친근한 요리 도우미야. 형식 제한 없이 자연스러운 존댓말 대화체로 답해."
+            " 핵심만 2~5문장 정도로 간결하게, 필요하면 짧은 조언/대안도 함께 제시해."
+            " 과장·광고 문구는 피하고, 안전/보관/대체재 팁이 떠오르면 덧붙여."
+        )
+        user_prompt = (
+            f"재료: {name}\n"
+            f"사용자 질문: {followup}\n"
+            "친근하게 답해줘."
+        )
     else:
+        # 최초 구매 TIP(형식 엄격)
+        system_prompt = (
+            "너는 신선식품 구매 도우미야. 아래 형식을 반드시 지켜.\n"
+            "형식: 줄마다 한 문장, 앞에다가 · 같은 줄바꿈 구분 기호를 써줘\n"
+            f"예시 : {name} 구매 TIP💡\n• 색 - ...\n• 향 - ...\n• 크기 - ...\n• 손상 - ... \n• 보관법 - ..."
+        )
         user_prompt = (
             f"{name} 구매 팁을 6~10줄로 제공해줘. "
-            "색/향/식감 → 크기 → 손상/벌레 → 보관법 순서로, 각 줄은 접두사 없이 '주제: 설명' 문장으로."
+            "색/향 → 크기 → 손상 → 보관법 순서로, 각 줄은 접두사 없이 '주제: 설명' 문장으로."
         )
 
     resp = client.chat.completions.create(

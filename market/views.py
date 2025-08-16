@@ -14,7 +14,7 @@ from market.models import *
 from point.models import UserPoint
 from math import radians, cos, sin, sqrt, atan2
 import requests, datetime, json, math, random
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, HttpResponseBadRequest
 from django.core.cache import cache
 from .ai import *
 from decimal import Decimal
@@ -526,16 +526,17 @@ def ingredient_tip_api(request):
     if not name:
         return HttpResponseBadRequest("name required")
 
-    if q:
-        tip = generate_tip_text(name, followup=q)  # 후속 질문 처리
-        return JsonResponse({"ok": True, "name": name, "q": q, "tip": tip})
+    if q:  # 후속 질문은 캐시 건너뛰고 즉시 생성
+        tip = generate_tip_text(name, followup=q)
+        return HttpResponse(tip, content_type="text/plain; charset=utf-8")
 
-    key = f"tip:{name.lower()}"                  # 최초 TIP만 캐시
+    key = f"tip:{name.lower()}"
     tip = cache.get(key)
     if tip is None:
         tip = generate_tip_text(name)
-        cache.set(key, tip, 60*60*24)
-    return JsonResponse({"ok": True, "name": name, "tip": tip})
+        cache.set(key, tip, 60 * 60 * 24)
+
+    return HttpResponse(tip, content_type="text/plain; charset=utf-8")
 
 
 @csrf_exempt
