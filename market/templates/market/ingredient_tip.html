@@ -1,52 +1,68 @@
-<a href="javascript:history.back()">✕</a>
-<h2>{{ name }} 구매 TIP</h2>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ name }} 구매 TIP</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR",
+           "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif; }
+    #chat { margin: 12px 0; }
+    .msg { white-space: pre-wrap; line-height: 1.5; margin: 6px 0; }
+    .msg.user { font-weight: 500; }
+  </style>
+</head>
+<body>
+  <a href="javascript:history.back()">✕</a>
+  <h2>{{ name }} 구매 TIP</h2>
 
-<div id="chat"></div>
+  <div id="chat" aria-live="polite"></div>
 
-<div>
-  <input id="q" type="text" placeholder="추가로 물어볼 내용이 있나요?">
-  <button id="send" type="button">보내기</button>
-</div>
+  <div>
+    <input id="q" type="text" placeholder="추가로 물어볼 내용이 있나요?" />
+    <button id="send" type="button">보내기</button>
+  </div>
 
-<script>
-  const api  = "{% url 'market:ingredient_tip_api' %}";
-  const name = "{{ name|escapejs }}";
-  const chat = document.getElementById('chat');
-  const q    = document.getElementById('q');
-  const send = document.getElementById('send');
+  <script>
+    const api  = "{% url 'market:ingredient_tip_api' %}";
+    const name = "{{ name|escapejs }}";
+    const chat = document.getElementById('chat');
+    const q    = document.getElementById('q');
+    const send = document.getElementById('send');
 
-  function append(role, text){
-    const pre = document.createElement('pre'); // 줄바꿈 보존
-    pre.textContent = (role === 'user' ? '나: ' : '도우미: ') + text;
-    chat.appendChild(pre);
-    window.scrollTo(0, document.body.scrollHeight);
-  }
+    function append(role, text){
+      const el = document.createElement('div');      // div로 변경
+      el.className = 'msg ' + role;                  // 스타일용 클래스
+      el.textContent = (role === 'user' ? '나: ' : '도우미: ') + text;
+      chat.appendChild(el);
+      window.scrollTo(0, document.body.scrollHeight);
+      return el;                                     // 이후 교체용
+    }
 
-  function loadTip(){
-    append('assistant', '불러오는 중...');
-    fetch(api + "?name=" + encodeURIComponent(name))
-      .then(r => r.json())
-      .then(d => {
-        chat.lastChild.textContent = "도우미: " + (d.tip || "정보를 불러오지 못했어요.");
-      })
-      .catch(() => { chat.lastChild.textContent = "도우미: 오류가 발생했어요."; });
-  }
+    function loadTip(){
+      const slot = append('assistant', '불러오는 중...');
+      fetch(api + "?name=" + encodeURIComponent(name))
+        .then(r => r.ok ? r.text() : Promise.reject(r))
+        .then(txt => { slot.textContent = "도우미: " + (txt || "정보를 불러오지 못했어요."); })
+        .catch(() => { slot.textContent = "도우미: 오류가 발생했어요."; });
+    }
 
-  function ask(){
-    const text = q.value.trim();
-    if (!text) return;
-    append('user', text);
-    append('assistant', '생각 중...');
-    q.value = ""; q.focus();
+    function ask(){
+      const text = q.value.trim();
+      if (!text) return;
+      append('user', text);
+      const slot = append('assistant', '생각 중...');
+      q.value = ""; q.focus();
 
-    fetch(api + "?name=" + encodeURIComponent(name) + "&q=" + encodeURIComponent(text))
-      .then(r => r.json())
-      .then(d => { chat.lastChild.textContent = "도우미: " + (d.tip || "답변을 받지 못했어요."); })
-      .catch(() => { chat.lastChild.textContent = "도우미: 오류가 발생했어요."; });
-  }
+      fetch(api + "?name=" + encodeURIComponent(name) + "&q=" + encodeURIComponent(text))
+        .then(r => r.ok ? r.text() : Promise.reject(r))
+        .then(txt => { slot.textContent = "도우미: " + (txt || "답변을 받지 못했어요."); })
+        .catch(() => { slot.textContent = "도우미: 오류가 발생했어요."; });
+    }
 
-  send.addEventListener('click', ask);
-  q.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+    send.addEventListener('click', ask);
+    q.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
 
-  loadTip(); // 첫 메시지 로드
-</script>
+    loadTip(); // 첫 메시지 로드
+  </script>
+</body>
+</html>
