@@ -171,46 +171,62 @@ def extract_recipe_name_from_gpt_response(text):
 
 
 # ------ 2. 식재료를 구할거야  ------
-def get_recipes_using_ingredient(name):
-    # DB 재료 목록 문자열 (너무 길면 필요 재료만 보내도록 줄이세요)
-    ingredient_names = list(Ingredient.objects.values_list('name', flat=True))
-    ingredient_list_str = ', '.join(ingredient_names)
+AI_MODEL_TIPS = getattr(settings, "AI_MODEL_TIPS", "gpt-4o-mini")
+AI_TEMPERATURE_DEFAULT = getattr(settings, "AI_TEMPERATURE_DEFAULT", 0.6)
 
-    prompt = (
-        f"재료 '{name}'로 만들 수 있는 요리 2개를 추천해줘.\n\n"
-        f"다음 형식의 JSON으로만 답변해. 다른 텍스트, 인사말, 설명 금지:\n"
-        f'{{"recipes":[{{"name":"요리명","description":"100자 이내","ingredients":["재료A","재료B"]}},'
-        f'{{"name":"요리명","description":"100자 이내","ingredients":["재료A","재료B"]}}]}}\n\n'
-        f"- ingredients 항목은 우리 재료 DB 목록에서만 3~6개 고르고, 반드시 '{name}'는 제외해.\n"
-        f"- 사용할 수 있는 재료 목록:\n{ingredient_list_str}\n"
+def generate_tip_text(name: str, followup: str | None = None) -> str:
+    """
+    초기: {name}로 만들 요리 3개를 친근한 말투로 추천 (요리명·재료·설명·작은팁)
+    후속: 3~6줄, 친근한 구어체. 질문에 재료가 포함되면 첫 줄에 '재료:'로 답 시작.
+    - 마크다운/불릿/이모지/굵게 금지, 줄 앞 기호 금지, 한 줄 한 문장
+    """
+    system_prompt = (
+        "너는 친근한 요리 도우미다. 항상 한국어로 말한다. "
+        "말투는 부드러운 구어체(~해요, ~해보세요). "
+        "출력 규칙: 마크다운, 번호 목록, 불릿, 이모지, 굵게 금지. "
+        "모든 줄은 평문 한 문장, 줄 앞에 기호를 붙이지 말라.\n\n"
+        "초기 응답 형식(요리 3개, 각 블록 4줄):\n"
+        "요리명: …\n"
+        "재료: 재료1, 재료2, 재료3, 재료4, 재료5\n"
+        "설명: …\n"
+        "작은팁: …\n"
+        "(빈 줄)\n"
+        "요리명: …\n"
+        "재료: …\n"
+        "설명: …\n"
+        "작은팁: …\n"
+        "(빈 줄)\n"
+        "요리명: …\n"
+        "재료: …\n"
+        "설명: …\n"
+        "작은팁: …\n"
+        "재료 줄은 5~8개 정도의 흔한 식재료를 쉼표로만 나열하고, 계량은 쓰지 말라. "
+        "설명/작은팁은 10~25자 내외의 짧은 문장으로 자연스럽게 쓰라."
     )
 
-    try:
-        # JSON 모드 강제
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
-            response_format={"type": "json_object"},
+    if followup:
+        user_prompt = (
+            f"{name}을(를) 주재료로 한 요리/손질/보관/대체재에 대해 사용자가 물었다: '{followup}'. "
+            "질문에 재료를 묻거나 특정 요리명이 있으면 첫 줄을 '재료: …'로 시작해 핵심 재료 6~10개를 한 줄로 나열하라. "
+            "그 다음 2~5줄은 간단한 설명, 대체재, 조리 팁을 친근하게 제시하라. "
+            "줄 앞 기호는 쓰지 말라."
         )
-        content = resp.choices[0].message.content
-        data = _safe_json(content)
-        if not data or "recipes" not in data:
-            raise ValueError("모델 응답이 JSON 형식이 아님")
-        # 최소 검증
-        recipes = data.get("recipes") or []
-        # 문자열로 통일
-        norm = []
-        for r in recipes:
-            norm.append({
-                "name": str(r.get("name", "")).strip(),
-                "description": str(r.get("description", "")).strip(),
-                "ingredients": [str(x).strip() for x in (r.get("ingredients") or [])]
-            })
-        return norm
-    except Exception as e:
-        return f"AI 응답 실패: {e}"
-    
+    else:
+        user_prompt = (
+            f"{name}으로 만들기 좋은 집밥/대중적인 요리 3가지를 추천해라. "
+            "각 아이디어는 요리명, 재료, 설명, 작은팁 순서의 4줄 블록으로 쓰고 블록 사이에 빈 줄 1줄을 넣어라. "
+            "재료는 한국 가정에서 구하기 쉬운 것으로 구성하라."
+        )
+
+    resp = client.chat.completions.create(
+        model=AI_MODEL_TIPS,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=AI_TEMPERATURE_DEFAULT if followup else min(0.85, AI_TEMPERATURE_DEFAULT + 0.2),
+    )
+    return (resp.choices[0].message.content or "").strip()
 
 # ------ 3. 남은 식재료로 요리 추천받기 ------
 def _all_ingredient_names() -> str:

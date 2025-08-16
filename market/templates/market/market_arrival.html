@@ -5,7 +5,18 @@
   <title>도착</title>
 </head>
 <body>
-<a href="javascript:history.back()">⟨</a> {{ total_point }}P
+<!--상단바-->
+<a href="javascript:history.back()">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+    {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    바코드
+    {{ total_point }}P
+
+
 <h2>도착 완료</h2>
 <p>총 {{ expected_time }}분, {{ distance_m }}m 걸었어요</p>
 
@@ -62,7 +73,7 @@
     </div>
   {% endif %}
 
-  <button type="submit">저장하기</button>
+  <button type="submit">구매 인증하고 포인트 받기</button>
 </form>
 </form>
 

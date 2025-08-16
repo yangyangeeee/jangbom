@@ -1,5 +1,13 @@
-<!-- 장바구니, 바코드는 추후 예정-->
-<a href="{% url 'food:main' %}">⟨</a> {{ total_point }}P
+<!--상단바-->
+<a href="{% url 'food:main' %}">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+    {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    바코드
+    {{ total_point }}P
 
 <h3>{{ user.addr_level3 }} {{ user.nickname }}님,</h3>
 <h3>어떤 요리를 만드실 건가요?</h3>

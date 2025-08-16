@@ -3,3 +3,4 @@ from .models import *
 
 admin.site.register(Ingredient)
 admin.site.register(SavedRecipe)
+admin.site.register(FoodBanner)

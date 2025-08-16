@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>주소 검색</title>
+</head>
+<body>
+  <a href="{% url 'accounts:address_settings' %}">←</a>
+  <h1>주소 검색</h1>
+
+  <form method="get" action="{% url 'accounts:address_search' %}">
+    <input type="text" name="q" placeholder="검색어를 입력하세요" value="{{ q|default:'' }}">
+    <button type="submit">검색</button>
+  </form>
+
+  {% if q %}
+    <p>“{{ q }}” 검색 결과</p>
+    <ul>
+    {% for r in results %}
+        <li>
+        <form method="get" action="{% url 'accounts:address_confirm' %}" style="display:inline">
+            <input type="hidden" name="name" value="{{ r.name }}">
+            <input type="hidden" name="l1" value="{{ r.l1 }}">
+            <input type="hidden" name="l2" value="{{ r.l2 }}">
+            <input type="hidden" name="l3" value="{{ r.l3 }}">
+            <input type="hidden" name="lat" value="{{ r.lat }}">
+            <input type="hidden" name="lng" value="{{ r.lng }}">
+            <button type="submit">
+            {{ r.name }}
+            </button>
+        </form>
+        <br><small>{{ r.l1 }} {{ r.l2 }} {{ r.l3 }}</small>
+        </li>
+    {% empty %}
+        <li>검색 결과가 없습니다.</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+</body>
+</html>

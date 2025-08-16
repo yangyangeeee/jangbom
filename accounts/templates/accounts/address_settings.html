@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>주소 설정</title>
+</head>
+<body>
+  <a href="{% url 'food:main' %}">←</a>
+  <h1>주소 설정</h1>
+
+  <!-- 검색 바(페이지2로 이동) -->
+  <form action="{% url 'accounts:address_search' %}" method="get">
+    <input type="text" name="q" placeholder="지번, 도로명, 건물명으로 검색" />
+    <button type="submit">검색</button>
+  </form>
+
+  <p><p><a href="{% url 'accounts:address_pick_map' %}">현재 위치로 찾기</a></p></p>
+
+  <!-- 현재 대표 주소 -->
+  <section>
+    <h3>현재 대표 주소</h3>
+    {% if current %}
+      <div>
+        <strong>{{ current.address }}</strong><br>
+        <small>{{ current.addr_level1 }} {{ current.addr_level2 }} {{ current.addr_level3 }}</small>
+      </div>
+    {% else %}
+      <p>대표 주소가 설정되어 있지 않습니다.</p>
+    {% endif %}
+  </section>
+
+<!-- 최근 기록 --><hr>
+<section>
+  <h3>최근 기록</h3>
+  {% if recents %}
+    <ul>
+      {% for a in recents %}
+        <li>
+          <!-- 대표로 선택 -->
+          <a href="{% url 'accounts:address_select_primary' a.id %}">
+            {{ a.address }}
+          </a>
+
+          {% if user.selected_address_id == a.id %}
+            <!-- 대표 주소는 삭제 비활성화(원하면 제거 가능) -->
+            <button type="button" title="대표 주소는 삭제할 수 없습니다" disabled>×</button>
+          {% else %}
+            <!-- 삭제: 확인창 없이 바로 POST -->
+            <form method="post" action="{% url 'accounts:address_delete' a.id %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit" title="삭제" aria-label="삭제">×</button>
+            </form>
+          {% endif %}
+
+          <br><small>{{ a.addr_level1 }} {{ a.addr_level2 }} {{ a.addr_level3 }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>최근 기록이 없습니다.</p>
+  {% endif %}
+</section>
+</body>
+</html>
