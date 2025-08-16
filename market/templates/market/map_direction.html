@@ -100,12 +100,12 @@
     </div>
 
     {% if unmatched_ingredients %}
-        <p>
-        {% for name in unmatched_ingredients %}
-            <span class="pill">{{ name }}</span>
+    <p>
+        {% for item in unmatched_ingredients %}
+        <span class="pill">{{ item.name }}</span>
         {% endfor %}
         은(는) 해당 마트에서 판매하지 않습니다.
-        </p>
+    </p>
     {% endif %}
 
     {% elif market.market_type == 'trad' %}

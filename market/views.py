@@ -15,6 +15,7 @@ import requests, datetime, json, math
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.core.cache import cache
 from .ai import *
+from decimal import Decimal
 
 
 # ---------- 유틸 함수 ---------- (추후 util.py로 나눌 예정)
@@ -116,6 +117,43 @@ def match_ingredients(market, shopping_ingredients_set):
 
     return matched, unmatched
 
+
+def estimate_steps(distance_m: int, step_length_m: float = 0.75) -> int:
+    """거리(m)와 보폭(m)으로 걸음 수 추정."""
+    if step_length_m <= 0:
+        step_length_m = 0.75
+    return int(round(distance_m / step_length_m))
+
+def estimate_calories_kcal(user, distance_m: int, duration_min: int, steps: int) -> float:
+    """
+    칼로리(kcal) 추정.
+    1) user에 weight_kg가 있으면 MET 기반
+    2) 없으면 걸음당 0.045kcal 기본값
+    """
+    # 2) 기본: 걸음당 kcal
+    kcal_by_steps = steps * 0.045
+
+    # 1) 선택: 체중 기반(MET) — user에 weight_kg가 있을 때만
+    weight_kg = getattr(user, "weight_kg", None)
+    if weight_kg and duration_min > 0:
+        hours = duration_min / 60.0
+        kmh = (distance_m / 1000.0) / hours if hours > 0 else 0.0
+        # 속도별 대략적 MET (평지 보행)
+        if kmh < 3.0:
+            met = 2.3
+        elif kmh < 4.0:
+            met = 3.3
+        elif kmh < 5.0:
+            met = 3.8
+        elif kmh < 6.0:
+            met = 4.3
+        else:
+            met = 5.0
+        kcal_by_met = met * weight_kg * hours
+        # 두 방식 중 더 보수적인(작은) 값을 채택하거나, MET 우선으로 바꿔도 OK
+        return round(kcal_by_met, 2)
+
+    return round(kcal_by_steps, 2)
 
 # ---- 영업시간 유틸 ----
 WEEKDAYS_KO = ['월','화','수','목','금','토','일']
@@ -273,15 +311,26 @@ def nearest_market_view(request):
             "closing_in_minutes": 0, "point_earned": 0,
         })
 
-    # 가장 가까운 마켓
+    # === 여기부터 추가/수정: 타입 우선순위 + 거리순 정렬 ===
+    type_pref = (filt.type_preference or "none")  # 'mart' | 'trad' | 'none'
+
+    def type_priority(market):
+        mt = (market.market_type or "").lower()  # 실제 DB 값 확인: 'mart'/'trad'?
+        if type_pref == "mart":
+            return 0 if mt == "mart" else 1
+        if type_pref == "trad":
+            return 0 if mt == "trad" else 1
+        return 0  # 'none'이면 타입 우선 없음
+
+    candidates.sort(key=lambda t: (type_priority(t[0]), t[1]))  # (우선타입, 거리)
+
     nearest, _ = candidates[0]
+    # === 여기까지 ===
 
     # 거리/시간/포인트 계산
     expected_time, distance_m, point_earned = get_travel_info(
         user_lat, user_lng, nearest.latitude, nearest.longitude
     )
-    if expected_time < 0:  # Kakao 실패 시 보행 80m/분 대체
-        expected_time = max(1, distance_m // 80)
 
     closing_in_minutes = minutes_until_close(nearest.open_time, nearest.close_time)
 
@@ -305,7 +354,7 @@ def nearest_market_view(request):
         "point_earned": point_earned,
         "matched_ingredients": matched_ingredients,
         "unmatched_ingredients": unmatched_ingredients,
-        "total_point":total_point,
+        "total_point": total_point,
     })
 
 @login_required
@@ -493,7 +542,7 @@ def shopping_success_view(request, shoppinglist_id):
     shopping_list = get_object_or_404(ShoppingList, id=shoppinglist_id, user=user)
     market = shopping_list.market
 
-    # 중복 적립 방지: 이미 활동 기록이 있으면 포인트 다시 지급하지 않음
+    # 중복 적립 방지
     if ActivityLog.objects.filter(user=user, shopping_list=shopping_list).exists():
         user_point, _ = UserPoint.objects.get_or_create(user=user)
         return render(request, "market/shopping_success.html", {
@@ -502,11 +551,15 @@ def shopping_success_view(request, shoppinglist_id):
             "message": "이미 포인트가 지급된 장보기입니다.",
         })
 
-    # 거리 기반으로 포인트 계산
-    _, _, point_earned = get_travel_info(
+    # 거리/시간/포인트
+    expected_time_min, distance_m, point_earned = get_travel_info(
         user.latitude, user.longitude,
         market.latitude, market.longitude
     )
+
+    # 걸음 수 & 칼로리 계산
+    steps = estimate_steps(distance_m)  # 기본 보폭 0.75m
+    calories = estimate_calories_kcal(user, distance_m, expected_time_min, steps)
 
     # 장보기를 완료로 표시
     shopping_list.is_done = True
@@ -517,17 +570,19 @@ def shopping_success_view(request, shoppinglist_id):
     user_point.total_point += point_earned
     user_point.save()
 
-    # 활동 로그 기록
+    # 활동 로그 기록 (travel_minutes/steps/calories 포함)
     ActivityLog.objects.create(
         user=user,
         shopping_list=shopping_list,
         point_earned=point_earned,
-        visited_at=timezone.now()
+        visited_at=timezone.now(),
+        steps=steps,
+        travel_minutes=expected_time_min,
+        calories_kcal=Decimal(str(calories)),
     )
 
     return render(request, "market/shopping_success.html", {
         "point_earned": point_earned,
         "total_point": user_point.total_point,
-
         "message": "포인트가 적립되었습니다!",
     })
