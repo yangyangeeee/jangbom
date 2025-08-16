@@ -15,4 +15,5 @@ urlpatterns = [
     path('verify-secret/', verify_secret_code, name='verify_secret'),
     path('secret-input/<int:market_id>/', secret_input_view, name='secret_input'),
     path('success/<int:shoppinglist_id>/', shopping_success_view, name='shopping_success'),
+    path("nearby/<int:market_id>/random/", nearby_places_random_api, name="nearby_random"),
 ]
