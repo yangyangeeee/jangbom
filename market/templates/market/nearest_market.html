@@ -54,12 +54,12 @@
     </div>
 
     {% if unmatched_ingredients %}
-        <p>
-        {% for name in unmatched_ingredients %}
-            <span class="pill">{{ name }}</span>
+    <p>
+        {% for item in unmatched_ingredients %}
+        <span class="pill">{{ item.name }}</span>
         {% endfor %}
         은(는) 해당 마트에서 판매하지 않습니다.
-        </p>
+    </p>
     {% endif %}
 
     {% elif market.market_type == 'trad' %}
@@ -87,7 +87,7 @@
     {% if closing_in_minutes > 0 %}
     <form method="get" action="{% url 'market:map_direction' %}">
         <input type="hidden" name="market_id" value="{{ market.id }}">
-        <input type="hidden" name="expected_time" value="{{ travel_time_min }}">
+        <input type="hidden" name="expected_time" value="{{ expected_time }}">
         <input type="hidden" name="point_earned" value="{{ point_earned }}">
         <button type="submit">출발하기</button>
     </form>
