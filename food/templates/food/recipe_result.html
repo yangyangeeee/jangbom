@@ -14,7 +14,9 @@
   {% endfor %}
 </ul>
 
-<!-- 상점 필터 기능 추후 예정-->
+<br><hr><br>
+
+<a href="{% url 'market:edit_market_filter_recipe' %}">상점 필터 설정 →</a>
 <form action="{% url 'market:nearest_market' %}" method="get">
   <button type="submit">장 보러 가기</button>
 </form>
