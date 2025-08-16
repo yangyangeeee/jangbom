@@ -8,10 +8,12 @@ from django.utils import timezone
 from .services.route_service import route_user_to_market
 from .integrations.tmap_client import get_pedestrian_route
 from food.views import get_user_total_point
+from django.db.models import Sum, Value, IntegerField
+from django.db.models.functions import Coalesce
 from market.models import *
 from point.models import UserPoint
 from math import radians, cos, sin, sqrt, atan2
-import requests, datetime, json, math
+import requests, datetime, json, math, random
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.core.cache import cache
 from .ai import *
@@ -210,6 +212,13 @@ def minutes_until_close(open_time, close_time, when=None) -> int:
     end = datetime.datetime.combine(end_date, ct, tzinfo=now_dt.tzinfo)
     return max(0, int((end - now_dt).total_seconds() // 60))
 
+def reset_cart_session(request):
+    for k in [
+        'optional_selected', 'extra_ingredients', 'search_selected',
+        'basic', 'optional', 'recipe_input', 'latest_recipe'
+    ]:
+        request.session.pop(k, None)
+    request.session['active_sl_id'] = None
 
 # ---------- 뷰 함수 ----------
 @login_required
@@ -542,36 +551,52 @@ def shopping_success_view(request, shoppinglist_id):
     shopping_list = get_object_or_404(ShoppingList, id=shoppinglist_id, user=user)
     market = shopping_list.market
 
-    # 중복 적립 방지
+    # --- 주변 장소: 영업중만 필터 + 랜덤 3개 ---
+    places_qs = NearbyPlace.objects.filter(market=market)
+    open_places = []
+    for p in places_qs:
+        if is_open_now(p.open_days, p.open_time, p.close_time):
+            # 템플릿에서 편하게 쓰도록 속성 부여
+            p.is_open = True
+            p.closing_in_minutes = minutes_until_close(p.open_time, p.close_time)
+            open_places.append(p)
+    random.shuffle(open_places)
+    nearby_sample = open_places[:3]
+
+    total_steps = ActivityLog.objects.filter(user=user).aggregate(total_steps=Coalesce(Sum('steps'), Value(0), output_field=IntegerField()))['total_steps']
+
+    # --- 이미 적립된 장보기면 포인트 0으로 리턴 ---
     if ActivityLog.objects.filter(user=user, shopping_list=shopping_list).exists():
         user_point, _ = UserPoint.objects.get_or_create(user=user)
         return render(request, "market/shopping_success.html", {
+            "market": market,
             "point_earned": 0,
             "total_point": user_point.total_point,
-            "message": "이미 포인트가 지급된 장보기입니다.",
+            "message": "이미 포인트가 지급된 장보기입니다",
+            "nearby_places": nearby_sample,
+            "total_steps": total_steps,
         })
 
-    # 거리/시간/포인트
+    # --- 거리/시간/포인트 계산 (TMAP 보행자 기준 + 폴백) ---
     expected_time_min, distance_m, point_earned = get_travel_info(
-        user.latitude, user.longitude,
-        market.latitude, market.longitude
+        user.latitude, user.longitude, market.latitude, market.longitude
     )
 
-    # 걸음 수 & 칼로리 계산
-    steps = estimate_steps(distance_m)  # 기본 보폭 0.75m
+    # --- 걸음/칼로리 ---
+    steps = estimate_steps(distance_m)
     calories = estimate_calories_kcal(user, distance_m, expected_time_min, steps)
 
-    # 장보기를 완료로 표시
+    # --- 쇼핑리스트 완료 표시 ---
     shopping_list.is_done = True
-    shopping_list.save()
+    shopping_list.save(update_fields=["is_done"])
 
-    # 유저 총 포인트 업데이트
+    # --- 포인트 적립 ---
     user_point, _ = UserPoint.objects.get_or_create(user=user)
     user_point.total_point += point_earned
-    user_point.save()
+    user_point.save(update_fields=["total_point"])
 
-    # 활동 로그 기록 (travel_minutes/steps/calories 포함)
-    ActivityLog.objects.create(
+    # --- 활동 로그 ---
+    created_log = ActivityLog.objects.create(
         user=user,
         shopping_list=shopping_list,
         point_earned=point_earned,
@@ -581,8 +606,32 @@ def shopping_success_view(request, shoppinglist_id):
         calories_kcal=Decimal(str(calories)),
     )
 
+    # --- 장바구니 세션 초기화(완료 후 비우기) ---
+    reset_cart_session(request)
+
     return render(request, "market/shopping_success.html", {
+        "market": market,
         "point_earned": point_earned,
         "total_point": user_point.total_point,
-        "message": "포인트가 적립되었습니다!",
+        "nearby_places": nearby_sample,
+        "total_steps": total_steps,
     })
+
+@login_required
+@require_GET
+def nearby_places_random_api(request, market_id: int):
+    market = get_object_or_404(Market, id=market_id)
+    items = []
+    for p in NearbyPlace.objects.filter(market=market):
+        if is_open_now(p.open_days, p.open_time, p.close_time):
+            items.append({
+                "name": p.name,
+                "category": p.category,
+                "info": p.info,
+                "distance_m": p.distance_m,
+                "image_url": (p.image.url if p.image else ""),
+                "link_url": p.link_url or "",
+                "closing_in_minutes": minutes_until_close(p.open_time, p.close_time),
+            })
+    random.shuffle(items)
+    return JsonResponse({"ok": True, "items": items[:3]})

@@ -5,24 +5,110 @@
 </head>
 <body>
     <a href="javascript:history.back()">⟨</a> {{ total_point }}P
-    <h1>장보기 성공!</h1>
-    <p>잘 다녀오셨어요!
-    <br>오늘도 장봄과 함께해주셔서 고마워요</p>
 
-    <div>
-        <h2>+ {{ point_earned }} 포인트</h2>
-        <p>누적 {{ total_point }} 포인트</p>
-    </div>
+  <!-- 적립 안내 -->
+<div>
+  {% if message %}
+    <h2>{{ message }}</h2>
+  {% else %}
+    <h2>{{ point_earned }} 포인트 적립!</h2>
+  {% endif %}
+    <p>누적 포인트 {{ total_point }} P</p>
+    <p>누적 걸음 시간 {{ total_steps }} </p>
+</div>
 
-    <div>
-        <a href="{% url 'point:point_history' %}">적립 내역 ></a>
-        <a href="{% url 'point:point_ranking' %}">랭킹 확인하기 ></a>
-    </div>
+  <a href="{% url 'point:point_history' %}">적립내역 ></a>
+  <a href="{% url 'point:point_ranking' %}">랭킹확인 ></a>
 
-    주변에 이런 장소도 있어요!<br>장소추천 기준 정하고 추가 예정
-<br>
-<a href="{% url 'food:main' %}">홈</a> |
-<a href="{% url 'accounts:activity_log' %}">내 활동</a> |
-<a href="{% url 'point:point_home' %}">포인트</a>
+<br><br><hr>
+
+<!-- 주변 장소 -->
+<div>
+  <div>
+    <h3>주변에 이런 장소도 있어요</h3>
+    <button type="button" id="nearby-refresh" aria-label="다시 뽑기">↻</button>
+  </div>
+
+  <div id="nearby-empty" {% if nearby_places %}hidden{% endif %}>
+    등록된 주변 장소가 없어요.
+  </div>
+
+  <ul id="nearby-list">
+    {% for p in nearby_places %}
+    <li>
+      {% if p.image %}
+        <img src="{{ p.image.url }}" alt="{{ p.name }}" width="64" height="64">
+      {% else %}
+        <div class="thumb" aria-hidden="true"></div>
+      {% endif %}
+      <div>
+        <div>
+          <strong>{{ p.name }}</strong>
+          {% if p.category %}<span class="pill">{{ p.category }}</span>{% endif %}
+        </div>
+        <div>{{ p.info }}</div>
+        <small>
+          영업중 · {{ p.distance_m }}m
+          {% if p.closing_in_minutes %} · {{ p.closing_in_minutes }}분 남음{% else %} · 마감 임박{% endif %}
+        </small>
+        {% if p.link_url %}<div><a href="{{ p.link_url }}" target="_blank">더보기</a></div>{% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+    <br><hr><br>
+    <a href="{% url 'food:main' %}">홈</a> |
+    <a href="{% url 'accounts:activity_log' %}">내 활동</a> |
+    <a href="{% url 'point:point_home' %}">포인트</a>
+
+  <!-- AJAX 새로고침: 영업중 랜덤 3개 -->
+<script>
+  document.getElementById('nearby-refresh')?.addEventListener('click', async function () {
+    try {
+      const res = await fetch("{% url 'market:nearby_random' market.id %}");
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("HTTP", res.status, text);
+        alert("서버 응답 오류: " + res.status);
+        return;
+      }
+
+      const data = await res.json();
+      const ul = document.getElementById('nearby-list');
+      const empty = document.getElementById('nearby-empty');
+      ul.innerHTML = "";
+
+      if (!data.ok || data.items.length === 0) {
+        empty.hidden = false; 
+        return;
+      }
+      empty.hidden = true;       // 숨기기
+
+      for (const p of data.items) {
+        const li = document.createElement('li');
+        li.className = 'place';
+        li.innerHTML = `
+          ${p.image_url
+            ? `<img src="${p.image_url}" alt="${p.name}" width="64" height="64">`
+            : `<div class="thumb" aria-hidden="true"></div>`}
+          <div class="meta">
+            <div class="title-row">
+              <strong>${p.name}</strong>
+              ${p.category ? ` <span class="pill">${p.category}</span>` : ""}
+            </div>
+            <div class="info">${p.info || ""}</div>
+            <small>영업중 · ${p.distance_m}m${p.closing_in_minutes ? ` · ${p.closing_in_minutes}분 남음` : ""}</small>
+            ${p.link_url ? `<div><a href="${p.link_url}" target="_blank" rel="noopener">더보기</a></div>` : ""}
+          </div>`;
+        ul.appendChild(li);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("주변 장소를 불러오는 중 오류가 발생했어.");
+    }
+  });
+</script>
 </body>
 </html>
