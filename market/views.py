@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .services.route_service import route_user_to_market
 from .integrations.tmap_client import get_pedestrian_route
-from food.views import get_user_total_point
+from food.views import get_user_total_point, cart_items_count
 from django.db.models import Sum, Value, IntegerField
 from django.db.models.functions import Coalesce
 from market.models import *
@@ -282,7 +282,7 @@ def edit_market_filter_ingredient(request):
         if changed:
             filt.save()
 
-        return redirect("food:confirm_shopping_list")
+        return redirect("food:ingredient_result")
 
     return render(request, "market/filter_form_ingredient.html", {
         "filter": filt,
@@ -303,6 +303,10 @@ def nearest_market_view(request):
     def in_range(d):
         return (d > min_m if min_strict else d >= min_m) and d <= max_m
 
+    # 내 장바구니 재료(set) — 교집합 개수 계산용
+    shopping_ingredients_set = get_latest_shopping_ingredients(user)  # set of names
+
+    # 후보 수집 (영업중 + 거리범위)
     candidates = []
     for m in Market.objects.all():
         if m.latitude is None or m.longitude is None:
@@ -312,7 +316,16 @@ def nearest_market_view(request):
             continue
         if not is_open_now(m.open_days, m.open_time, m.close_time):
             continue
-        candidates.append((m, d_m))
+
+        # 매칭 재료 수
+        if shopping_ingredients_set:
+            match_count = MarketStock.objects.filter(
+                market=m, ingredient__name__in=shopping_ingredients_set
+            ).count()
+        else:
+            match_count = 0
+
+        candidates.append((m, d_m, match_count))   # (마켓, 거리(m), 재료일치수)
 
     if not candidates:
         return render(request, 'market/nearest_market.html', {
@@ -320,27 +333,44 @@ def nearest_market_view(request):
             "closing_in_minutes": 0, "point_earned": 0,
         })
 
-    # === 여기부터 추가/수정: 타입 우선순위 + 거리순 정렬 ===
+    # --- 정렬: 타입 우선 → (마트 우선일 때) 재료일치수 ↓ → 거리 ↑ ---
     type_pref = (filt.type_preference or "none")  # 'mart' | 'trad' | 'none'
 
-    def type_priority(market):
-        mt = (market.market_type or "").lower()  # 실제 DB 값 확인: 'mart'/'trad'?
+    def type_priority(market_type: str) -> int:
+        mt = (market_type or "").lower()
         if type_pref == "mart":
             return 0 if mt == "mart" else 1
         if type_pref == "trad":
             return 0 if mt == "trad" else 1
-        return 0  # 'none'이면 타입 우선 없음
+        return 0
 
-    candidates.sort(key=lambda t: (type_priority(t[0]), t[1]))  # (우선타입, 거리)
+    # === 폴백: 마트 우선인데, 범위 내 모든 'mart'가 매칭 재료 수 0이면 → 전통시장 중 가장 가까운 곳 ===
+    selected_market = None
+    if type_pref == "mart":
+        marts = [t for t in candidates if (t[0].market_type or "").lower() == "mart"]
+        if marts and all(t[2] == 0 for t in marts):
+            trads = [t for t in candidates if (t[0].market_type or "").lower() == "trad"]
+            if trads:
+                trads.sort(key=lambda x: x[1])  # 거리 오름차순
+                selected_market = trads[0][0]
 
-    nearest, _ = candidates[0]
-    # === 여기까지 ===
+    # 기본 정렬(선택된 폴백이 없으면 기존 규칙대로)
+    if selected_market is None:
+        def sort_key(tup):
+            m, dist, match_cnt = tup
+            if type_pref == "mart":
+                return (type_priority(m.market_type), -match_cnt, dist)
+            else:
+                return (type_priority(m.market_type), dist)
+        candidates.sort(key=sort_key)
+        selected_market = candidates[0][0]
 
-    # 거리/시간/포인트 계산
+    nearest = selected_market
+
+    # 거리/시간/포인트
     expected_time, distance_m, point_earned = get_travel_info(
         user_lat, user_lng, nearest.latitude, nearest.longitude
     )
-
     closing_in_minutes = minutes_until_close(nearest.open_time, nearest.close_time)
 
     # 장바구니에 마켓 연결 (비어있을 때만)
@@ -349,10 +379,10 @@ def nearest_market_view(request):
         shopping_list.market = nearest
         shopping_list.save(update_fields=['market'])
 
-    # 재료 비교도 nearest 기준으로
-    shopping_ingredients_set = get_latest_shopping_ingredients(user)
+    # 선택된 마켓 기준 재료 비교
     matched_ingredients, unmatched_ingredients = match_ingredients(nearest, shopping_ingredients_set)
 
+    items_count = cart_items_count(user)
     total_point = get_user_total_point(user)
 
     return render(request, 'market/nearest_market.html', {
@@ -363,6 +393,7 @@ def nearest_market_view(request):
         "point_earned": point_earned,
         "matched_ingredients": matched_ingredients,
         "unmatched_ingredients": unmatched_ingredients,
+        "cart_items_count": items_count,
         "total_point": total_point,
     })
 
@@ -388,6 +419,7 @@ def map_direction_view(request):
     shopping_ingredients_set = get_latest_shopping_ingredients(user)
     matched_ingredients, unmatched_ingredients = match_ingredients(market, shopping_ingredients_set)
 
+    items_count = cart_items_count(user)
     total_point = get_user_total_point(user)
 
     # 5) 템플릿 렌더링
@@ -401,6 +433,7 @@ def map_direction_view(request):
         'polyline': json.dumps(polyline),  
         'matched_ingredients': matched_ingredients,
         'unmatched_ingredients': unmatched_ingredients,
+        "cart_items_count" : items_count,
         "total_point":total_point,
     }
     return render(request, 'market/map_direction.html', context)
@@ -419,6 +452,7 @@ def market_arrival_view(request, shoppinglist_id):
     shopping_ingredients_set = get_latest_shopping_ingredients(user)
     matched_ingredients, unmatched_ingredients = match_ingredients(market, shopping_ingredients_set)
 
+    items_count = cart_items_count(user)
     total_point = get_user_total_point(user)
 
     # AI 칭찬 문구 2줄 생성 (에러 시 기본 문구)
@@ -438,6 +472,7 @@ def market_arrival_view(request, shoppinglist_id):
         'shopping_list': shopping_list,
         'matched_ingredients': matched_ingredients,
         'unmatched_ingredients': unmatched_ingredients,
+        "cart_items_count" : items_count,
         'total_point': total_point,
         'praise_lines': praise_lines,        
     }

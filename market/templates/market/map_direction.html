@@ -6,7 +6,18 @@
     <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_key }}&autoload=true"></script>
 </head>
 <body>
-  <a href="javascript:history.back()">⟨</a> {{ total_point }}P
+<!--상단바-->
+<a href="javascript:history.back()">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+    {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    바코드
+    {{ total_point }}P
+
+
   <h2>-------------{{ expected_time }}분 예상-------------</h2>
     <h3>{{ market.name }}로 걸어가는 중</h3>
 
@@ -64,21 +75,25 @@
 
     <br>
 
-        <!--업체 정보--> <br><hr>
+    <!--업체 정보-->
+    {% if market and market.market_type|lower == 'mart' %}
+    <br><hr>
     <h3>업체 정보</h3>
 
-    {% if closing_in_minutes <= 30 and closing_in_minutes > 0 %}
+    {% if closing_in_minutes > 0 %}
+        {% if closing_in_minutes <= 30 %}
         <p>영업 종료까지 {{ closing_in_minutes }}분 남았어요.</p>
-    {% elif closing_in_minutes == 0 %}
-        <p>영업 종료</p>
-    {% else %}
+        {% else %}
         <p>현재 영업 중</p>
+        {% endif %}
+    {% else %}
+        <p>영업 종료</p>
     {% endif %}
-  
 
     <p>{{ market.info }}</p>
     <p>{{ market.phone }}</p>
     <p>{{ market.address }}</p>
+{% endif %}
 
     <!--장바구니--> <br><hr>
     <h3>장바구니</h3>
@@ -129,10 +144,11 @@
 
 
 <br><hr><br>
-
+{% if market.market_type == 'mart' %}
     <button onclick="window.location.href='tel:{{ market.phone }}'">전화 걸기</button>
     <button>채팅 하기</button>
-
+{% else %}
+{% endif %}
     <p>{{ point_earned }} 포인트 적립</p>
 
 <form method="get" action="{% url 'market:market_arrival' shopping_list.id %}">

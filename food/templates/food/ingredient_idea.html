@@ -1,0 +1,72 @@
+<body>
+  <a href="javascript:history.back()">✕</a>
+
+  <h2>{{ name }}로 이런 요리를 할 수 있어요</h2>
+
+  <div id="chat">
+    <!-- 메시지들이 여기에 쌓임 -->
+  </div>
+
+  <form id="ask-form">
+    <input id="ask-input" type="text" name="q" placeholder="궁금한 정보가 더 있으신가요?" required />
+    <button type="submit">→</button>
+  </form>
+
+  <script>
+    const nameParam = encodeURIComponent("{{ name }}");
+    const apiBase   = "{% url 'food:ingredient_idea_api' %}";
+
+    function append(role, text) {
+      const wrap = document.getElementById("chat");
+      const who  = document.createElement("strong");
+      who.textContent = role === "user" ? "나" : "AI";
+      const p = document.createElement("p");
+      p.textContent = text;
+      const li = document.createElement("div");
+      li.appendChild(who);
+      li.appendChild(document.createElement("br"));
+      li.appendChild(p);
+      wrap.appendChild(li);
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    async function fetchInitial() {
+      try {
+        const res = await fetch(`${apiBase}?name=${nameParam}`);
+        const data = await res.json();
+        if (data.ok) {
+          append("assistant", data.text);
+        } else {
+          append("assistant", "초기 추천을 불러오지 못했습니다.");
+        }
+      } catch (e) {
+        append("assistant", "네트워크 오류가 발생했습니다.");
+      }
+    }
+
+    document.getElementById("ask-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("ask-input");
+      const q = input.value.trim();
+      if (!q) return;
+      append("user", q);
+      input.value = "";
+      try {
+        const res = await fetch(`${apiBase}?name=${nameParam}&q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data.ok) {
+          append("assistant", data.text);
+        } else {
+          append("assistant", "답변을 불러오지 못했습니다.");
+        }
+      } catch (err) {
+        append("assistant", "네트워크 오류가 발생했습니다.");
+      }
+    });
+
+    fetchInitial();
+  </script>
+</body>
+</html>
+
+

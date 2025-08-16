@@ -1,8 +1,17 @@
-<!-- 장바구니, 바코드는 추후 예정-->
-<a href="{% url 'food:recipe_ingredients' %}">⟨</a> {{ total_point }}P
+<!--상단바-->
+<a href="javascript:history.back()">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+    {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    바코드
+    {{ total_point }}P
 
 <h2>재료 선택 완료</h2>
 <p>장 보러 갈 준비 되었나요?</p>
+<p>각 재료를 클릭하면 활용법도 볼 수 있어요!</p>
 <ul>
   {% for item in ingredients %}
     {% if item.image_url %}

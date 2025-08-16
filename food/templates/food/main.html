@@ -1,45 +1,115 @@
-<h1>메인 페이지</h1>
-
 {% if user.is_authenticated %}
-    <p>환영합니다, {{ user.nickname }}님!</p>
-    <p>위치: {{ user.location }}</p>
+    <!--상단바-->
+    <a href="{% url 'food:cart_view' %}">🧺
+        {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    바코드
+    {{ total_point }}P
+
+
+    <h3><a href="{% url 'accounts:address_settings' %}">
+        {% if user.address == None %}
+            주소를 설정해주세요 ∨
+        {% else %}
+            {{ user.addr_level3 }}∨
+        {% endif %}
+        </a></h3>
+
+
+    <!-- 카테고리 토글 --><hr>
+    <nav class="category-chips" role="group" aria-label="카테고리 선택">
+    <a href="?tab=mart"
+        class="chip {% if tab == 'mart' %}is-active{% endif %}"
+        aria-pressed="{% if tab == 'mart' %}true{% else %}false{% endif %}">
+        마트
+    </a>
+
+    <a href="?tab=cafe"
+        class="chip {% if tab == 'cafe' %}is-active{% endif %}"
+        aria-pressed="{% if tab == 'cafe' %}true{% else %}false{% endif %}">
+        카페
+    </a>
+
+    <a href="?tab=trad"
+        class="chip {% if tab == 'trad' %}is-active{% endif %}"
+        aria-pressed="{% if tab == 'trad' %}true{% else %}false{% endif %}">
+        시장
+    </a>
+    </nav>
+
+    <!-- 배너 리스트 -->
+    <section id="banner-list">
+    {% for b in banners %}
+        <article class="banner-card">
+        {% if b.image %}
+            {% if b.link_url %}
+            <a href="{{ b.link_url }}" aria-label="{{ b.title|default:'배너' }}">
+                <img src="{{ b.image.url }}" alt="{{ b.title|default:'배너 이미지' }}">
+            </a>
+            {% else %}
+            <img src="{{ b.image.url }}" alt="{{ b.title|default:'배너 이미지' }}">
+            {% endif %}
+        {% else %}
+            {% if b.link_url %}
+            <a href="{{ b.link_url }}" aria-label="{{ b.title|default:'배너' }}">배너</a>
+            {% else %}
+            <div>배너</div>
+            {% endif %}
+        {% endif %}
+        </article>
+    {% empty %}
+        <p>해당 카테고리의 배너가 없어요.</p>
+    {% endfor %}
+    </section>
+
+    <hr>
+
+    <h2>장봄</h2>
+    <p>{% if user.address == None %}
+        {% else %}
+            {{ user.addr_level3 }}
+        {% endif %}
+            {{ user.nickname }}님,</p>
+    <p>한 끼를 위한 산책을 시작해요</p>
 
     <form action="{% url 'food:recipe_input' %}" method="get">
-        <button type="submit">요리를 할거야</button>
+        <button type="submit">요리 하기</button>
     </form>
 
     <form action="{% url 'food:ingredient_input' %}" method="get">
-        <button type="submit">식재료를 고를거야</button>   
+        <button type="submit">식재료 사기</button>   
     </form>
 
-    {% if warn %}
-        <p><strong>장바구니에 남아있는 식재료들이 있어요.</strong></p>
-
-        {% if ingredients %}
-            <p>장바구니에 남아있는 재료:</p>
-            <ul>
-                {% for ing in ingredients %}
-                    <li>{{ ing }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
-        <p>위 재료들로 마저 장을 볼건가요?</p>
-        <form action="{% url 'food:ingredient_result' %}" method="get" style="display:inline;">
-            <input type="hidden" name="hide_warn" value="1">
-            <button type="submit">네</button>
+    {% if has_active_cart %}
+    <div role="status" aria-live="polite">
+        <p>장바구니에 재료가 남아있어요!</p>
+        <form method="post" action="{% url 'food:cart_view' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear_all">
+        <!-- 비우고 돌아올 위치 -->
+        <input type="hidden" name="next" value="{% url 'food:main' %}">
+        <button type="submit">비우기</button>
         </form>
-        <form action="{% url 'food:reset_shoppinglist' %}" method="POST" style="display:inline;">
-            {% csrf_token %}
-            <input type="hidden" name="shoppinglist_id" value="{{ shoppinglist_id }}">
-            <button type="submit">아니요</button>
-        </form>
+    </div>
     {% endif %}
-{% endif %}
+
     <br><hr><br>
     <a href="{% url 'food:main' %}">홈</a> |
     <a href="{% url 'accounts:activity_log' %}">내 활동</a> |
     <a href="{% url 'point:point_home' %}">포인트</a>
     <br><br><br>
-    <!--데모서버에서 로그아웃하기 위해 임시로 만들어 놓음 (피그마에는 로그아웃 없음)-->
+
+
+    <!--주소 설정 안했을 때 나오는 팝업창-->
+    {% if user.address == None %}
+        주소 설정 후 이용해주세요
+        <a href="{% url 'accounts:address_settings' %}">주소 설정하기</a>
+    {% else %}
+    {% endif %}
+    
+    <!--데모서버에서 로그아웃하기 위해 임시로 만들어 놓음 (피그마에는 로그아웃 없음)--><br><br><br>
     <a href="{% url 'accounts:logout' %}">[로그아웃]</a>
+{% endif %}

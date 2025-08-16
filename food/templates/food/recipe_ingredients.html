@@ -1,9 +1,16 @@
 <html>
-  <!-- 장바구니, 바코드는 추후 예정-->
-<a href="{% url 'food:recipe_input' %}">⟨</a> {{ total_point }}P
+<!--상단바-->
+<a href="javascript:history.back()">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+    {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    바코드
+    {{ total_point }}P
 
   <h3>{{ recipe }} 재료 담기</h3>
-  <p>인근 마트에 재고가 있는 재료만 보여요!</p>
   <p>이 중 구매할 재료를 장바구니에 담아주세요</p>
 
   <hr>
@@ -18,7 +25,7 @@
     {% if basic and basic|length > 0 %}
       {% for i in basic %}
         <label>
-          <input type="checkbox" name="ingredients" value="{{ i }}" checked>
+          <input type="checkbox" name="ingredients" value="{{ i }}">
           {{ i }}
         </label><br>
       {% endfor %}

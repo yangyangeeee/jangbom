@@ -5,7 +5,6 @@ app_name = 'food'
 
 urlpatterns = [
     path('', main, name='main'),
-    path('reset_shoppinglist/', reset_shoppinglist_view, name='reset_shoppinglist'),
     # 1. 요리를 할거야
     path('recipe/start/', recipe_input_view, name='recipe_input'),
     path('recipe/ingredients/', recipe_ingredient_result, name='recipe_ingredients'),
@@ -25,12 +24,15 @@ urlpatterns = [
     path('ingredient/recent/delete/<str:keyword>/', delete_recent_ingredient, name='delete_recent_ingredient'),
     path('ingredient/recent/clear/', clear_recent_ingredient, name='clear_recent_ingredient'),
     path('ingredient/result/', ingredient_result_view, name='ingredient_result'),
-    path('ingredient/ai/<str:name>/', ingredient_ai_view, name='ingredient_ai'),
-    path("ingredient/add_ai/", add_ingredient_ai, name="add_ingredient_ai"),
+    path("ingredient/idea/", ingredient_idea_page, name="ingredient_idea_page"),
+    path("ingredient/idea/api/", ingredient_idea_api, name="ingredient_idea_api"),
 
     # 3. 남은 식재료로 요리 추천받기
     path("leftover/select/", select_recent_ingredients, name="select_recent_ingredients"),
     path("leftover/chat/", chat_with_selected_ingredients, name="chat_with_selected_ingredients"),
     path("leftover/save/", save_last_recipe, name="save_last_recipe"),
     path("leftover/clear/", clear_recipe_chat, name="clear_recipe_chat"),
+
+    #4. 장바구니
+    path("cart/", cart_view, name="cart_view"),
 ]

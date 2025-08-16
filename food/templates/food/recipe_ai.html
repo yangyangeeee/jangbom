@@ -1,10 +1,15 @@
-<h2>GPT 요리 챗봇</h2>
+<!--상단바-->
+<a href="{% url 'food:recipe_input' %}">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+    {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    바코드
+    {{ total_point }}P
 
-<form method="post">
-    {% csrf_token %}
-    <input type="text" name="message" placeholder="오늘 뭐 먹지?" style="width:300px;">
-        <button type="submit">보내기</button>
-</form>
+<h3>{{ user.addr_level3 }} {{ user.nickname }}님,<br>어떤 요리를 추천해드릴까요?</h3>
 
 <hr>
 
@@ -22,8 +27,13 @@
     {% if latest_recipe|length > 0 %}
         <form method="get" action="{% url 'food:recipe_ingredients' %}">
             <input type="hidden" name="recipe" value="{{ latest_recipe }}">
-            <button type="submit">'{{ latest_recipe }}' 재료 분석하기</button>
+            <button type="submit">'{{ latest_recipe }}' 재료 담기</button>
         </form>
     {% endif %}
 {% endif %}
 
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="message" placeholder="어떤 요리를 원하시나요?" style="width:300px;">
+        <button type="submit">↑</button>
+</form>
