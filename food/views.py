@@ -213,7 +213,7 @@ def recipe_ingredient_result(request):
             request.session['basic'] = basic_filtered
             request.session['optional'] = optional_filtered
         except Exception as e:
-            messages.error(request, f"재료 분석에 실패했습니다: {e}")
+
             basic_filtered = basic_filtered or []
             optional_filtered = optional_filtered or []
 

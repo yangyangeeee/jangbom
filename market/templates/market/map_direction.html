@@ -6,105 +6,137 @@
     <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_key }}&autoload=true"></script>
 </head>
 <body>
+  <a href="javascript:history.back()">⟨</a> {{ total_point }}P
+  <h2>-------------{{ expected_time }}분 예상-------------</h2>
     <h3>{{ market.name }}로 걸어가는 중</h3>
-    <p>{{ expected_time }}분 소요 예정</p>
 
     <div id="map" style="width:100%; height:400px;"></div>
 
-    <button onclick="window.location.href='tel:{{ market.phone }}'">전화 걸기</button>
-    <button>채팅 하기</button>
 
+<script>
+  // Django에서 json.dumps로 넣은 그대로 JS 객체로 들어옴
+  const polylinePoints = {{ polyline|safe }};
+  console.log("Polyline points:", polylinePoints);
 
-    <script>
-        const polylinePoints = {{ polyline|safe }};
-        console.log("Polyline points:", polylinePoints);
+  if (!Array.isArray(polylinePoints) || polylinePoints.length === 0) {
+    alert("도보 경로를 불러올 수 없습니다.");
+  }
 
-        if (!polylinePoints.length) {
-            alert("도보 경로를 불러올 수 없습니다.");
-        }
+  // Kakao Map 준비
+  const mapContainer = document.getElementById('map');
 
-        const mapContainer = document.getElementById('map');
-        const mapOption = {
-            center: new kakao.maps.LatLng(polylinePoints[0][0], polylinePoints[0][1]),
-            level: 5
-        };
+  // 경로가 있으면 첫 점, 없으면 마켓 좌표로 센터
+  const centerLat = polylinePoints.length ? polylinePoints[0].lat : {{ market.latitude }};
+  const centerLng = polylinePoints.length ? polylinePoints[0].lng : {{ market.longitude }};
 
-        const map = new kakao.maps.Map(mapContainer, mapOption);
+  const map = new kakao.maps.Map(mapContainer, {
+    center: new kakao.maps.LatLng(centerLat, centerLng),
+    level: 5
+  });
 
-        const path = polylinePoints.map(coord => new kakao.maps.LatLng(coord[0], coord[1]));
+  // ★ 여기! [{lat, lng}] → kakao.maps.LatLng(lat, lng)
+  const path = polylinePoints.map(p => new kakao.maps.LatLng(p.lat, p.lng));
 
-        const polylineLine = new kakao.maps.Polyline({
-            path: path,
-            strokeWeight: 5,
-            strokeColor: '#1E90FF',
-            strokeOpacity: 0.9,
-            strokeStyle: 'solid'
-        });
-        polylineLine.setMap(map);
+  // 폴리라인
+  const polylineLine = new kakao.maps.Polyline({
+    path: path,
+    strokeWeight: 5,
+    strokeColor: '#1E90FF',
+    strokeOpacity: 0.9,
+    strokeStyle: 'solid'
+  });
+  polylineLine.setMap(map);
 
-        // 출발지 마커
-        new kakao.maps.Marker({
-            position: path[0],
-            map: map,
-            title: "출발지"
-        });
+  // 경로 전체가 보이도록 bounds 맞추기(추천)
+  if (path.length > 1) {
+    const bounds = new kakao.maps.LatLngBounds();
+    path.forEach(pt => bounds.extend(pt));
+    map.setBounds(bounds);
+  }
 
-        // 도착지 마커
-        new kakao.maps.Marker({
-            position: path[path.length - 1],
-            map: map,
-            title: "도착지"
-        });
-    </script>
+  // 출발/도착 마커
+  if (path.length) {
+    new kakao.maps.Marker({ position: path[0], map, title: "출발지" });
+    new kakao.maps.Marker({ position: path[path.length - 1], map, title: "도착지" });
+  }
+</script>
 
 
     <br>
 
+        <!--업체 정보--> <br><hr>
+    <h3>업체 정보</h3>
 
-    <!-- 구매 재료 확인 영역 --> <br><br><br>
-    <h3>구매할 재료 확인하기</h3>
+    {% if closing_in_minutes <= 30 and closing_in_minutes > 0 %}
+        <p>영업 종료까지 {{ closing_in_minutes }}분 남았어요.</p>
+    {% elif closing_in_minutes == 0 %}
+        <p>영업 종료</p>
+    {% else %}
+        <p>현재 영업 중</p>
+    {% endif %}
+  
 
+    <p>{{ market.info }}</p>
+    <p>{{ market.phone }}</p>
+    <p>{{ market.address }}</p>
+
+    <!--장바구니--> <br><hr>
+    <h3>장바구니</h3>
+
+    {% if market.market_type == 'mart' %}
     <div class="ingredient-list">
-    {% for item in matched_ingredients %}
+        {% for item in matched_ingredients %}
         <div class="ingredient-box">
             {% if item.image %}
-                <img src="{{ item.image }}" alt="{{ item.name }}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
+            <img src="{{ item.image }}" alt="{{ item.name }}" style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
             {% else %}
-                <div class="no-img-box"></div>
+            <div class="no-img-box"></div>
             {% endif %}
             <div>{{ item.name }}</div>
         </div>
-    {% endfor %}
+        {% empty %}
+        <p>장바구니에 재료가 없습니다.</p>
+        {% endfor %}
     </div>
 
-<br>
-
     {% if unmatched_ingredients %}
-        {% for item in unmatched_ingredients %}
-            {{ item }}
+        <p>
+        {% for name in unmatched_ingredients %}
+            <span class="pill">{{ name }}</span>
         {% endfor %}
-            은(는) 해당 마트에서 판매하고 있지 않습니다.
+        은(는) 해당 마트에서 판매하지 않습니다.
+        </p>
     {% endif %}
 
-
-<!-- 업체 정보 확인 영역 --> <br><br><br>
-<h3>업체 정보 확인하기</h3>
-<p>{{ market.name }} ({{ market.market_type }})</p>
-<p>{{ market.address }} ({{ market.dong }})</p>
-<p>{{ distance_m }}m</p>
-{% if market.image %}
-        <img src="{{ market.image.url }}" alt="{{ market.name }} 이미지" width="200"><br>
+    {% elif market.market_type == 'trad' %}
+    <div class="ingredient-list">
+        {% for item in unmatched_ingredients %}
+        <div class="ingredient-box">
+            {% if item.image %}
+            <img src="{{ item.image }}" alt="{{ item.name }}"
+                style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
+            {% else %}
+            <div class="no-img-box"></div>
+            {% endif %}
+            <div>{{ item.name }}</div>
+        </div>
+        {% empty %}
+        <p>장바구니에 재료가 없습니다.</p>
+        {% endfor %}
+    </div>
     {% endif %}
+    <br>
 
-<button onclick="window.location.href='tel:{{ market.phone }}'">전화 걸기</button>
-<button>채팅 하기</button>
 
-<br>
+<br><hr><br>
 
-<p>도착 시 +{{ point_earned }}포인트!</p>
+    <button onclick="window.location.href='tel:{{ market.phone }}'">전화 걸기</button>
+    <button>채팅 하기</button>
+
+    <p>{{ point_earned }} 포인트 적립</p>
 
 <form method="get" action="{% url 'market:market_arrival' shopping_list.id %}">
-    <button type="submit">도착 완료</button>
+    <button type="submit">도착 확인</button>
 </form>
 
 </body>

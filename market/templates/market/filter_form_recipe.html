@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>상점 필터 설정</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <a href="{% url 'food:confirm_shopping_list' %}" aria-label="뒤로가기">✕</a>
+  <h1>상점 필터 설정</h1>
+  
+  <form method="post" action="{% url 'market:edit_market_filter_recipe' %}" id="filterForm">
+    {% csrf_token %}
+    {% if request.GET.next %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+    {% endif %}
+
+    <!-- 거리 -->
+    <h2>거리</h2>
+    <label>
+      <input type="checkbox" name="distance_preference" value="within_1km"
+             {% if filter.distance_preference == "within_1km" %}checked{% endif %}>
+      1km 이내만 보여주세요
+    </label><br>
+    <label>
+      <input type="checkbox" name="distance_preference" value="any_2km"
+             {% if filter.distance_preference == "any_2km" %}checked{% endif %}>
+      상관 없어요
+    </label><br>
+
+
+    <!-- 상점 종류 -->
+    <h2>상점 종류</h2>
+    <label>
+      <input type="checkbox" name="type_preference" value="mart"
+             {% if filter.type_preference == "mart" %}checked{% endif %}>
+      동네 마트를 우선 보여주세요
+    </label><br>
+    <label>
+      <input type="checkbox" name="type_preference" value="trad"
+             {% if filter.type_preference == "trad" %}checked{% endif %}>
+      전통 시장을 우선 보여주세요
+    </label><br>
+    <label>
+      <input type="checkbox" name="type_preference" value="none"
+             {% if filter.type_preference == "none" %}checked{% endif %}>
+      상관 없어요
+    </label><br>
+
+    <p>
+      <button type="submit">저장하기</button>
+    </p>
+  </form>
+
+  <script>
+    // 체크박스를 라디오처럼: 같은 name 그룹에서 하나만 선택되도록
+    function makeExclusive(name) {
+      const boxes = Array.from(document.querySelectorAll(`input[type=checkbox][name="${name}"]`));
+      boxes.forEach(b => {
+        b.addEventListener('change', function () {
+          if (this.checked) {
+            boxes.forEach(x => { if (x !== this) x.checked = false; });
+          }
+        });
+      });
+    }
+    makeExclusive('distance_preference');
+    makeExclusive('type_preference');
+  </script>
+</body>
+</html>

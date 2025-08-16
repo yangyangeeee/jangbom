@@ -1,41 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>도착</title>
+  <meta charset="UTF-8">
+  <title>도착</title>
 </head>
 <body>
+<a href="javascript:history.back()">⟨</a> {{ total_point }}P
 <h2>도착 완료</h2>
-    {% if market.image %}
-        <img src="{{ market.image.url }}" alt="{{ market.name }} 이미지" width="200">
-    {% endif %}
+<p>총 {{ expected_time }}분, {{ distance_m }}m 걸었어요</p>
 
-<!-- 버튼 -->
-<form method="get" action="{% url 'market:secret_input' market.id %}">
-  <input type="hidden" name="shoppinglist_id" value="{{ shopping_list.id }}">
-  <button type="submit">
-    구매 인증하고 {{ point_earned }}P 받기
-  </button>
-</form>
+<br><br>
 
 <!-- 설명 -->
-<p>✔ 배달 포장 없는 장 보기</p>
-<p>✔ 탄소 없는 도보 쇼핑</p>
+{{ user.addr_level3 }} {{ user.nickname }}님이 해냈어요!
+<div>
+  {% for line in praise_lines %}
+    <p>✔ {{ line }}</p>
+  {% endfor %}
+</div>
 
-<!-- 구매 재료 확인 영역 --> <br><br><br>
-{% if ingredients %}
-  <h3>구매할 재료</h3>
-  <ul>
-    {% for item in ingredients %}
-      <li style="display:flex;align-items:center;gap:8px;">
-        {% if item.image %}
-          <img src="{{ item.image }}" alt="{{ item.name }}" width="40" height="40" style="object-fit:cover;">
-        {% endif %}
-        <span>{{ item.name }}</span>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>이 마켓에서 구매 가능한 장바구니 재료가 없습니다.</p>
+<!--마트 사진 -->
+{% if market.market_type == 'mart' and market.image %}
+  <h3>입구 사진 확인하기</h3>
+  <img src="{{ market.image.url }}" alt="{{ market.name }} 이미지" width="200">
+  <!--괜찮아요 다시 안내해드릴게요! 부분은 여기다가 만들면 됨 -->
 {% endif %}
+  <br>
+
+<!-- 장바구니(체크 후 저장) -->
+<h3>장바구니 체크리스트</h3>
+<form method="post" action="{% url 'market:save_selected_ingredients' shopping_list.id %}">
+  {% csrf_token %}
+  {# 저장 끝난 뒤 이동할 URL: secret_input (비밀번호 입력 페이지) #}
+  <input type="hidden" name="next"
+          value="{% url 'market:secret_input' market.id %}?shoppinglist_id={{ shopping_list.id }}&point_earned={{ point_earned }}">
+
+  {% if market.market_type == 'mart' %}
+    <div class="ingredient-list">
+      {% for item in matched_ingredients %}
+        <label class="ingredient-box" style="display:block; margin-bottom:6px;">
+          <span>{{ item.name }}</span>
+          <a href="{% url 'market:ingredient_tip_page' %}?name={{ item.name|urlencode }}">구매 TIP</a>
+          <input type="checkbox" name="items" value="{{ item.name }}">
+        </label>
+      {% empty %}
+        <p>장바구니에 재료가 없습니다.</p>
+      {% endfor %}
+    </div>
+
+  {% elif market.market_type == 'trad' %}
+    <div class="ingredient-list">
+      {% for item in unmatched_ingredients %}
+        <label class="ingredient-box" style="display:block; margin-bottom:6px;">
+          <span>{{ item.name }}</span>
+          <a href="{% url 'market:ingredient_tip_page' %}?name={{ item.name|urlencode }}">구매 TIP</a>
+          <input type="checkbox" name="items" value="{{ item.name }}">
+        </label>
+      {% empty %}
+        <p>장바구니에 재료가 없습니다.</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <button type="submit">저장하기</button>
+</form>
+</form>
+
+</body>
 </html>
