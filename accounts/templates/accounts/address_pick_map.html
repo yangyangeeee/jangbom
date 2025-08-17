@@ -14,33 +14,35 @@
   <!-- 지도 -->
   <div id="map" style="width:100%;height:360px;"></div>
 
-  <!-- 주소 미리보기 + 경고 -->
+  <!-- 현재 위치로 이동 버튼 -->
+  <button type="button" id="btn-geolocate">🎯</button>
+
+  <!-- 주소 노출 -->
   <div>
-    <h3 id="addr-title">주소를 불러오는 중…</h3>
-    <p id="addr-sub" style="color:#666"></p>
-    <p style="color:#d33">지도의 표시와 실제 주소가 맞는지 확인해주세요.</p>
+    <h3 id="addr-title"></h3>
   </div>
 
-  <!-- 현재 위치로 이동 버튼 -->
-  <button type="button" id="btn-geolocate">현재 위치로 이동</button>
+  <!-- addr_level 부분은 히든 처리 -->
+  <div style="display:none">
+    <p id="addr-sub"></p>
+  </div>
 
-  <!-- 이 위치로 등록 (상세주소 입력 페이지로 이동) -->
-<form id="save-direct" method="post" action="{% url 'accounts:address_save_from_map' %}">
-  {% csrf_token %}
-  <input type="hidden" name="name" id="f-name">
-  <input type="hidden" name="l1"   id="f-l1">
-  <input type="hidden" name="l2"   id="f-l2">
-  <input type="hidden" name="l3"   id="f-l3">
-  <input type="hidden" name="lat"  id="f-lat">
-  <input type="hidden" name="lng"  id="f-lng">
-  <!-- (선택) 상세주소 입력 필드도 여기서 받을 수 있어요 -->
-  <input type="text" name="detail" placeholder="동/호수 등 상세주소(선택)">
-  <button type="submit">이 위치로 주소 등록</button>
-</form>
+  <!-- 이 위치로 등록 -->
+  <form id="save-direct" method="post" action="{% url 'accounts:address_save_from_map' %}">
+    {% csrf_token %}
+    <input type="hidden" name="name" id="f-name">
+    <input type="hidden" name="l1"   id="f-l1">
+    <input type="hidden" name="l2"   id="f-l2">
+    <input type="hidden" name="l3"   id="f-l3">
+    <input type="hidden" name="lat"  id="f-lat">
+    <input type="hidden" name="lng"  id="f-lng">
+    상세 주소 <input type="text" name="detail"> <br>
+    <p style="color:#d33">지도의 표시와 실제 주소가 맞는지 확인해주세요</p>
+    <button type="submit">이 위치로 주소 등록</button>
+  </form>
 
 <script>
 (function(){
-  // 초기 중심(백엔드 폴백)
   var initLat = parseFloat("{{ init_lat }}");
   var initLng = parseFloat("{{ init_lng }}");
 
@@ -55,15 +57,9 @@
   });
 
   var geocoder = new kakao.maps.services.Geocoder();
-
-  // 중앙 핀(드래그로 위치 바꿀 때 중심에 따라 움직임)
-  var marker = new kakao.maps.Marker({
-    position: map.getCenter(),
-    draggable: false
-  });
+  var marker = new kakao.maps.Marker({ position: map.getCenter(), draggable: false });
   marker.setMap(map);
 
-  // 중앙 좌표가 바뀔 때마다 역지오코딩해서 폼/텍스트 갱신
   function updateCenterInfo() {
     var center = map.getCenter();
     marker.setPosition(center);
@@ -82,7 +78,6 @@
         document.getElementById('f-l3').value = "";
         return;
       }
-      // road_address 우선, 없으면 address(지번)
       var r = result[0];
       var road = r.road_address;
       var jibun = r.address;
@@ -102,27 +97,41 @@
     });
   }
 
-  // 지도를 끌거나 확대/축소 후 멈추면 갱신
   kakao.maps.event.addListener(map, 'idle', updateCenterInfo);
-
-  // 페이지 첫 렌더에서는 백엔드 폴백 좌표 기준으로 먼저 갱신
   updateCenterInfo();
 
-  // GPS 버튼: 권한 허용 시 현재 위치로 이동
-  document.getElementById('btn-geolocate').addEventListener('click', function(){
-    if (!navigator.geolocation) {
-      alert("브라우저가 위치 정보를 지원하지 않습니다.");
-      return;
-    }
+  function getCurrent(){
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(function(pos){
       var lat = pos.coords.latitude;
       var lng = pos.coords.longitude;
-      map.setCenter(new kakao.maps.LatLng(lat, lng));
-      // idle 이벤트가 호출되며 updateCenterInfo가 실행됨
+      map.setCenter(new kakao.maps.LatLng(lat, lng)); // idle에서 updateCenterInfo 실행
     }, function(err){
-      alert("현재 위치를 가져오지 못했습니다. 권한을 허용했는지 확인해 주세요.");
-      console.error(err);
-    }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+      console.warn("geolocation error:", err);
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 });
+  }
+
+  // ✅ 페이지 진입 즉시 현재 위치 시도(권한 창 자동 표시)
+  (function autoLocate(){
+    if (!navigator.geolocation) return;
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' })
+        .then(function(p){
+          if (p.state === 'granted' || p.state === 'prompt') getCurrent();
+        })
+        .catch(getCurrent);
+    } else {
+      getCurrent();
+    }
+  })();
+
+  // 수동 버튼
+  var btn = document.getElementById('btn-geolocate');
+  if (btn) btn.addEventListener('click', function(){ getCurrent(); });
+
+  // 지도 클릭으로도 위치 선택 가능(원하면 유지)
+  kakao.maps.event.addListener(map, 'click', function(e){
+    map.setCenter(e.latLng);
   });
 })();
 </script>
