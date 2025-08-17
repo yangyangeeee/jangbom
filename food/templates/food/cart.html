@@ -16,9 +16,10 @@
     <form method="post" action="{% url 'food:cart_view' %}">
       {% csrf_token %}
 
-      <label>
-        <input type="checkbox" id="check-all"> 전체 선택
-      </label>
+      <label><input type="checkbox" id="check-all"> 전체 선택</label>
+      <button type="submit" name="action" value="remove_selected">선택 삭제</button>
+
+      <hr>
 
       <ul>
         {% for it in items %}
@@ -33,10 +34,7 @@
         {% endfor %}
       </ul>
 
-      <p>
-        <button type="submit" name="action" value="clear_all">장바구니 비우기</button>
-        <button type="submit" name="action" value="go_confirm">장 보러 가기</button>
-      </p>
+      <button type="submit" name="action" value="go_confirm">장 보러 가기</button>
     </form>
   {% endif %}
 

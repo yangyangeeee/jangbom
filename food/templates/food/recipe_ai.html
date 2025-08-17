@@ -6,7 +6,7 @@
             {{ cart_items_count }}
         {% endif %}
     </a>
-    바코드
+    <a href="{% url 'point:barcode' %}">바코드</a>
     {{ total_point }}P
 
 <h3>{{ user.addr_level3 }} {{ user.nickname }}님,<br>어떤 요리를 추천해드릴까요?</h3>
