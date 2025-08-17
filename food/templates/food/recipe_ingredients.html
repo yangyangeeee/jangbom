@@ -7,7 +7,7 @@
             {{ cart_items_count }}
         {% endif %}
     </a>
-    바코드
+    <a href="{% url 'point:barcode' %}">바코드</a>
     {{ total_point }}P
 
   <h3>{{ recipe }} 재료 담기</h3>
