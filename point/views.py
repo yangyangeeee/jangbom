@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction, IntegrityError
 from django.utils.crypto import get_random_string
+from food.views import get_user_total_point, cart_items_count
 
 # Create your views here.
 @login_required
@@ -33,11 +34,16 @@ def point_home(request):
         .aggregate(total=Sum('point_earned'))['total'] or 0
     )
 
+    items_count = cart_items_count(user)
+    total_point = get_user_total_point(user)
+
     return render(request, 'point/home.html', {
         'total_points': my_total,
         'weekly_points': weekly_points,
         'user_address': getattr(user, 'location', None) or '미등록',
         'my_rank': my_rank,
+        "cart_items_count": items_count,
+        "total_point": total_point,
     })
 
 PERIODS = {
@@ -46,6 +52,8 @@ PERIODS = {
 
 @login_required
 def point_history(request):
+    user = request.user
+
     period = request.GET.get('period', '1m')   # 1m,3m,6m,1y,all
     sort = request.GET.get('sort', 'latest')   # latest, points
 
@@ -60,11 +68,16 @@ def point_history(request):
 
     summary = qs.aggregate(total_points=Sum('point_earned'), count=Count('id'))
 
+    items_count = cart_items_count(user)
+    total_point = get_user_total_point(user)
+
     return render(request, 'point/history.html', {
         'logs': qs,
         'summary': summary,
         'selected': {'period': period, 'sort': sort},
         'PERIODS': PERIODS,
+        "cart_items_count": items_count,
+        "total_point": total_point,
     })
 
 def _my_district(user) -> str | None:
@@ -76,6 +89,8 @@ def _my_district(user) -> str | None:
 
 @login_required
 def point_ranking(request):
+    user = request.user
+    
     district = _my_district(request.user)
     local_users = (
         CustomUser.objects.filter(addr_level2=district) if district
@@ -108,10 +123,15 @@ def point_ranking(request):
         .order_by("-points", "user_id")[:30]
     )
 
+    items_count = cart_items_count(user)
+    total_point = get_user_total_point(user)
+
     return render(request, "point/ranking.html", {
         "district": district,
         "weekly_top30": weekly_top30,
         "header_stats": header_stats,
+        "cart_items_count": items_count,
+        "total_point": total_point,
     })
 
 # 바코드

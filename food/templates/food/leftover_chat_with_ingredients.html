@@ -1,8 +1,18 @@
+<a href="javascript:history.back()">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+        {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    <a href="{% url 'point:barcode' %}">바코드</a>
+    {{ total_point }}P
+
 <h2>{{ selected_names|join:", " }}로 이런 요리를 할 수 있어요!</h2>
 
 <hr>
 
-<!-- ✅ 저장 완료 모달 (세션에 제목 있으면 한 번만 표시) -->
+<!--  저장 완료 모달 (세션에 제목 있으면 한 번만 표시) -->
 {% if saved_title %}
 <dialog id="savedRecipeDialog" open>
     <form method="dialog">

@@ -1,5 +1,15 @@
 {% load humanize %}
 
+<a href="javascript:history.back()">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+        {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    <a href="{% url 'point:barcode' %}">바코드</a>
+    {{ total_point }}P
+
 <h2>세부 활동 내역</h2>
 
 <!-- 검색 폼 -->
