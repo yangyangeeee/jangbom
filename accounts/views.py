@@ -455,7 +455,6 @@ def address_save(request):
         addr.save(update_fields=["latitude", "longitude"])
 
     _apply_selected_address(user, addr)
-    messages.success(request, "대표 주소가 설정되었습니다.")
     return redirect("accounts:address_settings")
 
 
