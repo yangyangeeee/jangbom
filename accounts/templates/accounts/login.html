@@ -2,7 +2,7 @@
 <form method="post">
     {% csrf_token %}
     <p>
-        {{ form.username.label_tag }}<br>
+        아이디:<br>
         {{ form.username }}
         {% if form.username.errors %}
             <div class="error">{{ form.username.errors }}</div>
@@ -10,7 +10,7 @@
     </p>
 
     <p>
-        {{ form.password.label_tag }}<br>
+        비밀번호:<br>
         {{ form.password }}
         {% if form.password.errors %}
             <div class="error">{{ form.password.errors }}</div>
@@ -18,3 +18,5 @@
     </p>
     <button type="submit">로그인</button>
 </form>
+
+<a href="{% url 'accounts:signup' %}">회원가입</a>
