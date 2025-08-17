@@ -2,7 +2,7 @@
 
 <h2>세부 활동 내역</h2>
 
-<!-- 검색 폼: period/sort 값을 hidden으로 함께 보냄 (검색만 바꿔도 필터 유지) -->
+<!-- 검색 폼 -->
 <form method="get" action="">
     <input type="hidden" name="period" value="{{ period }}">
     <input type="hidden" name="sort" value="{{ sort }}">
@@ -11,7 +11,7 @@
     <a href="?">초기화</a>
 </form>
 
-<!-- 필터 폼: q 값을 hidden으로 함께 보냄 (필터만 바꿔도 검색어 유지) -->
+<!-- 필터 폼 -->
 <form method="get" action="">
     <input type="hidden" name="q" value="{{ q }}">
     <select name="period" onchange="this.form.submit()">
@@ -21,29 +21,75 @@
         <option value="1y" {% if period == '1y' %}selected{% endif %}>최근 1년</option>
         <option value="all" {% if period == 'all' %}selected{% endif %}>전체</option>
     </select>
-
     <label>
-        <input type="radio" name="sort" value="latest" onchange="this.form.submit()" {% if sort == 'latest' %}checked{% endif %}>
-        최신순
+        <input type="radio" name="sort" value="latest" onchange="this.form.submit()" {% if sort == 'latest' %}checked{% endif %}> 최신순
     </label>
     <label>
-        <input type="radio" name="sort" value="points" onchange="this.form.submit()" {% if sort == 'points' %}checked{% endif %}>
-        포인트순
+        <input type="radio" name="sort" value="points" onchange="this.form.submit()" {% if sort == 'points' %}checked{% endif %}> 포인트순
     </label>
 </form>
 
 <!-- 결과 리스트 -->
 {% if log_data %}
-    <div>
+    <div id="activity-list">
         {% for log in log_data %}
-        <a href="{% url 'accounts:activity_detail' log.shopping_list_id %}">
-            <div>
-            <div>{{ log.market_name }}</div>
-            <div>{{ log.visited_at|date:"Y.m.d" }}</div>
+        <div class="activity-item" data-id="{{ log.shopping_list_id }}">
+            <div class="activity-header">
+            <span class="toggle" aria-hidden="true">▶</span>
+            <strong>{{ log.market_name }}</strong>
+            <span> — {{ log.visited_at|date:"Y.m.d H:i" }}</span>
             </div>
-        </a>
+            <div class="detail-box" id="detail-{{ log.shopping_list_id }}" style="display:none;"></div>
+        </div>
         {% endfor %}
     </div>
-    {% else %}
-        <p>해당 조건의 활동 내역이 없습니다.</p>
+{% else %}
+    <p>해당 조건의 활동 내역이 없습니다.</p>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Django URL 리버스 사용 (0을 자리표시자로 두고 JS에서 치환)
+    const ajaxPattern = "{% url 'accounts:activity_detail_ajax' 0 %}".replace('0', '__ID__');
+
+    document.querySelectorAll('.activity-item .activity-header').forEach(function (header) {
+        header.addEventListener('click', function () {
+        const item = this.closest('.activity-item');
+        const id = item.dataset.id;
+        const box = item.querySelector('.detail-box');
+        const icon = this.querySelector('.toggle');
+
+        if (box.style.display === 'block') {
+            // 닫기
+            box.style.display = 'none';
+            icon.textContent = '▶';
+            return;
+        }
+
+        // 처음 열 때만 fetch
+        if (!box.dataset.loaded) {
+            fetch(ajaxPattern.replace('__ID__', id))
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                box.innerHTML = `
+                <h4>걷기 기록</h4>
+                <p>획득 포인트: +${data.point_earned}P</p>
+                <p>이동 시간: ${data.travel_minutes} 분</p>
+                <p>걸음 수: ${data.steps} 걸음</p>
+                <p>소모 칼로리: ${data.calories_kcal} kcal</p>
+                <h4>구매한 식재료</h4>
+                <ul>${(data.ingredients || []).map(function(i){ return `<li>${i}</li>`; }).join('')}</ul>
+                `;
+                box.dataset.loaded = '1';
+                box.style.display = 'block';
+                icon.textContent = '▼';
+            });
+        } else {
+            // 이미 불러왔으면 그냥 열기
+            box.style.display = 'block';
+            icon.textContent = '▼';
+        }
+        });
+    });
+});
+</script>

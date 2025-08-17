@@ -5,6 +5,7 @@ from django.db.models import Count, Sum, F, Window
 from django.db.models.functions import Rank
 from market.models import *
 from food.models import *
+from point.models import *
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from datetime import timedelta
@@ -15,6 +16,7 @@ from django.contrib import messages
 from django.conf import settings
 from .models import CustomUser, Address
 import requests
+from django.http import JsonResponse
 
 
 
@@ -94,119 +96,95 @@ def logout_view(request):
     logout(request)
     return redirect('food:main')
 
+# 내 활동
+def _my_district(user) -> str | None:
+    addr = getattr(user, "active_address", None)
+    if addr and getattr(addr, "addr_level2", None):
+        return addr.addr_level2
+    return getattr(user, "addr_level2", None)
+
+def _week_bounds_now():
+    now = timezone.now()
+    start = (now - timedelta(days=now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    end = start + timedelta(days=7)
+    return start, end
+
 @login_required
 def activity_log_view(request):
     user = request.user
-    logs = ActivityLog.objects.filter(user=user, shopping_list__is_done=True).select_related('shopping_list__market').order_by('-visited_at')
-    # 누적 거리 계산 (거리 = point / 100)
-    total_points = logs.aggregate(total=Sum('point_earned'))['total'] or 0
-    total_distance_km = total_points / 100
 
-    # 누적 통계
-    total_logs = logs.count()
-    market_visits = logs.filter(shopping_list__market__market_type='전통시장').count()
-    total_steps = int(total_distance_km * 1300)  # 평균 1km당 1300걸음
-    co2_saved_kg = round(total_distance_km * 0.232, 2)  # kg 단위
+    # ===== 전체 기준(주간 X) =====
+    logs_all = (
+        ActivityLog.objects
+        .filter(user=user, shopping_list__is_done=True)
+        .select_related('shopping_list__market')
+        .order_by('-visited_at')
+    )
 
-    # 로그별 상세정보
+    total_logs = logs_all.count()                                  # 전체 횟수
+    total_steps = logs_all.aggregate(s=Sum('steps'))['s'] or 0      # 누적 걸음수(기록 합)
+    total_points = logs_all.aggregate(s=Sum('point_earned'))['s'] or 0
+    total_distance_km = total_points / 100.0                        # 100P = 1km
+    co2_saved_kg = round(total_distance_km * 0.232, 2)
+
+    # 목록(전체 로그)
     log_data = []
-    for log in logs:
-        shopping_list = log.shopping_list
-        ingredients = ShoppingListIngredient.objects.filter(
-            shopping_list=shopping_list
-        ).select_related('ingredient')
-
+    for log in logs_all:
+        sl = log.shopping_list
+        market_name = sl.market.name if (sl and sl.market) else '미지정 마트'
         log_data.append({
             'visited_at': log.visited_at,
+            'market_name': market_name,
+            'shopping_list_id': sl.id if sl else None,
             'point_earned': log.point_earned,
-            'market_name': shopping_list.market.name if shopping_list.market else '미지정 마트',
-            'ingredients': [i.ingredient.name for i in ingredients],
-            'shopping_list_id': shopping_list.id,
+            'steps': log.steps or 0,
         })
-    
-    # 사용자별 누적 포인트 랭킹 계산
-    ranking_qs = (
-        ActivityLog.objects.values('user')  # 각 유저별
-        .annotate(total_points=Sum('point_earned'))  # 누적 포인트
-        .order_by('-total_points')  # 내림차순
+
+    # ===== 랭킹만 “이번 주 + 같은 구(district)” 기준 =====
+    week_start, week_end = _week_bounds_now()
+    district = _my_district(user)
+    local_users = (
+        CustomUser.objects.filter(addr_level2=district)
+        if district else CustomUser.objects.all()
     )
 
-    # 현재 유저 랭킹 찾기
-    user_rank = None
-    for idx, entry in enumerate(ranking_qs, start=1):
-        if entry['user'] == user.id:
-            user_rank = idx
-            break
+    base_qs = ActivityLog.objects.filter(
+        user__in=local_users,
+        visited_at__gte=week_start,
+        visited_at__lt=week_end,
+    )
+
+    # 내 주간 포인트
+    my_week_points = (
+        base_qs.filter(user=user)
+        .aggregate(s=Sum('point_earned'))['s'] or 0
+    )
+
+    # 내 주간 랭킹: 나보다 점수 큰 사람 수 + 1 (0점이면 None)
+    if my_week_points > 0:
+        user_rank = (
+            base_qs.values('user')
+            .annotate(points=Sum('point_earned'))
+            .filter(points__gt=my_week_points)
+            .count()
+        ) + 1
+    else:
+        user_rank = None
 
     return render(request, 'accounts/activity_log.html', {
-        'log_data': log_data,
+        # 전체 기준 요약
         'total_logs': total_logs,
-        'market_visits': market_visits,
         'total_steps': total_steps,
         'co2_saved_kg': co2_saved_kg,
+
+        # 랭킹(이번 주 + 같은 구)
         'user_rank': user_rank,
+
+        # 목록(전체 로그)
+        'log_data': log_data,
     })
-STEPS_PER_KM = 1300       # 1km ≈ 1,300걸음(평균 보폭 기준 대략치)
-KCAL_PER_KM  = 50         # 1km당 약 50kcal(평균 체중/보행 속도 가정)
-
-@login_required
-def activity_detail_view(request, shopping_list_id):
-    shopping_list = get_object_or_404(
-        ShoppingList.objects.select_related('market'),
-        id=shopping_list_id,
-        user=request.user
-    )
-
-    ingredients = (ShoppingListIngredient.objects.filter(shopping_list=shopping_list).select_related('ingredient'))
-
-    # 연결된 ActivityLog에서 포인트 가져오기
-    log = ActivityLog.objects.filter(user=request.user, shopping_list=shopping_list).first()
-    point_earned = log.point_earned if log else 0
-
-    # ---- 포인트 기반 추정치 계산 ----
-    # points = round(distance_km * 100)  =>  distance_km ≈ points / 100
-    distance_km = point_earned / 100.0
-    steps = int(round(distance_km * STEPS_PER_KM))
-    calories_kcal = int(round(distance_km * KCAL_PER_KM))
-
-    return render(request, 'accounts/activity_detail.html', {
-        'shopping_list': shopping_list,
-        'ingredients': ingredients,
-        'point_earned': point_earned,
-
-        # 추가된 컨텍스트
-        'distance_km': distance_km,
-        'steps': steps,
-        'calories_kcal': calories_kcal,
-    })
-
-@login_required
-def my_recipes(request):
-    q = request.GET.get('q', '').strip()        # 검색어
-    sort = request.GET.get('sort', 'latest')    # 정렬 기준 (기본: 최신순)
-
-    recipes = SavedRecipe.objects.filter(user=request.user)
-
-    # 검색 필터
-    if q:
-        recipes = recipes.filter(title__icontains=q)
-
-    # 정렬 조건
-    if sort == 'latest':
-        recipes = recipes.order_by('-created_at')
-    elif sort == 'alpha':  # 가나다/알파벳순
-        recipes = recipes.order_by('title')
-
-    return render(request, 'accounts/my_recipes.html', {
-        'recipes': recipes,
-        'q': q,
-        'sort': sort,
-    })
-
-@login_required
-def recipe_detail(request, recipe_id):
-    recipe = get_object_or_404(SavedRecipe, id=recipe_id, user=request.user)
-    return render(request, 'accounts/recipe_detail.html', {'recipe': recipe})
 
 _PERIODS = {
     "1m": timedelta(days=30),
@@ -216,6 +194,11 @@ _PERIODS = {
     "all": None,
 }
 
+# 추정용 상수 (기록 없을 때만 폴백)
+STEPS_PER_KM = 1300
+KCAL_PER_KM = 50
+
+# 세부 활동 내역
 @login_required
 def activity_history_view(request):
     user = request.user
@@ -256,10 +239,16 @@ def activity_history_view(request):
     for log in qs:
         sl = log.shopping_list
         market_name = sl.market.name if (sl and sl.market) else "미지정"
+
+        # 목록에서도 요약 정보가 필요하면 함께 내려주기 (템플릿에서 쓰거나, 안 쓰면 무시해도 됨)
         log_data.append({
             "visited_at": log.visited_at,
             "market_name": market_name,
             "shopping_list_id": sl.id if sl else None,
+            "point_earned": log.point_earned,
+            "steps": log.steps,  # None 가능
+            "travel_minutes": log.travel_minutes,  # None 가능
+            "calories_kcal": log.calories_kcal,  # None 가능 (Decimal)
         })
 
     return render(request, "accounts/activity_history.html", {
@@ -269,6 +258,98 @@ def activity_history_view(request):
         "log_data": log_data,
     })
 
+@login_required
+def activity_detail_ajax(request, shopping_list_id):
+    """AJAX로 세부 활동 데이터 반환 (기록값 우선, 없으면 추정치 폴백)"""
+    shopping_list = get_object_or_404(
+        ShoppingList.objects.select_related('market'),
+        id=shopping_list_id,
+        user=request.user
+    )
+
+    ingredients = ShoppingListIngredient.objects.filter(
+        shopping_list=shopping_list
+    ).select_related('ingredient')
+
+    log = ActivityLog.objects.filter(
+        user=request.user,
+        shopping_list=shopping_list
+    ).first()
+
+    # 기본값
+    point_earned = 0
+    distance_km = 0.0
+    steps = None
+    travel_minutes = None
+    calories_kcal = None
+
+    if log:
+        point_earned = log.point_earned or 0
+        visited_at = log.visited_at
+        # 기록이 있으면 그대로 사용
+        steps = log.steps
+        travel_minutes = log.travel_minutes
+        calories_kcal = float(log.calories_kcal) if log.calories_kcal is not None else None
+
+    # 기록이 부족하면 포인트 기반 추정(1km = 100P 규칙)
+    if point_earned and (steps is None or travel_minutes is None or calories_kcal is None):
+        distance_km = point_earned / 100.0
+        if steps is None:
+            steps = int(round(distance_km * STEPS_PER_KM))
+        if travel_minutes is None:
+            # 대략 시속 4km 보행(= 분당 66~70m) 가정 → 1km ≈ 15분
+            travel_minutes = int(round(distance_km * 15))
+        if calories_kcal is None:
+            calories_kcal = int(round(distance_km * KCAL_PER_KM))
+    else:
+        # 기록이 완전한 경우에도 distance_km 표시는 편의상 계산해서 내려줌
+        distance_km = point_earned / 100.0 if point_earned else 0.0
+
+    return JsonResponse({
+        "market_name": shopping_list.market.name if shopping_list.market else "미지정",
+        "created_at": shopping_list.created_at.strftime("%Y.%m.%d %H:%M"),
+        "visited_at": visited_at.strftime("%Y.%m.%d %H:%M") if visited_at else None,
+        "point_earned": point_earned,
+        "distance_km": f"{distance_km:.2f}",
+        "steps": steps or 0,
+        "travel_minutes": travel_minutes or 0,
+        "calories_kcal": calories_kcal or 0,
+        "ingredients": [item.ingredient.name for item in ingredients]
+    })
+
+# 요리법 보관함
+@login_required
+def my_recipes(request):
+    q = request.GET.get('q', '').strip()        # 검색어
+    sort = request.GET.get('sort', 'latest')    # 정렬 기준 (기본: 최신순)
+
+    recipes = SavedRecipe.objects.filter(user=request.user)
+
+    # 검색 필터
+    if q:
+        recipes = recipes.filter(title__icontains=q)
+
+    # 정렬 조건
+    if sort == 'latest':
+        recipes = recipes.order_by('-created_at')
+    elif sort == 'alpha':  # 가나다/알파벳순
+        recipes = recipes.order_by('title')
+
+    return render(request, 'accounts/my_recipes.html', {
+        'recipes': recipes,
+        'q': q,
+        'sort': sort,
+    })
+
+@login_required
+def recipe_detail_ajax(request, recipe_id):
+    """AJAX 요청 시 레시피 상세 데이터 반환"""
+    recipe = get_object_or_404(SavedRecipe, id=recipe_id, user=request.user)
+    return JsonResponse({
+        'title': recipe.title,
+        'created_at': recipe.created_at.strftime('%Y.%m.%d %H:%M'),
+        'description': recipe.description,
+    })
 
 @login_required
 def address_settings(request):

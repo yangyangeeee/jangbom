@@ -4,7 +4,7 @@
 <div>{{ total_points|intcomma }} 포인트</div>
 
 <p>
-    {{ user.nickname|default:user.username }} - {{ user_address|default:"미등록" }}
+    {{ user.nickname|default:user.username }} - {{ user.addr_level3|default:"" }}
     {% if my_rank %} {{ my_rank }}등{% else %} (랭킹 없음){% endif %}
 </p>
 
