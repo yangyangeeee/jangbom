@@ -823,12 +823,16 @@ def chat_with_selected_ingredients(request):
             request.session['last_recipe_text'] = answer
             last_recipe = answer
         return redirect('food:chat_with_selected_ingredients')
+    
+    # 렌더 직전: 방금 저장한 레시피 제목 있으면 모달로 보여주기
+    saved_title = request.session.pop('just_saved_recipe_title', None)
 
     return render(request, 'food/leftover_chat_with_ingredients.html', {
         'selected_names': selected_names,
         'chat': chat,
         'last_recipe': last_recipe,
         'last_recipe_title': _parse_title_and_description(last_recipe)[0] if last_recipe else None,
+        'saved_title': saved_title,
     })
 
 # ---------- 3) 저장 ----------
@@ -841,9 +845,12 @@ def save_last_recipe(request):
 
     title, desc = _parse_title_and_description(text)
     SavedRecipe.objects.create(user=request.user, title=title[:200], description=desc)
-    messages.success(request, f"'{escape(title)}' 레시피를 저장했어요.")
+    
+    # 채팅 화면에서 모달을 띄우기 위해 세션에 제목 저장
+    request.session['just_saved_recipe_title'] = title
 
-    return redirect('accounts:my_recipes')
+    # 채팅 화면으로 리다이렉트 (거기서 모달 띄움)
+    return redirect('food:chat_with_selected_ingredients')
 
 # (선택) 대화 초기화
 @login_required

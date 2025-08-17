@@ -2,6 +2,20 @@
 
 <hr>
 
+<!-- ✅ 저장 완료 모달 (세션에 제목 있으면 한 번만 표시) -->
+{% if saved_title %}
+<dialog id="savedRecipeDialog" open>
+    <form method="dialog">
+        <p><strong>요리법 저장 완료</strong></p>
+        <p>"{{ saved_title }}" 레시피를 저장했어요.</p>
+        <menu>
+        <a href="{% url 'accounts:my_recipes' %}">저장한 요리법 보러 가기</a>
+        <button value="close">닫기</button>
+        </menu>
+    </form>
+</dialog>
+{% endif %}
+
 <!-- 채팅 영역 -->
 <div>
     <h3>대화</h3>
