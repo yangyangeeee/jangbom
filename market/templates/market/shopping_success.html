@@ -58,7 +58,6 @@
         <div>{{ p.info }}</div>
         <small>
           영업중 · {{ p.distance_m }}m
-          {% if p.closing_in_minutes %} · {{ p.closing_in_minutes }}분 남음{% else %} · 마감 임박{% endif %}
         </small>
         {% if p.link_url %}<div><a href="{{ p.link_url }}" target="_blank">더보기</a></div>{% endif %}
       </div>
