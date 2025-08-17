@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 from .forms import CustomUserCreationForm, CustomLoginForm
-from django.db.models import Count, Sum, F, Window
-from django.db.models.functions import Rank
+from django.db.models import Sum
 from market.models import *
 from food.models import *
 from point.models import *
@@ -11,7 +10,7 @@ from django.views.decorators.http import require_POST
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Q
-from django.utils.http import urlencode
+from django.db import transaction
 from django.contrib import messages
 from django.conf import settings
 from .models import CustomUser, Address
@@ -368,6 +367,8 @@ def recipe_detail_ajax(request, recipe_id):
         'description': recipe.description,
     })
 
+
+# -----주소 설정---------
 @login_required
 def address_settings(request):
     """페이지1: 주소 설정(대표 주소/최근 기록)"""
@@ -380,7 +381,7 @@ def address_settings(request):
         "recents": recents,
     })
 
-# -----주소 설정---------
+
 @login_required
 def address_search(request):
     """페이지2: 주소 검색 + 결과 리스트"""
@@ -398,65 +399,63 @@ def address_search(request):
     })
 
 
+def _apply_selected_address(user, addr):
+    """대표 주소 FK + 미러필드 동기화"""
+    user.selected_address = addr
+    user.address = addr.address
+    user.addr_level1 = addr.addr_level1
+    user.addr_level2 = addr.addr_level2
+    user.addr_level3 = addr.addr_level3
+    user.latitude = addr.latitude
+    user.longitude = addr.longitude
+    user.save(update_fields=[
+        "selected_address", "address", "addr_level1", "addr_level2",
+        "addr_level3", "latitude", "longitude"
+    ])
+
 @login_required
-def address_confirm(request):
-    """
-    페이지3:
-    - GET: 검색결과에서 선택된 좌표/행정동 정보를 쿼리스트링으로 전달받아 상세주소 입력 폼 표시
-    - POST: Address 생성(또는 재사용) + 대표주소/미러필드 동기화
-    """
+@require_POST
+def address_save(request):
+    """검색 결과에서 바로 저장 + 대표 지정"""
     user = request.user
 
-    if request.method == "GET":
-        # 검색 결과에서 넘어온 기본 정보
-        name = request.GET.get("name")  # 전체 주소(도로명/지번)
-        l1 = request.GET.get("l1")
-        l2 = request.GET.get("l2")
-        l3 = request.GET.get("l3")
-        lat = request.GET.get("lat")
-        lng = request.GET.get("lng")
-
-        if not all([name, l1, l2, lat, lng]):
-            messages.error(request, "주소 정보가 올바르지 않습니다. 다시 검색해 주세요.")
-            return redirect("accounts:address_search")
-
-        return render(request, "accounts/address_confirm.html", {
-            "name": name,
-            "l1": l1, "l2": l2, "l3": l3 or "",
-            "lat": lat, "lng": lng,
-            "kakao_js_key": getattr(settings, "KAKAO_JS_API_KEY", ""),
-        })
-
-    # POST 저장
-    name = request.POST.get("name")
-    l1 = request.POST.get("l1")
-    l2 = request.POST.get("l2")
-    l3 = request.POST.get("l3") or ""
-    lat = float(request.POST.get("lat"))
-    lng = float(request.POST.get("lng"))
+    name   = (request.POST.get("name") or "").strip()
+    l1     = (request.POST.get("l1") or "").strip()
+    l2     = (request.POST.get("l2") or "").strip()
+    l3     = (request.POST.get("l3") or "").strip()
     detail = (request.POST.get("detail") or "").strip()
+    lat    = request.POST.get("lat")
+    lng    = request.POST.get("lng")
 
-    full = name if not detail else f"{name} {detail}"
+    # 상세주소를 address 문자열에 합치기
+    full_address = f"{name} {detail}".strip() if detail else name
 
-    # 같은 전체주소가 있으면 재사용(선택), 없으면 생성
-    addr, created = Address.objects.get_or_create(
+    # 숫자 캐스팅 (안전 처리)
+    try:
+        lat_f = float(lat)
+        lng_f = float(lng)
+    except (TypeError, ValueError):
+        messages.error(request, "좌표값이 올바르지 않습니다.")
+        return redirect("accounts:address_search")
+
+    # 동일 주소 중복 방지: 좌표+문자열 기준으로 재사용
+    addr, _created = Address.objects.get_or_create(
         user=user,
-        address=full,
-        defaults={"addr_level1": l1, "addr_level2": l2, "addr_level3": l3, "latitude": lat, "longitude": lng},
+        address=full_address,
+        addr_level1=l1,
+        addr_level2=l2,
+        addr_level3=l3,
+        defaults={"latitude": lat_f, "longitude": lng_f},
     )
-    if not created:
-        # 좌표/행정동 업데이트(선택)
-        changed = False
-        if addr.addr_level1 != l1 or addr.addr_level2 != l2 or addr.addr_level3 != l3:
-            addr.addr_level1, addr.addr_level2, addr.addr_level3 = l1, l2, l3
-            changed = True
-        if addr.latitude != lat or addr.longitude != lng:
-            addr.latitude, addr.longitude = lat, lng
-            changed = True
-        if changed:
-            addr.save(update_fields=["addr_level1", "addr_level2", "addr_level3", "latitude", "longitude"])
 
-    _mirror_user_address(user, addr)
+    # 좌표가 비어 있던 기존 레코드가 있을 경우 보정
+    if addr.latitude is None or addr.longitude is None:
+        addr.latitude = lat_f
+        addr.longitude = lng_f
+        addr.save(update_fields=["latitude", "longitude"])
+
+    _apply_selected_address(user, addr)
+    messages.success(request, "대표 주소가 설정되었습니다.")
     return redirect("accounts:address_settings")
 
 
@@ -505,13 +504,24 @@ def address_save_from_map(request):
 @login_required
 @require_POST
 def address_delete(request, addr_id: int):
-    """최근 기록의 주소 삭제. 대표 주소는 기본적으로 삭제 금지."""
-    addr = get_object_or_404(Address, id=addr_id, user=request.user)
+    user = request.user
+    addr = get_object_or_404(Address, id=addr_id, user=user)
 
-    # 대표 주소 삭제 방지
-    if request.user.selected_address_id == addr.id:
-        messages.warning(request, "현재 대표 주소는 삭제할 수 없습니다. 먼저 다른 주소를 대표로 선택하세요.")
-        return redirect("accounts:address_settings")
+    with transaction.atomic():
+        # 지우려는 주소가 대표 주소인 경우, FK와 미러 필드 모두 NULL 처리
+        if user.selected_address_id == addr.id:
+            user.selected_address = None
+            user.address = None
+            user.addr_level1 = None
+            user.addr_level2 = None
+            user.addr_level3 = None
+            user.latitude = None
+            user.longitude = None
+            user.save(update_fields=[
+                "selected_address", "address", "addr_level1", "addr_level2",
+                "addr_level3", "latitude", "longitude"
+            ])
 
-    addr.delete()
+        addr.delete()
+
     return redirect("accounts:address_settings")
