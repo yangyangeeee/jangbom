@@ -1,0 +1,66 @@
+{% load humanize %}
+<h2>장봄 포인트</h2>
+
+<!-- 정상 처리 모달 -->
+{% if success_info %}
+<dialog id="pointSuccess" open>
+    <form method="dialog">
+        <p><strong>정상 처리 완료</strong></p>
+        <p>사용한 포인트: {{ success_info.used|intcomma }}P</p>
+        <p>남은 포인트: {{ success_info.remaining|intcomma }}P</p>
+        <menu>
+            <a href="{% url 'food:main' %}">홈으로</a>
+            <button value="close">닫기</button>
+        </menu>
+    </form>
+</dialog>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <!-- 중복 방지용 -->
+    <input type="hidden" name="request_id" value="{{ request_id }}">
+
+    <label>직원에게 인증번호(4자리)를 입력 요청해주세요.</label>
+    <div>
+        <input type="text"
+            name="code"
+            maxlength="4"
+            pattern="[0-9]{4}"
+            inputmode="numeric"
+            placeholder="4자리 숫자"
+            required>
+    </div>
+
+    <div>
+        <p>100P 단위로 사용 가능</p>
+        <input type="number" id="use_point" name="use_point" step="100" min="0" required>
+        <p>현재 보유 포인트: <span id="total_point">{{ total_point|intcomma }}</span> P</p>
+        <p>남은 포인트: <strong id="remaining_point">{{ total_point|intcomma }}</strong> P</p>
+    </div>
+
+    <button type="submit">다음</button>
+</form>
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li {% if message.tags %}class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const usePointInput = document.getElementById("use_point");
+    const totalPoint = parseInt(document.getElementById("total_point").textContent.replace(/,/g, "")) || 0;
+    const remainingPoint = document.getElementById("remaining_point");
+
+    usePointInput.addEventListener("input", function() {
+        let useValue = parseInt(this.value) || 0;
+        let remain = totalPoint - useValue;
+        if (remain < 0) remain = 0;
+        remainingPoint.textContent = remain.toLocaleString();
+    });
+});
+</script>
