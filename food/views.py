@@ -751,13 +751,17 @@ def _ids_seed(ids: List[int]) -> str:
 # ---------- 1) 재료 선택 ----------
 @login_required
 def select_recent_ingredients(request):
+    user = request.user
+
     latest_list = (
         ShoppingList.objects.filter(user=request.user)
         .order_by('-created_at')
         .first()
     )
     if not latest_list:
-        return render(request, 'food/leftover_save_no_ingredients.html')
+        return render(request, 'food/leftover_save_no_ingredients.html', {
+        "cart_items_count": items_count,
+        "total_point": total_point,})
 
     ingredients = (
         ShoppingListIngredient.objects
@@ -776,14 +780,21 @@ def select_recent_ingredients(request):
         request.session['recipe_chat'] = []            # 새 선택이므로 초기화
         request.session['last_recipe_text'] = None
         return redirect('food:chat_with_selected_ingredients')
+    
+    items_count = cart_items_count(user)
+    total_point = get_user_total_point(user)
 
     return render(request, 'food/leftover_select_recent_ingredients.html', {
         'ingredients': ingredients,
+        "cart_items_count": items_count,
+        "total_point": total_point,
     })
 
 # ---------- 2) 채팅(자동 추천) ----------
 @login_required
 def chat_with_selected_ingredients(request):
+    user = request.user
+
     selected_ids = request.session.get('selected_ingredient_ids', [])
     if not selected_ids:
         messages.error(request, "먼저 재료를 선택해주세요.")
@@ -827,12 +838,17 @@ def chat_with_selected_ingredients(request):
     # 렌더 직전: 방금 저장한 레시피 제목 있으면 모달로 보여주기
     saved_title = request.session.pop('just_saved_recipe_title', None)
 
+    items_count = cart_items_count(user)
+    total_point = get_user_total_point(user)
+
     return render(request, 'food/leftover_chat_with_ingredients.html', {
         'selected_names': selected_names,
         'chat': chat,
         'last_recipe': last_recipe,
         'last_recipe_title': _parse_title_and_description(last_recipe)[0] if last_recipe else None,
         'saved_title': saved_title,
+        "cart_items_count": items_count,
+        "total_point": total_point,
     })
 
 # ---------- 3) 저장 ----------

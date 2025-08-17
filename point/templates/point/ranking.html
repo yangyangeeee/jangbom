@@ -1,3 +1,13 @@
+<a href="javascript:history.back()">◁</a>
+<a href="{% url 'food:cart_view' %}">🧺
+        {% if cart_items_count == 0 %}
+        {% else %}
+            {{ cart_items_count }}
+        {% endif %}
+    </a>
+    <a href="{% url 'point:barcode' %}">바코드</a>
+    {{ total_point }}P
+
 <h2>{{ district|default:"전체" }} 포인트 랭킹</h2>
 
 <!-- 상단 카드 -->

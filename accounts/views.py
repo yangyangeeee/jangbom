@@ -17,7 +17,7 @@ from django.conf import settings
 from .models import CustomUser, Address
 import requests
 from django.http import JsonResponse
-
+from food.views import get_user_total_point, cart_items_count
 
 
 def _mirror_user_address(user: CustomUser, addr: Address):
@@ -173,6 +173,9 @@ def activity_log_view(request):
     else:
         user_rank = None
 
+    items_count = cart_items_count(user)
+    total_point = get_user_total_point(user)
+
     return render(request, 'accounts/activity_log.html', {
         # 전체 기준 요약
         'total_logs': total_logs,
@@ -184,6 +187,8 @@ def activity_log_view(request):
 
         # 목록(전체 로그)
         'log_data': log_data,
+        "cart_items_count": items_count,
+        "total_point": total_point,
     })
 
 _PERIODS = {
@@ -250,12 +255,17 @@ def activity_history_view(request):
             "travel_minutes": log.travel_minutes,  # None 가능
             "calories_kcal": log.calories_kcal,  # None 가능 (Decimal)
         })
+    
+    items_count = cart_items_count(user)
+    total_point = get_user_total_point(user)
 
     return render(request, "accounts/activity_history.html", {
         "q": q,
         "period": period,
         "sort": sort,
         "log_data": log_data,
+        "cart_items_count": items_count,
+        "total_point": total_point,
     })
 
 @login_required
@@ -320,6 +330,8 @@ def activity_detail_ajax(request, shopping_list_id):
 # 요리법 보관함
 @login_required
 def my_recipes(request):
+    user = request.user
+
     q = request.GET.get('q', '').strip()        # 검색어
     sort = request.GET.get('sort', 'latest')    # 정렬 기준 (기본: 최신순)
 
@@ -335,10 +347,15 @@ def my_recipes(request):
     elif sort == 'alpha':  # 가나다/알파벳순
         recipes = recipes.order_by('title')
 
+    items_count = cart_items_count(user)
+    total_point = get_user_total_point(user)
+
     return render(request, 'accounts/my_recipes.html', {
         'recipes': recipes,
         'q': q,
         'sort': sort,
+        "cart_items_count": items_count,
+        "total_point": total_point,
     })
 
 @login_required
