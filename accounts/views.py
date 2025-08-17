@@ -374,7 +374,7 @@ def address_settings(request):
     """페이지1: 주소 설정(대표 주소/최근 기록)"""
     user = request.user
     current = user.selected_address  # FK 대표 주소
-    recents = user.addresses.order_by("-created_at")[:5]  # 최근 기록
+    recents = user.addresses.order_by("-created_at")[:10]  # 최근 기록
 
     return render(request, "accounts/address_settings.html", {
         "current": current,
