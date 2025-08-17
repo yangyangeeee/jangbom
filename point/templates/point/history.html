@@ -52,9 +52,6 @@
                 {% endif %}
             </td>
             <td>+{{ log.point_earned }}P</td>
-            <td>
-                <a href="{% url 'accounts:activity_detail' log.shopping_list.id %}">세부 활동 보기</a>
-            </td>
         </tr>
         {% empty %}
         <tr>

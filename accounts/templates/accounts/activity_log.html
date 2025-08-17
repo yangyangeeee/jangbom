@@ -2,16 +2,12 @@
 
 <h2>내 활동 내역</h2>
 
-<p>{{ user.nickname }} - {{ user.location }}</p>
+<p>{{ user.nickname }} - {{ user.addr_level3|default:"" }}</p>
 
-<ul>
-    <li>총 장봄 횟수: <strong>{{ total_logs }}</strong>회</li>
-    <li>누적 걸음 수: <strong>{{ total_steps|intcomma }}</strong> 걸음</li>
-    <li>CO₂ 절감량: <strong>{{ co2_saved_kg }}</strong> kg</li>
-    <li> 
-        {% if user_rank %} <p>랭킹: {{ user_rank }}</p> {% else %} <p>아직 랭킹이 없습니다. 활동을 시작해보세요!</p> {% endif %}</strong>
-    </li>
-</ul>
+<p>장봄 횟수: {{ total_logs }}</p>
+<p>누적 걸음수: {{ total_steps|intcomma }} 걸음</p>
+<p>CO₂ 절감량: {{ co2_saved_kg }} kg</p>
+<p>랭킹: {% if user_rank %}{{ user_rank }}위{% else %}-{% endif %}</p>
 
 <a href="{% url 'accounts:my_recipes' %}">요리법 보관함</a><br>
 <a href="{% url 'accounts:activity_history' %}">세부 활동 내역</a><br>
