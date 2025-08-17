@@ -8,7 +8,6 @@ from urllib.parse import urlencode
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_GET
 from django.urls import reverse
-from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponseBadRequest

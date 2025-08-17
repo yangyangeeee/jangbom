@@ -1,40 +1,68 @@
+<!-- accounts/templates/accounts/address_search.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>주소 검색</title>
+  <title>주소 설정</title>
 </head>
 <body>
   <a href="{% url 'accounts:address_settings' %}">←</a>
-  <h1>주소 검색</h1>
+  <h2>주소 설정</h2>
 
   <form method="get" action="{% url 'accounts:address_search' %}">
-    <input type="text" name="q" placeholder="검색어를 입력하세요" value="{{ q|default:'' }}">
-    <button type="submit">검색</button>
+    <input type="text" name="q" value="{{ q|default:'' }}">
   </form>
 
+  <hr>
+
   {% if q %}
-    <p>“{{ q }}” 검색 결과</p>
+    <h3>검색 결과</h3>
     <ul>
     {% for r in results %}
-        <li>
-        <form method="get" action="{% url 'accounts:address_confirm' %}" style="display:inline">
-            <input type="hidden" name="name" value="{{ r.name }}">
-            <input type="hidden" name="l1" value="{{ r.l1 }}">
-            <input type="hidden" name="l2" value="{{ r.l2 }}">
-            <input type="hidden" name="l3" value="{{ r.l3 }}">
-            <input type="hidden" name="lat" value="{{ r.lat }}">
-            <input type="hidden" name="lng" value="{{ r.lng }}">
-            <button type="submit">
-            {{ r.name }}
-            </button>
+      <li>
+        <form method="post" action="{% url 'accounts:address_save' %}" style="display:block; margin-bottom:12px;">
+          {% csrf_token %}
+          <!-- 기본 주소 필드 -->
+          <input type="hidden" name="name" value="{{ r.name }}">
+          <input type="hidden" name="l1" value="{{ r.l1 }}">
+          <input type="hidden" name="l2" value="{{ r.l2 }}">
+          <input type="hidden" name="l3" value="{{ r.l3 }}">
+          <input type="hidden" name="lat" value="{{ r.lat }}">
+          <input type="hidden" name="lng" value="{{ r.lng }}">
+
+          <!-- 클릭 가능한 라벨 -->
+          <div style="margin-bottom:6px;">
+            <a href="#" class="addr-submit" role="button" tabindex="0">
+              <strong>{{ r.name }}</strong>
+            <br>
+            <small>{{ r.l3 }}</small>
+            </a>
+          </div>
+
+          <!-- 상세주소(선택) -->
+          상세 주소 <input type="text" name="detail">
         </form>
-        <br><small>{{ r.l1 }} {{ r.l2 }} {{ r.l3 }}</small>
-        </li>
+      </li>
     {% empty %}
-        <li>검색 결과가 없습니다.</li>
+      <li>검색 결과가 없습니다.</li>
     {% endfor %}
     </ul>
   {% endif %}
+
+  <script>
+    (function () {
+      function submitFrom(el) {
+        var form = el.closest('form');
+        if (form) form.submit();
+      }
+      // 클릭으로 제출
+      document.addEventListener('click', function (e) {
+        var link = e.target.closest('.addr-submit');
+        if (!link) return;
+        e.preventDefault();
+        submitFrom(link);
+      });
+    })();
+  </script>
 </body>
 </html>

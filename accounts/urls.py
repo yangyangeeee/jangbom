@@ -20,8 +20,8 @@ urlpatterns = [
     # 주소 설정
     path("address/", address_settings, name="address_settings"),
     path("address/search/", address_search, name="address_search"),
+    path("address/save/", address_save, name="address_save"),
     path("address/delete/<int:addr_id>/", address_delete, name="address_delete"),
-    path("address/confirm/", address_confirm, name="address_confirm"),
     path("address/select/<int:addr_id>/", address_select_primary, name="address_select_primary"),
     path("address/map/", address_pick_map, name="address_pick_map"),
     path("address/save-from-map/", address_save_from_map, name="address_save_from_map"),
