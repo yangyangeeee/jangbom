@@ -29,15 +29,15 @@
                     이 중 구매할 재료를 장바구니에 담아주세요
                 </div>
         </div>
-        <div id="mainBoard">
-            <form method="post" action="#">
-                {% csrf_token %}
+        <form method="post">
+            {% csrf_token %}
+            <div id="mainBoard">
                 <div id="basicBox">
                     <p>기본 재료</p>
                     <div class="basicCheckBox">
                         {% if basic and basic|length > 0 %}
                             {% for i in basic %}
-                                <input type="checkbox" id="basic_{{ forloop.counter }}" name="ingredients" value="{{ i }}" checked hidden>
+                                <input type="checkbox" id="basic_{{ forloop.counter }}" name="ingredients" value="{{ i }}"  hidden>
                                 <label for="basic_{{ forloop.counter }}" class="ingredient-btn">{{ i }}</label>
                             {% endfor %}
                         {% endif %}
@@ -49,7 +49,7 @@
                         {% if optional and optional|length > 0 %}
                             {% for i in optional %}
                                 <input type="checkbox" id="optional_{{ forloop.counter }}" name="ingredients" value="{{ i }}"
-                                    {% if optional_selected and i in optional_selected %}checked{% endif %} hidden>
+                                    {% if optional_selected and i in optional_selected %}{% endif %} hidden>
                                 <label for="optional_{{ forloop.counter }}" class="ingredient-btn">{{ i }}</label>
                             {% endfor %}
                         {% endif %}
@@ -67,18 +67,15 @@
                         {% endif %}
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
 
-        <div class="bottomBoard">
-            <form method="post">
-                {% csrf_token %}
+            <div class="bottomBoard">
                 <div class="bottomBtn">
                     <button type="submit" name="next" value="search" class="userPick">재료 직접 담기</button>
                     <button type="submit" name="next" value="confirm" class="nextBtn">다음</button>
                 </div>
-            </form>
-        </div>
+            </div>  
+        </form>
     </div>
 </body>
 </html>
