@@ -15,7 +15,7 @@
 
 <p>
     {{ user.nickname|default:user.username }} - {{ user.addr_level3|default:"" }}
-    {% if my_rank %} {{ my_rank }}등{% else %} (랭킹 없음){% endif %}
+    {% if my_rank %} {{ my_rank }}등{% else %} - {% endif %}
 </p>
 
 <a href="{% url 'food:main' %}">장 보러 가기</a>
