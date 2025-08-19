@@ -79,6 +79,10 @@ def cart_items_count(user) -> int:
     return ShoppingListIngredient.objects.filter(shopping_list=shopping_list).count()
 
 # ---------- 뷰 함수 ----------
+@login_required
+def splash(request):
+    return render(request, "food/splash.html")
+
 
 @login_required
 def main(request):

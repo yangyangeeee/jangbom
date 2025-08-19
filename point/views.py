@@ -4,7 +4,7 @@ from django.db.models import Sum, Count, F
 from market.models import *
 from .models import *
 from accounts.models import CustomUser
-from datetime import timedelta
+from datetime import timedelta, datetime, time
 from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction, IntegrityError
@@ -12,36 +12,67 @@ from django.utils.crypto import get_random_string
 from food.views import get_user_total_point, cart_items_count
 
 # Create your views here.
+def _my_district(user) -> str | None:
+    """대표 주소의 addr_level2 우선, 없으면 미러 필드 사용."""
+    addr = getattr(user, "active_address", None)
+    if addr and addr.addr_level2:
+        return addr.addr_level2
+    return getattr(user, "addr_level2", None)
+
 @login_required
 def point_home(request):
     user = request.user
 
-    # 내 총 포인트 (누적 테이블 사용)
     up, _ = UserPoint.objects.get_or_create(user=user)
     my_total = up.total_point
 
-    # 내 랭킹: 나보다 점수 큰 사람 수 + 1
-    my_rank = UserPoint.objects.filter(total_point__gt=my_total).count() + 1 if my_total > 0 else None
+    # 이번 주 (월~일) 경계 계산 — zoneinfo 방식
+    now_local = timezone.localtime()  # tz-aware
+    week_start_date = now_local.date() - timedelta(days=now_local.weekday())
 
-    # 이번 주 월요일 날짜 구하기
-    today = timezone.localdate()  # 현지 날짜
-    week_start_date = today - timedelta(days=today.weekday())
+    start_of_week_naive = datetime.combine(week_start_date, time.min)   # naive
+    end_of_week_naive   = start_of_week_naive + timedelta(days=7)
 
-    # 날짜 기준으로 필터
-    weekly_points = (
-        ActivityLog.objects
-        .filter(user=user, visited_at__date__gte=week_start_date)
-        .aggregate(total=Sum('point_earned'))['total'] or 0
+    tz = timezone.get_current_timezone()
+    start_of_week = timezone.make_aware(start_of_week_naive, tz)
+    end_of_week   = timezone.make_aware(end_of_week_naive, tz)
+
+    # 내 구(district)
+    district = _my_district(user)
+    local_users = (
+        CustomUser.objects.filter(addr_level2=district) if district
+        else CustomUser.objects.all()
     )
+
+    base_qs = ActivityLog.objects.filter(
+        user__in=local_users,
+        visited_at__gte=start_of_week,
+        visited_at__lt=end_of_week,
+    )
+
+    weekly_points = base_qs.filter(user=user).aggregate(
+        s=Sum("point_earned")
+    )["s"] or 0
+
+    if weekly_points > 0:
+        higher_cnt = (
+            base_qs.values("user_id")
+                .annotate(points=Sum("point_earned"))
+                .filter(points__gt=weekly_points)
+                .count()
+        )
+        my_rank = higher_cnt + 1
+    else:
+        my_rank = None
 
     items_count = cart_items_count(user)
     total_point = get_user_total_point(user)
 
-    return render(request, 'point/home.html', {
-        'total_points': my_total,
-        'weekly_points': weekly_points,
-        'user_address': getattr(user, 'location', None) or '미등록',
-        'my_rank': my_rank,
+    return render(request, "point/home.html", {
+        "district": district,
+        "total_points": my_total,
+        "weekly_points": weekly_points,
+        "my_rank": my_rank,
         "cart_items_count": items_count,
         "total_point": total_point,
     })
@@ -80,13 +111,6 @@ def point_history(request):
         "total_point": total_point,
     })
 
-def _my_district(user) -> str | None:
-    """대표 주소의 addr_level2 우선, 없으면 미러 필드 사용."""
-    addr = getattr(user, "active_address", None)
-    if addr and addr.addr_level2:
-        return addr.addr_level2
-    return getattr(user, "addr_level2", None)
-
 @login_required
 def point_ranking(request):
     user = request.user
@@ -97,10 +121,8 @@ def point_ranking(request):
         else CustomUser.objects.all()
     )
 
-    now = timezone.now()
-    start_of_week = (now - timedelta(days=now.weekday())).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
+    now_local = timezone.localtime()
+    start_of_week = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now_local.weekday())
     next_week = start_of_week + timedelta(days=7)
 
     # 이번 주, 같은 구의 전체 로그
@@ -110,10 +132,17 @@ def point_ranking(request):
         visited_at__lt=next_week,
     )
 
-    # 헤더 카드(이번 주 전체 기준)
-    header_stats = {
+    # 이번 주
+    weekly_stats = {
         "shopper_count": base_qs.values("user_id").distinct().count(),
         "total_points": base_qs.aggregate(s=Sum("point_earned"))["s"] or 0,
+    }
+
+    # 전체
+    all_qs = ActivityLog.objects.filter(user__in=local_users)
+    total_stats = {
+        "shopper_count": all_qs.values("user_id").distinct().count(),
+        "total_points": all_qs.aggregate(s=Sum("point_earned"))["s"] or 0,
     }
 
     # 주간 TOP 30
@@ -129,7 +158,8 @@ def point_ranking(request):
     return render(request, "point/ranking.html", {
         "district": district,
         "weekly_top30": weekly_top30,
-        "header_stats": header_stats,
+        "weekly_stats": weekly_stats,
+        "total_stats": total_stats,
         "cart_items_count": items_count,
         "total_point": total_point,
     })
