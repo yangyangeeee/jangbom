@@ -11,15 +11,15 @@
     <div id="Container">
         <img id="statusBar" src="/jangbom/static/img/iPhone Status bar.png"/>
         <div id="pointBar">
-            <a href="/jangbom/static/html/food_recipe_ingredients.html">
+            <a href="{% url 'food:recipe_ingredients' %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
                     <path d="M20 24L12 16L20 8" stroke="#D9D9D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </a>
             <div class="userBar">
-                <a href="#"><img src="/jangbom/static/img/basket.svg" class="basket" alt="basket"></a>
-                <a href="#"><img src="/jangbom/static/img/lucide.svg" class="lucide" alt="lucide"></a>
-                <a href="{% url 'food:recipe_ingredients' %}"><div class="pointNum"><p>100P</p></div></a>
+                <a href="{% url 'food:cart_view' %}"><img src="/jangbom/static/img/basket.svg" class="basket" alt="basket"></a>
+                <a href="{% url 'point:barcode' %}"><img src="/jangbom/static/img/lucide.svg" class="lucide" alt="lucide"></a>
+                <a href="{% url 'point:home' %}"><div class="pointNum"><p>{{ total_point }}P</p></div></a>
             </div>
         </div>
         <div class="mainMent">
@@ -30,50 +30,25 @@
         </div>
         <div id="mainBoard">
             <div class="imgBoard">
+                {% for item in ingredients %}
                 <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
+                    {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100px;"><br>
+                    {% else %}
+                        <img src="/jangbom/static/img/default.png" alt="이미지 없음" style="width: 100px;"><br>
+                    {% endif %}
+                    <p class="ingredients">{{ item.name }}</p>
                 </div>
-                <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
-                </div>
-                <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
-                </div> 
-                <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
-                </div>  
-                <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
-                </div> 
-                <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
-                </div>  
-                <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
-                </div>  
-                <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
-                </div> 
-                <div class="ingredientsImg">
-                    <img src="/jangbom/static/img/마늘.png" alt="{{ item.name }}" style="width: 100px;"><br>
-                    <p class="ingredients">마늘</p>
-                </div>                                                                                    
+                {% endfor %}
             </div>          
         </div>
         
+        <a href="{% url 'market:edit_market_filter_recipe' %}" class="storeFilter">
+            <p>상점 필터 설정</p>
+            <img src="/jangbom/static/img/arrow-right.svg">
+        </a>
+
         <form action="{% url 'market:nearest_market' %}" method="get" class=selectTab>
-            <a href="#" class="storeFilter">
-                <p>상점 필터 설정</p>
-                <img src="/jangbom/static/img/arrow-right.svg">
-            </a>
             <button type="submit" class="buyBtn">장 보러 가기</button>
         </form>
 
