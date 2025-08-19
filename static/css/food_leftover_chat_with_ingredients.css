@@ -171,22 +171,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* gpt 부분 */
 
 #gptBox{
@@ -219,25 +203,6 @@
     font-weight: 500;
     line-height: normal;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -330,7 +295,7 @@
     top: 40%;         /* 세로 중앙 */
     left: 50%;        /* 가로 중앙 */
     transform: translate(-50%, -50%); /* 중앙 정렬 */
-    width: 339px;
+    width: 320px;
     height: 201px;
     border-radius: 20px;
     background: #FFF;
