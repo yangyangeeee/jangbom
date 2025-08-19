@@ -1,80 +1,84 @@
-<html>
-<!--상단바-->
-<a href="javascript:history.back()">◁</a>
-<a href="{% url 'food:cart_view' %}">🧺
-    {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    <a href="{% url 'point:barcode' %}">바코드</a>
-    {{ total_point }}P
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/food_recipe_ingredients.css' %}" />
+    <script src="{% static 'js/food_recipe_ingredients.js' %}" defer></script>
+    <title>Document</title>
+</head>
+<body>
+    <div id="Container">
+        <img id="statusBar" src="{% static 'img/iPhone Status bar.png' %}"/>
+        <div id="pointBar">
+            <a href="{% url 'food:recipe_input' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M20 24L12 16L20 8" stroke="#D9D9D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            <div class="userBar">
+                <a href="{% url 'food:cart_view' %}"><img src="{% static 'img/basket.svg' %}" class="basket" alt="basket"></a>
+                <a href="{% url 'point:barcode' %}"><img src="{% static 'img/lucide.svg' %}" class="lucide" alt="lucide"></a>
+                <a href="{% url 'point:point_home' %}"><div class="pointNum"><p>{{ total_point }}P</p></div></a>
+            </div>
+        </div>
+        <div class="mainMent">
+                <div class="text1">{{ recipe }} 재료 담기</div>
+                <div class="text2">인근 마트에 재고가 있는 재료만 보여요!<br>
+                    이 중 구매할 재료를 장바구니에 담아주세요
+                </div>
+        </div>
+        <div id="mainBoard">
+            <form method="post" action="#">
+                {% csrf_token %}
+                <div id="basicBox">
+                    <p>기본 재료</p>
+                    <div class="basicCheckBox">
+                        {% if basic and basic|length > 0 %}
+                            {% for i in basic %}
+                                <input type="checkbox" id="basic_{{ forloop.counter }}" name="ingredients" value="{{ i }}" checked hidden>
+                                <label for="basic_{{ forloop.counter }}" class="ingredient-btn">{{ i }}</label>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div id="optionalBox">
+                    <p>선택 재료</p>
+                    <div class="optionalCheckBox">
+                        {% if optional and optional|length > 0 %}
+                            {% for i in optional %}
+                                <input type="checkbox" id="optional_{{ forloop.counter }}" name="ingredients" value="{{ i }}"
+                                    {% if optional_selected and i in optional_selected %}checked{% endif %} hidden>
+                                <label for="optional_{{ forloop.counter }}" class="ingredient-btn">{{ i }}</label>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
 
-  <h3>{{ recipe }} 재료 담기</h3>
-  <p>이 중 구매할 재료를 장바구니에 담아주세요</p>
+                <div id="extraBox">
+                    <p>직접 추가한 재료</p>
+                    <div class="extraCheckBox">
+                        {% if extra_ingredients and extra_ingredients|length > 0 %}
+                            {% for i in extra_ingredients %}
+                                <input type="checkbox" id="extra_{{ forloop.counter }}" name="ingredients" value="{{ i }}" checked hidden>
+                                <label for="extra_{{ forloop.counter }}" class="ingredient-btn">{{ i }}</label>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
 
-  <hr>
-
-  <form method="post">
-    {% csrf_token %}
-    <!-- (선택) 뷰가 세션도 보지만, 안정적으로 현재 레시피명을 넘겨두자 -->
-    <input type="hidden" name="recipe" value="{{ recipe }}">
-
-    <!-- 기본 재료 -->
-    <h3>기본 재료</h3>
-    {% if basic and basic|length > 0 %}
-      {% for i in basic %}
-        <label>
-          <input type="checkbox" name="ingredients" value="{{ i }}">
-          {{ i }}
-        </label><br>
-      {% endfor %}
-    {% else %}
-      <p>등록된 기본 재료가 없습니다.</p>
-    {% endif %}
-
-    <!-- 선택 재료 -->
-    <h3>선택 재료</h3>
-    {% if optional and optional|length > 0 %}
-      {% for i in optional %}
-        <label>
-          <input
-            type="checkbox"
-            name="ingredients"
-            value="{{ i }}"
-            {% if optional_selected and i in optional_selected %}checked{% endif %}
-          >
-          {{ i }}
-        </label><br>
-      {% endfor %}
-    {% else %}
-      <p>등록된 선택 재료가 없습니다.</p>
-    {% endif %}
-
-    <!-- 직접 추가한 재료 (GPT 목록에 없는 장바구니 항목) -->
-    {% if extra_ingredients and extra_ingredients|length > 0 %}
-      <br><h3>직접 추가한 재료</h3>
-      {% for i in extra_ingredients %}
-        <label>
-          <input type="checkbox" name="ingredients" value="{{ i }}" checked>
-          {{ i }}
-        </label><br>
-      {% endfor %}
-    {% endif %}
-
-    <br>
-    <!-- 두 버튼 모두 같은 form 내에서 동작 (뷰에서 next 값으로 분기) -->
-    <button type="submit" name="next" value="search">재료 직접 담기</button> <button type="submit" name="next" value="confirm">다음</button>
-  </form>
-
-<!-- 메시지 영역 -->
-{% if messages %}
-  <ul>
-    {% for message in messages %}
-      {{ message }}
-    {% endfor %}
-  </ul>
-{% endif %}
-
+        <div class="bottomBoard">
+            <form method="post">
+                {% csrf_token %}
+                <div class="bottomBtn">
+                    <button type="submit" name="next" value="search" class="userPick">재료 직접 담기</button>
+                    <button type="submit" name="next" value="confirm" class="nextBtn">다음</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

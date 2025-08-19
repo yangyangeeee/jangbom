@@ -107,7 +107,7 @@
         </div>
 
         
-        <form method="post" class="ingredientsGet" action="{% url 'food:recipe_ingredients' %">
+        <form method="post" class="ingredientsGet" action="{% url 'food:recipe_ingredients' %}">
             {% csrf_token %}
             <button type="submit" class="foodBtn">재료 담기</button>
         </form>

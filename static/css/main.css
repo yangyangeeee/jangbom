@@ -34,11 +34,12 @@
 }
 
 /* 사용자 위치 */
-.userLoc{
+.userLoc a{
     display: flex;
     padding: 0 20px;
     justify-content: center;
     align-items: center;
+    flex-direction: row;
     gap: 2px;
 }
 .userLoc p {
