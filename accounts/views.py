@@ -85,7 +85,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('food:main')
+            return redirect('food:splash')
     else:
         form = CustomLoginForm()
     return render(request, 'accounts/login.html', {'form': form})
