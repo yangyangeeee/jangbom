@@ -1,25 +1,26 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/jangbom/static/css/point_ranking.css" />
-    <script src="/jangbom/static/js//point_ranking.js" defer></script>
+    <link rel="stylesheet" href="{% static 'css/point_ranking.css' %}" />
+    <script src="{% static 'js/point_ranking.js' %}" defer></script>
     <title>Document</title>
 </head>
 <body>
     <div id="Container">
-        <img id="statusBar" src="/jangbom/static/img/iPhone Status bar.png"/>
+        <img id="statusBar" src="{% static 'img/iPhone Status bar.png' %}"/>
         <div id="pointBar">
-            <a href="#" class="homeBtn">
+            <a href="javascript:history.back()" class="homeBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
                     <path d="M20 24L12 16L20 8" stroke="#D9D9D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </a>
             <div class="userBar">
-                <a href="#"><img src="/jangbom/static/img/basket.svg" class="basket" alt="basket"></a>
-                <a href="#"><img src="/jangbom/static/img/lucide.svg" class="lucide" alt="lucide"></a>
-                <a href="{% url 'food:recipe_ingredients' %}"><div class="pointNum"><p>100P</p></div></a>
+                <a href="{% url 'food:cart_view' %}"><img src="{% static 'img/basket.svg' %}" class="basket" alt="basket"></a>
+                <a href="{% url 'point:barcode' %}"><img src="{% static 'img/lucide.svg' %}" class="lucide" alt="lucide"></a>
+                <a href="{% url 'point:point_home' %}"><div class="pointNum"><p>100P</p></div></a>
             </div>
         </div>
 
@@ -34,149 +35,53 @@
                     <div class="line"></div>
                     <div class="totalPoint">
                         <p class="title">총 장봄 포인트</p>
-                        <p class="totalPointNum">345ssssssssssssssssssssssssssss명</p>
+                        <p class="totalPointNum">{{ total_stats.total_points }} P</p>
                     </div>
                 </div>
 
                 <div class="rank30">이번주 TOP 30 랭킹</div>
 
                 <div class="top3Container">
-                    <div class="rank-card second">
-                        <img src="/jangbom/static/img/silver.svg" class="medal">
-                        <div class="rank-title">TOP 2</div>
-                        <div class="username">조sdsds</div>
-                    </div>
-                    <div class="rank-card first">
-                        <img src="/jangbom/static/img/gold.svg" class="medal">
-                        <div class="rank-title">TOP 1</div>
-                        <div class="username">호sdsd</div>
-                    </div>
-                    <div class="rank-card third">
-                        <img src="/jangbom/static/img/bronze.svg" class="medal">
-                        <div class="rank-title">TOP 3</div>
-                        <div class="username">다sdsds</div>
-                    </div>
+                    {% for row in weekly_top30 %}
+                        {% if forloop.counter == 2 %}
+                            <div class="rank-card second">
+                                <img src="{% static 'img/silver.svg' %}" class="medal">
+                                <div class="rank-title">TOP 2</div>
+                                <div class="username">{{ row.user__nickname }}</div>
+                            </div>
+                        {% elif forloop.counter == 1 %}
+                            <div class="rank-card first">
+                                <img src="{% static 'img/gold.svg' %}" class="medal">
+                                <div class="rank-title">TOP 1</div>
+                                <div class="username">{{ row.user__nickname }}</div>
+                            </div>
+                        {% elif forloop.counter == 3 %}
+                            <div class="rank-card third">
+                                <img src="{% static 'img/bronze.svg' %}" class="medal">
+                                <div class="rank-title">TOP 3</div>
+                                <div class="username">{{ row.user__nickname }}</div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </div>
 
 
-            <div class="board2">       
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>   
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>   
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>   
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>  
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>   
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>  
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>   
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>  
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>   
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>  
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>   
-                <div class="rankingItem">
-                    <div class="rank">1</div>
-                    <div class="info">
-                        <span class="location">쌍문동</span>
-                        <span class="username">하이리이이이</span>
-                    </div>
-                    <div class="points">2300 P</div>
-                </div>  
-
-
-                <!-- 
-                <div class="otherContainer">
-                    {% for r in rankings %}
-                        <div class="ranking-item {% if forloop.counter == 8 %}highlight{% endif %}">
+            <div class="board2">
+                {% for row in weekly_top30 %}
+                    {% if forloop.counter > 3 %}
+                        <div class="rankingItem">
                             <div class="rank">{{ forloop.counter }}</div>
                             <div class="info">
-                                <span class="location">{{ r.user__location }}</span>
-                                <span class="username">{{ r.user__username }}</span>
+                                <span class="location">{{ row.user__addr_level3|default:"" }}</span>
+                                <span class="username">{{ row.user__nickname }}</span>
                             </div>
-                            <div class="points">{{ r.total_points }} P</div>
+                            <div class="points">{{ row.points }} P</div>
                         </div>
-                    {% endfor %}
-                </div> -->
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
-
-
-
 
 
 
@@ -184,7 +89,7 @@
         <div id="bottomTab">
             <a href="{% url 'food:main' %}" class="homeTab">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="home">
-                    <path d="M15 21V13C15 12.7348 14.8946 12.4805 14.7071 12.2929C14.5196 12.1054 14.2652 12 14 12H10C9.73478 12 9.48043 12.1054 9.29289 12.2929C9.10536 12.4805 9 12.7348 9 13V21M3 10C2.99993 9.7091 3.06333 9.42165 3.18579 9.15775C3.30824 8.89384 3.4868 8.65983 3.709 8.47203L10.709 2.47303C11.07 2.16794 11.5274 2.00055 12 2.00055C12.4726 2.00055 12.93 2.16794 13.291 2.47303L20.291 8.47203C20.5132 8.65983 20.6918 8.89384 20.8142 9.15775C20.9367 9.42165 21.0001 9.7091 21 10V19C21 19.5305 20.7893 20.0392 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0392 3 19.5305 3 19V10Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 21V13C15 12.7348 14.8946 12.4805 14.7071 12.2929C14.5196 12.1054 14.2652 12 14 12H10C9.73478 12 9.48043 12.1054 9.29289 12.2929C9.10536 12.4805 9 12.7348 9 13V21M3 10C2.99993 9.7091 3.06333 9.42165 3.18579 9.15775C3.30824 8.89384 3.4868 8.65983 3.709 8.47203L10.709 2.47303C11.07 2.16794 11.5274 2.00055 12 2.00055C12.4726 2.00055 12.93 2.16794 13.291 2.47303L20.291 8.47203C20.5132 8.65983 20.6918 8.89384 20.8142 9.15775C20.9367 9.42165 21.0001 9.7091 21 10V19C21 19.5305 20.7893 20.0392 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0392 3 19.5305 3 19V10Z" stroke="#A5A5A5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <p>홈</p>
             </a>
@@ -196,7 +101,7 @@
             </a>
             <a href="{% url 'point:point_home' %}" class="pointTab">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="point">
-                    <path d="M9 17V7H13C13.7956 7 14.5587 7.31607 15.1213 7.87868C15.6839 8.44129 16 9.20435 16 10C16 10.7956 15.6839 11.5587 15.1213 12.1213C14.5587 12.6839 13.7956 13 13 13H9M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#A5A5A5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 17V7H13C13.7956 7 14.5587 7.31607 15.1213 7.87868C15.6839 8.44129 16 9.20435 16 10C16 10.7956 15.6839 11.5587 15.1213 12.1213C14.5587 12.6839 13.7956 13 13 13H9M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <p>포인트</p>
             </a>
