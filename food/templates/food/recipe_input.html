@@ -24,7 +24,7 @@
     <button type="submit">냉장고 속 재료가 신경 쓰인다면 갖고 있는 식재료로 요리하기</button>
 </form>
 
-<form method="post">
+<form method="post" action="{% url 'food:recipe_input' %}">
     {% csrf_token %}
     <input type="text" name="recipe" placeholder="요리명을 입력해주세요" value="{{ initial_recipe }}">
     <button type="submit">→</button>
