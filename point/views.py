@@ -121,10 +121,8 @@ def point_ranking(request):
         else CustomUser.objects.all()
     )
 
-    now = timezone.now()
-    start_of_week = (now - timedelta(days=now.weekday())).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
+    now_local = timezone.localtime()
+    start_of_week = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now_local.weekday())
     next_week = start_of_week + timedelta(days=7)
 
     # 이번 주, 같은 구의 전체 로그
@@ -134,10 +132,17 @@ def point_ranking(request):
         visited_at__lt=next_week,
     )
 
-    # 헤더 카드(이번 주 전체 기준)
-    header_stats = {
+    # 이번 주
+    weekly_stats = {
         "shopper_count": base_qs.values("user_id").distinct().count(),
         "total_points": base_qs.aggregate(s=Sum("point_earned"))["s"] or 0,
+    }
+
+    # 전체
+    all_qs = ActivityLog.objects.filter(user__in=local_users)
+    total_stats = {
+        "shopper_count": all_qs.values("user_id").distinct().count(),
+        "total_points": all_qs.aggregate(s=Sum("point_earned"))["s"] or 0,
     }
 
     # 주간 TOP 30
@@ -153,7 +158,8 @@ def point_ranking(request):
     return render(request, "point/ranking.html", {
         "district": district,
         "weekly_top30": weekly_top30,
-        "header_stats": header_stats,
+        "weekly_stats": weekly_stats,
+        "total_stats": total_stats,
         "cart_items_count": items_count,
         "total_point": total_point,
     })

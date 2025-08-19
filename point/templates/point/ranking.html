@@ -10,15 +10,24 @@
 
 <h2>{{ district|default:"전체" }} 포인트 랭킹</h2>
 
-<!-- 상단 카드 -->
+<!-- 이번주 기준인지, 누적인지 기준을 몰라 2개 다 넣었습니다 -->
 <div>
     <div>
-        총 장보미 수<br>
-        <strong>{{ header_stats.shopper_count }}명</strong>
+        이번주 장보미 수<br>
+        <strong>{{ weekly_stats.shopper_count }}명</strong>
     </div>
     <div>
-        총 장봄 포인트<br>
-        <strong>{{ header_stats.total_points }} P</strong>
+        이번 주 장봄 포인트<br>
+        <strong>{{ weekly_stats.total_points }} P</strong>
+    </div>
+
+    <div>
+        누적 장보미 수<br>
+        <strong>{{ total_stats.shopper_count }}명</strong>
+    </div>
+    <div>
+        누적 장봄 포인트<br>
+        <strong>{{ total_stats.total_points }} P</strong>
     </div>
 </div>
 
@@ -26,7 +35,7 @@
 <h3>이번주 TOP 30</h3>
 <ol>
     {% for row in weekly_top30 %}
-        <li{% if row.user_id == request.user.id %} style="font-weight:bold"{% endif %}>
+        <li{% if row.user_id == request.user.id %} style="font-weight:bold"{% endif %}> <!-- 본인 랭킹 강조 부분  -->
         {{ forloop.counter }}위 -
         {{ row.user__addr_level3|default:"" }} {{ row.user__nickname }} ({{ row.points }}P)
         </li>
