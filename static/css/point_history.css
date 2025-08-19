@@ -207,9 +207,9 @@ button{
     line-height: normal;
 }
 
-.sort-label input[type="radio"]:checked + span {
-    background-color: #BEDA78; /* 선택 시 배경 */
-    color: white;               /* 선택 시 글자 색상 */
+.sort-label input[type="radio"]:checked ~ span {
+    background-color: #BEDA78;
+    color: white;
 }
 
 

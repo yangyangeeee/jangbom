@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     const dropdown = document.querySelector(".dropdown");
-    const btn = dropdown.querySelector(".dropdown-btn");
+    const btn = dropdown.querySelector(".dropdownNow");
+    const span = btn.querySelector("span"); // 텍스트 부분
     const menu = dropdown.querySelector(".dropdown-menu");
     const hiddenSelect = document.getElementById("periodSelect");
 
@@ -9,10 +10,10 @@ document.addEventListener("DOMContentLoaded", function() {
         menu.style.display = (menu.style.display === "block") ? "none" : "block";
     });
 
-    // 메뉴 항목 클릭 → 버튼 텍스트 변경, select 값 변경, 폼 제출
+    // 메뉴 항목 클릭 → span 텍스트 변경, select 값 변경, 폼 제출
     menu.querySelectorAll("li").forEach(li => {
         li.addEventListener("click", () => {
-            btn.innerText = li.innerText + " ▼";
+            span.innerText = li.innerText;   // span만 변경
             hiddenSelect.value = li.dataset.value;
             menu.style.display = "none";
             hiddenSelect.form.submit();
