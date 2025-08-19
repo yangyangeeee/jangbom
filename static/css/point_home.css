@@ -257,8 +257,6 @@ user-select: none;
 
 
 
-
-
 /* 하단 탭 */
 #bottomTab {
     position: absolute ;
@@ -276,7 +274,6 @@ user-select: none;
     gap: 68px;
 }
 #bottomTab p{
-    color: #000;
     text-align: center;
     font-size: 12px;
     font-weight: 600;
@@ -289,22 +286,12 @@ user-select: none;
     flex-direction: column;
     gap: 4px;
 }
-
-#bottomTab p {
+.myTab p, .homeTab p {
     color: #A5A5A5; /* 기본 글자 색상 - 연한 회색 */
-    text-decoration: none;
-    transition: color 0.3s;
+}
+.pointTab p {
+    color: #000;
 }
 
-#bottomTab a.active p{
-  color: #000000; /* 활성 탭 글자 색상 - 진한 검정 */
-}
 
-#bottomTab a svg path {
-    stroke: #A5A5A5; /* 기본 아이콘 색상 */
-    transition: stroke 0.3s;
-}
 
-#bottomTab a.active svg path {
-  stroke: #000000; /* 활성 아이콘 색상 */
-}
