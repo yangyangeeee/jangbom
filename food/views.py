@@ -140,9 +140,8 @@ def recipe_input_view(request):
         # 새 요리를 입력했으므로 이전 재료들 초기화
         for k in ('basic', 'optional', 'extra_selected'):
             request.session.pop(k, None)
-
-        return redirect('food:recipe_ingredients')
-
+        return redirect('food:recipe_ingredients') 
+        
     items_count = cart_items_count(user)
     total_point = get_user_total_point(user)
     today = timezone.localdate()            # 날짜만 (로컬 타임존 기준)
