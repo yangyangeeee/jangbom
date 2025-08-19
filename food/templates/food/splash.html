@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+        <script>
+        // 3초 후 자동 이동
+        setTimeout(function () {
+            window.location.href = "{% url 'food:main' %}";
+        }, 3000);
+    </script>
+    <h1>스플래시 화면</h1>
+</body>
+</html>

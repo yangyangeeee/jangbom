@@ -5,6 +5,7 @@ app_name = 'food'
 
 urlpatterns = [
     path('', main, name='main'),
+    path('splash/', splash, name='splash'),
     # 1. 요리를 할거야
     path('recipe/start/', recipe_input_view, name='recipe_input'),
     path('recipe/ingredients/', recipe_ingredient_result, name='recipe_ingredients'),
