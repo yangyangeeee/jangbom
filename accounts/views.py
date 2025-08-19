@@ -73,7 +73,8 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('food:main')  # 로그인 후 이동할 페이지
+            # 회원가입 후 → 스플래쉬 화면
+            return redirect('food:splash')
     else:
         form = CustomUserCreationForm()
     return render(request, 'accounts/signup.html', {'form': form})
@@ -85,7 +86,8 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('food:splash')
+            # 로그인 후 → 메인 화면
+            return redirect('food:main')
     else:
         form = CustomLoginForm()
     return render(request, 'accounts/login.html', {'form': form})
