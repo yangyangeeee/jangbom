@@ -79,12 +79,13 @@
             </div>          
         </div>
         
-        <a href="{% url 'market:edit_market_filter_recipe' %}" class="storeFilter">
-            <p>상점 필터 설정</p>
-            <img src="{% static 'img/arrow-right.svg' %}">
-        </a>
+
 
         <form action="{% url 'market:nearest_market' %}" method="get" class=selectTab>
+            <a href="{% url 'market:edit_market_filter_recipe' %}" class="storeFilter">
+                <p>상점 필터 설정</p>
+                <img src="{% static 'img/arrow-right.svg' %}">
+            </a>
             <button type="submit" class="buyBtn">장 보러 가기</button>
         </form>
 
