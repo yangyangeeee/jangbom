@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,23 +12,23 @@
     <div id="Container">
         <img id="statusBar" src="/jangbom/static/img/iPhone Status bar.png"/>
         <div id="pointBar">
-            <a href="/jangbom/static/html/main.html">
+            <a href="{% url 'food:main' %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
                     <path d="M20 24L12 16L20 8" stroke="#D9D9D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </a>
             <div class="userBar">
-                <a href="#"><img src="/jangbom/static/img/basket.svg" class="basket" alt="basket"></a>
-                <a href="#"><img src="/jangbom/static/img/lucide.svg" class="lucide" alt="lucide"></a>
-                <a href="#"><div class="pointNum"><p>100P</p></div></a>
+                <a href="{% url 'food:cart_view' %}"><img src="/jangbom/static/img/basket.svg" class="basket" alt="basket"></a>
+                <a href="{% url 'point:barcode' %}"><img src="/jangbom/static/img/lucide.svg" class="lucide" alt="lucide"></a>
+                <a href="{% url 'point:point_home' %}"><div class="pointNum"><p>{{ total_point }}P</p></div></a>
             </div>
         </div>
         <div class="mainMent">
                 <div class="userFood">
-                    <p>쌍문동 두더지님,</p>
+                    <p>{{ user.addr_level3 }} {{ user.nickname }}님,</p>
                     <p>어떤 요리를 만드실 건가요?</p>
                 </div>
-                <div class="date"><p>2025년 8월 7일</p></div>
+                <div class="date"><p>{{ today_str }}</p></div>
         </div>
         <div id="mainBoard">
             <div class="selectBtn">
@@ -57,7 +58,8 @@
         </div>
         <div id="gptBox">
             <form method="post" class="inputBar" action="">
-                <input type="text" name="recipe" placeholder="요리명을 입력해주세요" value="" class="gptInput">
+                {% csrf_token %}
+                <input type="text" name="recipe" placeholder="요리명을 입력해주세요" value="{{ initial_recipe }}" class="gptInput">
                 <button type="submit" class="rightArrow">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                         <path d="M12 5L19 12M19 12L12 19M19 12H5" stroke="#ACCE58" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -67,7 +69,7 @@
         </div>
 
         
-        <form method="post" class="ingredientsGet" action="/jangbom/static/html/food_recipe_ingredients.html">
+        <form method="post" class="ingredientsGet" action="{% url 'food:recipe_ingredients' %}">
             <button type="submit" class="foodBtn">재료 담기</button>
         </form>
         <img src="/jangbom/static/img/iOS.png" alt="keyboard" class="keyboard-icon">
