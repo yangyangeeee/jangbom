@@ -102,6 +102,7 @@
         {% if latest_recipe %}
             {% if latest_recipe|length > 0 %}
                 <form method="get" class="ingredientsGet" action="{% url 'food:recipe_ingredients' %}">
+                    {% csrf_token %}
                     <input type="hidden" name="recipe" value="{{ latest_recipe }}">
                     <button type="submit" class="foodBtn">'{{ latest_recipe }}' 재료 담기</button>
                 </form>
