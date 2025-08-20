@@ -1,68 +1,14 @@
-<!-- <!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <title>장바구니</title>
-</head>
-<body>
-  <a href="javascript:history.back()">✕</a>
-
-  <h2>장바구니</h2>
-  <p>잘 보러 갈 준비 되었나요?</p>
-
-  {% if not shopping_list or not items %}
-    <p>장바구니에 담긴 식재료가 없어요</p>
-  {% else %}
-    <form method="post" action="{% url 'food:cart_view' %}">
-      {% csrf_token %}
-
-      <label><input type="checkbox" id="check-all"> 전체 선택</label>
-      <button type="submit" name="action" value="remove_selected">선택 삭제</button>
-
-      <hr>
-
-      <ul>
-        {% for it in items %}
-          <li>
-            <input type="checkbox" name="selected" value="{{ it.id }}">
-            {% if it.ingredient.image %}
-              <img src="{{ it.ingredient.image.url }}" alt="{{ it.ingredient.name }}">
-            {% endif %}
-            <span>{{ it.ingredient.name }} {{ shopping_list.created_at|date:"Y.m.d" }}</span>
-            <button type="submit" name="remove_one" value="{{ it.id }}" aria-label="삭제">×</button>
-          </li>
-        {% endfor %}
-      </ul>
-
-      <button type="submit" name="action" value="go_confirm">장 보러 가기</button>
-    </form>
-  {% endif %}
-
-  <script>
-    (function () {
-      var allBox = document.getElementById('check-all');
-      if (!allBox) return;
-      allBox.addEventListener('change', function () {
-        var boxes = document.querySelectorAll('input[name="selected"]');
-        boxes.forEach(function (cb) { cb.checked = allBox.checked; });
-      });
-    })();
-  </script>
-</body>
-</html> -->
-
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{% static 'css/cart.css' %}" />
+    <link rel="stylesheet" href="/jangbom/static/css/cart.css" />
     <title>Document</title>
 </head>
 <body>
     <div id="Container">
-        <img id="statusBar" src="{% static 'img/iPhone Status bar.png' %}"/>
+        <img id="statusBar" src="/jangbom/static/img/iPhone Status bar.png"/>
         <div id="pointBar">
             <a href="javascript:history.back()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -105,7 +51,7 @@
                                     <input type="checkbox" name="selected" value="{{ it.id }}">
                                     <span></span>
                                     {% if it.ingredient.image %}
-                                        <img src="{{ it.ingredient.image.url }}" alt="{{ it.ingredient.name }}">
+                                        <img src="/jangbom/static/img/마늘.png" alt="{{ it.ingredient.name }}">
                                     {% endif %}
                                         <div class="ingredientInfo">
                                             <p class="foodName">{{ it.ingredient.name }}</p>
