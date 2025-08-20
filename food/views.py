@@ -522,9 +522,24 @@ def recipe_ai(request):
     items_count = cart_items_count(user)
     total_point = get_user_total_point(user)
 
+    # 화면용 채팅 정렬: 최신 턴이 위, 턴 안에서는 user → assistant
+    raw = [m for m in request.session['chat_history'] if m.get('role') != 'system']
+    pairs = []
+    i = 0
+    n = len(raw)
+    while i < n:
+        if raw[i]['role'] == 'user' and i + 1 < n and raw[i+1]['role'] == 'assistant':
+            pairs.append((raw[i], raw[i+1]))   # 정상적인 한 턴
+            i += 2
+        else:
+            pairs.append((raw[i],))            # 짝이 안 맞는 메시지(예외 상황)
+            i += 1
+    pairs.reverse()  # 최신 턴이 위로 오도록
+    display_chat = [m for pair in pairs for m in pair]  # 평탄화(user → assistant 유지)
+
     # GET 렌더
     return render(request, 'food/recipe_ai.html', {
-        'chat_history': request.session['chat_history'],
+        'chat_history': display_chat,
         'latest_recipe': request.session.get('latest_recipe'),
         'user' : user,
         'cart_items_count': items_count,
@@ -835,7 +850,7 @@ def leftover_extra_ingredient_search_view(request):
             name__icontains=search_query
         ).order_by("name")
 
-    # ✅ leftover 전용 선택 목록 (중복 방지)
+    # leftover 전용 선택 목록 (중복 방지)
     extra_selected = request.session.get(LEFTOVER_EXTRA_SELECTED_KEY, [])
     extra_selected = list(dict.fromkeys(extra_selected))
     request.session[LEFTOVER_EXTRA_SELECTED_KEY] = extra_selected
@@ -966,9 +981,23 @@ def chat_with_selected_ingredients(request):
     items_count = cart_items_count(user)
     total_point = get_user_total_point(user)
 
+    #  화면용 정렬: 최신 턴이 위, 턴 내부는 user → assistant
+    raw = chat  # system 없음
+    pairs = []
+    i, n = 0, len(raw)
+    while i < n:
+        if raw[i].get('role') == 'user' and i + 1 < n and raw[i+1].get('role') == 'assistant':
+            pairs.append((raw[i], raw[i+1]))  # 정상적인 한 턴
+            i += 2
+        else:
+            pairs.append((raw[i],))           # 짝 없는 메시지(초기 assistant 등)
+            i += 1
+    pairs.reverse()                            # 최신 턴이 위쪽
+    display_chat = [m for pair in pairs for m in pair]
+
     return render(request, 'food/leftover_chat_with_ingredients.html', {
         'selected_names': selected_names,
-        'chat': chat,
+        'chat': display_chat,
         'last_recipe': last_recipe,
         'last_recipe_title': _parse_title_and_description(last_recipe)[0] if last_recipe else None,
         'saved_title': saved_title,
