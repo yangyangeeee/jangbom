@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/market_filter_form_ingredient.css' %}" />
-    <script src="{% static 'js/market_filter_form_ingredient.js' %}" defer></script>
     <title>Document</title>
 </head>
 <body>
@@ -78,4 +77,20 @@
 
     </div>
 </body>
+
+<script>
+    function makeExclusive(name) {
+    const boxes = Array.from(document.querySelectorAll(`input[type=checkbox][name="${name}"]`));
+    boxes.forEach(b => {
+        b.addEventListener('change', function () {
+        if (this.checked) {
+            boxes.forEach(x => { if (x !== this) x.checked = false; });
+        }
+        });
+    });
+    }
+    makeExclusive('distance_preference');
+    makeExclusive('type_preference');
+</script>
+
 </html>
