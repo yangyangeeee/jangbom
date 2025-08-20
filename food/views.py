@@ -739,6 +739,15 @@ def ingredient_idea_api(request):
 
 
 # ------ 3. 남은 식재료로 요리 추천받기 ------
+# leftover 전용 세션 키 (레시피 플로우와 완전 분리)
+LEFTOVER_EXTRA_SELECTED_KEY = "leftover_extra_selected"
+LEFTOVER_SESSION_KEYS = (
+    LEFTOVER_EXTRA_SELECTED_KEY,  # ← 기존 'extra_selected' 제거
+    'selected_ingredient_ids',
+    'selected_seed',
+    'recipe_chat',
+    'last_recipe_text',
+)
 
 def _parse_title_and_description(text: str):
     lines = [l for l in (text or "").splitlines() if l.strip()]
@@ -751,46 +760,160 @@ def _ids_seed(ids: List[int]) -> str:
     return hashlib.sha1(s.encode()).hexdigest()
 
 # ---------- 1) 재료 선택 ----------
+def reset_leftover_session(request):
+    for k in LEFTOVER_SESSION_KEYS:
+        request.session.pop(k, None)
+
 @login_required
 def select_recent_ingredients(request):
     user = request.user
 
+    if request.GET.get('reset') == '1':
+        reset_leftover_session(request)
+
     latest_list = (
-        ShoppingList.objects.filter(user=request.user)
+        ShoppingList.objects.filter(user=user)
         .order_by('-created_at')
         .first()
     )
     if not latest_list:
+        items_count = cart_items_count(user)
+        total_point = get_user_total_point(user)
         return render(request, 'food/leftover_save_no_ingredients.html', {
-        "cart_items_count": items_count,
-        "total_point": total_point,})
+            "cart_items_count": items_count,
+            "total_point": total_point,
+        })
 
-    ingredients = (
+    recent_ingredients = (
         ShoppingListIngredient.objects
         .filter(shopping_list=latest_list)
         .select_related('ingredient')
     )
 
+    # ✅ leftover 전용 추가 재료
+    extra_names = request.session.get(LEFTOVER_EXTRA_SELECTED_KEY, [])
+    extra_ingredients = Ingredient.objects.filter(name__in=extra_names).order_by('name')
+
     if request.method == 'POST':
-        selected_ids = request.POST.getlist('ingredient_ids')  # ['3','8',...]
+        selected_ids = request.POST.getlist('ingredient_ids')
         if not selected_ids:
             messages.error(request, "재료를 최소 1개 선택해주세요.")
             return redirect('food:select_recent_ingredients')
 
         request.session['selected_ingredient_ids'] = selected_ids
         request.session['selected_seed'] = _ids_seed(selected_ids)
-        request.session['recipe_chat'] = []            # 새 선택이므로 초기화
+        request.session['recipe_chat'] = []
         request.session['last_recipe_text'] = None
         return redirect('food:chat_with_selected_ingredients')
-    
+
     items_count = cart_items_count(user)
     total_point = get_user_total_point(user)
 
     return render(request, 'food/leftover_select_recent_ingredients.html', {
-        'ingredients': ingredients,
+        'recent_ingredients': recent_ingredients,
+        'extra_ingredients': extra_ingredients,
         "cart_items_count": items_count,
         "total_point": total_point,
     })
+
+@login_required
+def leftover_extra_ingredient_search_view(request):
+    search_query = request.GET.get("search", "").strip()
+
+    # 최근 검색어
+    if search_query:
+        recent_searches = request.session.get("recent_searches", [])
+        if search_query in recent_searches:
+            recent_searches.remove(search_query)
+        recent_searches.insert(0, search_query)
+        request.session["recent_searches"] = recent_searches[:10]
+
+    # 검색 결과
+    category_ingredients = Ingredient.objects.none()
+    if search_query:
+        category_ingredients = Ingredient.objects.filter(
+            name__icontains=search_query
+        ).order_by("name")
+
+    # ✅ leftover 전용 선택 목록 (중복 방지)
+    extra_selected = request.session.get(LEFTOVER_EXTRA_SELECTED_KEY, [])
+    extra_selected = list(dict.fromkeys(extra_selected))
+    request.session[LEFTOVER_EXTRA_SELECTED_KEY] = extra_selected
+
+    selected_ingredients = Ingredient.objects.filter(
+        name__in=extra_selected
+    ).order_by("name")
+
+    return render(request, "food/leftover_extra_ingredient_search.html", {
+        "search_query": search_query,
+        "category_ingredients": category_ingredients,
+        "selected_ingredients": selected_ingredients,
+        "recent_searches": request.session.get("recent_searches", []),
+    })
+
+@login_required
+def leftover_add_extra_ingredient(request):
+    """leftover 전용 세션에만 추가"""
+    if request.method != 'POST':
+        return redirect('food:leftover_extra_ingredient_search')
+
+    name = (request.POST.get('ingredient') or '').strip()
+    search = (request.POST.get('search') or '').strip()
+    if not name:
+        return redirect('food:leftover_extra_ingredient_search')
+
+    if not Ingredient.objects.filter(name=name).exists():
+        messages.error(request, f"{name} 재료를 찾을 수 없습니다.")
+    else:
+        extra_selected = request.session.get(LEFTOVER_EXTRA_SELECTED_KEY, [])
+        if name not in extra_selected:
+            extra_selected.append(name)
+            request.session[LEFTOVER_EXTRA_SELECTED_KEY] = extra_selected
+        else:
+            messages.info(request, f"{name}은(는) 이미 담겨 있어요.")
+
+    base = reverse('food:leftover_extra_ingredient_search')
+    return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
+
+@login_required
+def leftover_remove_extra_ingredient(request, ingredient_name):
+    """leftover 전용 추가 재료 제거 (GET/POST 둘 다 허용)"""
+    extra_selected = request.session.get(LEFTOVER_EXTRA_SELECTED_KEY, [])
+    if ingredient_name in extra_selected:
+        extra_selected.remove(ingredient_name)
+        request.session[LEFTOVER_EXTRA_SELECTED_KEY] = extra_selected
+    return redirect('food:leftover_extra_ingredient_search')
+
+# (post로 부르는 삭제 뷰를 계속 쓸 거면 아래도 같은 키로 정렬)
+@login_required
+def leftover_delete_extra_ingredient(request, name):
+    if request.method != 'POST':
+        return redirect('food:leftover_extra_ingredient_search')
+
+    search = (request.POST.get('search') or '').strip()
+    extra_selected = request.session.get(LEFTOVER_EXTRA_SELECTED_KEY, [])
+    if name in extra_selected:
+        extra_selected.remove(name)
+        request.session[LEFTOVER_EXTRA_SELECTED_KEY] = extra_selected
+    else:
+        messages.info(request, f"{name}은(는) 후보에 없어요.")
+
+    base = reverse('food:leftover_extra_ingredient_search')
+    return redirect(f"{base}?{urlencode({'search': search})}" if search else base)
+
+@login_required
+def delete_extra_recent_search(request, keyword):
+    recent_searches = request.session.get('recent_searches', [])
+    if keyword in recent_searches:
+        recent_searches.remove(keyword)
+        request.session['recent_searches'] = recent_searches
+    return redirect('food:leftover_extra_ingredient_search')
+
+@login_required
+def clear_extra_recent_searches(request):
+    request.session['recent_searches'] = []
+    return redirect('food:leftover_extra_ingredient_search')
+
 
 # ---------- 2) 채팅(자동 추천) ----------
 @login_required

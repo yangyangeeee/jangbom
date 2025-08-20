@@ -34,6 +34,16 @@ urlpatterns = [
     path("leftover/save/", save_last_recipe, name="save_last_recipe"),
     path("leftover/clear/", clear_recipe_chat, name="clear_recipe_chat"),
 
+    # 최근 장바구니 → 직접 추가 검색 관련
+    path('leftover/extra/search/', leftover_extra_ingredient_search_view, name='leftover_extra_ingredient_search'),
+    path('leftover/extra/add/', leftover_add_extra_ingredient, name='leftover_add_extra_ingredient'),
+    path("leftover/remove_extra/<str:ingredient_name>/",leftover_remove_extra_ingredient, name="leftover_remove_extra_ingredient"),
+    path('leftover/extra/delete/<str:name>/', leftover_delete_extra_ingredient, name='leftover_delete_extra_ingredient'),
+
+    # 최근 검색어 관리
+    path('leftover/extra/recent/delete/<str:keyword>/', delete_extra_recent_search, name='delete_extra_recent_search'),
+    path('leftover/extra/recent/clear/', clear_extra_recent_searches, name='clear_extra_recent_searches'),
+
     #4. 장바구니
     path("cart/", cart_view, name="cart_view"),
 ]
