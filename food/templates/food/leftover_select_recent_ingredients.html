@@ -71,16 +71,16 @@
                                 <label for="basic_{{ forloop.counter }}" class="ingredient-btn">{{ item.ingredient.name }}</label>
                             {% endfor %}
                         {% else %}
-                            <p>장바구니에 재료가 없습니다</p>
+                            <p class="empty-log">장바구니에 재료가 없습니다</p>
                         {% endif %}
                     </div>
-                    <div id="extraBox">
+                    <!-- <div id="extraBox">
                         <p>직접 추가한 재료</p>
                         <div class="extraCheckBox">
                             <input type="checkbox" id="extra_{{ forloop.counter1 }}" name="ingredients" value="{{ i }}"  hidden>
                             <label for="extra_{{ forloop.counter1 }}" class="ingredient-btn">마늘</label>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </form>
         </div>
