@@ -855,20 +855,25 @@ def chat_with_selected_ingredients(request):
 
 # ---------- 3) 저장 ----------
 @login_required
+# views.py
 def save_last_recipe(request):
-    text = request.session.get('last_recipe_text')
-    if not text:
-        messages.error(request, "저장할 레시피가 없습니다.")
-        return redirect('food:chat_with_selected_ingredients')
+    recipe = request.GET.get("recipe")
+    if recipe:
+        # DB 저장 로직 수행
+        saved_title = recipe  # 예시: 저장된 레시피 이름
 
-    title, desc = _parse_title_and_description(text)
-    SavedRecipe.objects.create(user=request.user, title=title[:200], description=desc)
-    
-    # 채팅 화면에서 모달을 띄우기 위해 세션에 제목 저장
-    request.session['just_saved_recipe_title'] = title
+        # 기존 chat, latest_recipe 등 context도 전달
+        context = {
+            "saved_title": saved_title,
+            "latest_recipe": recipe,
+            "selected_names": [...],  # 실제 값
+            "chat": [...],
+            "last_recipe_title": recipe,
+        }
+        return render(request, "food_leftover_chat_with_ingredients.html", context)
 
-    # 채팅 화면으로 리다이렉트 (거기서 모달 띄움)
-    return redirect('food:chat_with_selected_ingredients')
+    return redirect("food:recipe_input")
+
 
 # (선택) 대화 초기화
 @login_required
