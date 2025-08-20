@@ -844,7 +844,7 @@ def leftover_extra_ingredient_search_view(request):
         name__in=extra_selected
     ).order_by("name")
 
-    return render(request, "food/extra_ingredient_search.html", {
+    return render(request, "food/leftover_extra_ingredient_search.html", {
         "search_query": search_query,
         "category_ingredients": category_ingredients,
         "selected_ingredients": selected_ingredients,
