@@ -1,43 +1,3 @@
-<!--상단바-->
-<!-- <a href="{% url 'food:recipe_input' %}">◁</a>
-<a href="{% url 'food:cart_view' %}">🧺
-    {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    <a href="">바코드</a>
-    {{ total_point }}P
-
-<h3>{{ user.addr_level3 }} {{ user.nickname }}님,<br>어떤 요리를 추천해드릴까요?</h3>
-
-<hr>
-
-<div style="max-width: 600px;">
-    {% for msg in chat_history %}
-        {% if msg.role == 'user' %}
-            <p><strong> 나:</strong> {{ msg.content }}</p>
-        {% elif msg.role == 'assistant' %}
-            <p><strong> GPT:</strong> {{ msg.content }}</p>
-        {% endif %}
-    {% endfor %}
-</div>
-
-{% if latest_recipe %}
-    {% if latest_recipe|length > 0 %}
-        <form method="get" action="{% url 'food:recipe_ingredients' %}">
-            <input type="hidden" name="recipe" value="{{ latest_recipe }}">
-            <button type="submit">'{{ latest_recipe }}' 재료 담기</button>
-        </form>
-    {% endif %}
-{% endif %}
-
-<form method="post">
-    {% csrf_token %}
-    <input type="text" name="message" placeholder="어떤 요리를 원하시나요?" style="width:300px;">
-        <button type="submit">↑</button>
-</form> -->
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -58,7 +18,15 @@
                 </svg>
             </a>
             <div class="userBar">
-                <a href="{% url 'food:cart_view' %}"><img src="{% static 'img/basket.svg' %}" class="basket" alt="basket"></a>
+                <a href="{% url 'food:cart_view' %}" class="basket-container">
+                        {% if cart_items_count == 0 %}
+                            <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                            <span class="basket-count">{{ cart_items_count }}</span>
+                        {% else %}
+                            <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                            <span class="basket-count">{{ cart_items_count }}</span>
+                        {% endif %}
+                </a>
                 <a href="{% url 'point:barcode' %}"><img src="{% static 'img/lucide.svg' %}" class="lucide" alt="lucide"></a>
                 <a href="{% url 'point:point_home' %}"><div class="pointNum"><p>{{ total_point }}P</p></div></a>
             </div>

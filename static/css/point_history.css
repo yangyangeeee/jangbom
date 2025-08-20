@@ -16,6 +16,27 @@
     font-weight: normal;
     font-style: normal;
 }
+
+.basket-container {
+    position: relative;
+    display: inline-block;
+}
+
+.basket-count {
+    position: absolute;
+    bottom: -1px;  /* 아래쪽으로 */
+    right: -6px;   /* 오른쪽으로 */
+    background: #545454;
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 300;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 #Container{
     position: relative;
     width: 393px;

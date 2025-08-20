@@ -1,57 +1,3 @@
-<!-- <a href="javascript:history.back()">◁</a>
-<a href="{% url 'food:cart_view' %}">🧺
-        {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    <a href="{% url 'point:barcode' %}">바코드</a>
-    {{ total_point }}P
-
-<h2>{{ district|default:"전체" }} 포인트 랭킹</h2> -->
-
-<!-- 이번주 기준인지, 누적인지 기준을 몰라 2개 다 넣었습니다 -->
-<!-- <div>
-    <div>
-        이번주 장보미 수<br>
-        <strong>{{ weekly_stats.shopper_count }}명</strong>
-    </div>
-    <div>
-        이번 주 장봄 포인트<br>
-        <strong>{{ weekly_stats.total_points }} P</strong>
-    </div>
-
-    <div>
-        누적 장보미 수<br>
-        <strong>{{ total_stats.shopper_count }}명</strong>
-    </div>
-    <div>
-        누적 장봄 포인트<br>
-        <strong>{{ total_stats.total_points }} P</strong>
-    </div>
-</div> -->
-
-<!-- 이번 주 TOP 30 -->
-<!-- <h3>이번주 TOP 30</h3>
-<ol>
-    {% for row in weekly_top30 %}
-        <li{% if row.user_id == request.user.id %} style="font-weight:bold"{% endif %}> 본인 랭킹 강조 부분  -->
-        <!-- {{ forloop.counter }}위 -
-        {{ row.user__addr_level3|default:"" }} {{ row.user__nickname }} ({{ row.points }}P)
-        </li>
-    {% empty %}
-        <li>이번 주 적립 내역이 없습니다.</li>
-    {% endfor %}
-</ol> -->
-
-<!-- 하단 링크 -->
-<!-- <div style="margin-top:20px;">
-    <a href="{% url 'food:main' %}">장 보러 가기</a><br>
-    <a href="{% url 'point:point_history' %}">내 포인트 적립 내역 확인하기</a>
-</div>
- -->
-
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +18,15 @@
                 </svg>
             </a>
             <div class="userBar">
-                <a href="{% url 'food:cart_view' %}"><img src="{% static 'img/basket.svg' %}" class="basket" alt="basket"></a>
+                <a href="{% url 'food:cart_view' %}" class="basket-container">
+                        {% if cart_items_count == 0 %}
+                            <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                            <span class="basket-count">{{ cart_items_count }}</span>
+                        {% else %}
+                            <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                            <span class="basket-count">{{ cart_items_count }}</span>
+                        {% endif %}
+                </a>
                 <a href="{% url 'point:barcode' %}"><img src="{% static 'img/lucide.svg' %}" class="lucide" alt="lucide"></a>
                 <a href="{% url 'point:point_home' %}"><div class="pointNum"><p>{{ total_point }}P</p></div></a>
             </div>

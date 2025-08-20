@@ -18,7 +18,15 @@
                 </svg>
             </a>
             <div class="userBar">
-                <a href="{% url 'food:cart_view' %}"><img src="{% static 'img/basket.svg' %}" class="basket" alt="basket"></a>
+                <a href="{% url 'food:cart_view' %}" class="basket-container">
+                    {% if cart_items_count == 0 %}
+                        <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                        <span class="basket-count">{{ cart_items_count }}</span>
+                    {% else %}
+                        <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                        <span class="basket-count">{{ cart_items_count }}</span>
+                    {% endif %}
+                </a>
                 <a href="{% url 'point:barcode' %}"><img src="{% static 'img/lucide.svg' %}" class="lucide" alt="lucide"></a>
                 <a href="{% url 'point:point_home' %} "><div class="pointNum"><p>100P</p></div></a>
             </div>
