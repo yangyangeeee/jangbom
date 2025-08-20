@@ -84,7 +84,7 @@
 
         <div id="mainBoard">
             {% if not shopping_list or not items %}
-                <p>장바구니에 담긴 식재료가 없어요</p>
+                <p class="no_empty">장바구니에 담긴 식재료가 없어요</p>
             {% else %}   
                 <form method="post" action="{% url 'food:cart_view' %}">
                     {% csrf_token %}
