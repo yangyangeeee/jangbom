@@ -1,31 +1,50 @@
 <!-- <a href="javascript:history.back()">◁</a>
 <a href="{% url 'food:cart_view' %}">🧺
-        {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    <a href="{% url 'point:barcode' %}">바코드</a>
-    {{ total_point }}P
+    {% if cart_items_count == 0 %}{% else %}{{ cart_items_count }}{% endif %}
+</a>
+<a href="{% url 'point:barcode' %}">바코드</a>
+{{ total_point }}P
 
 <h2>최근 구매한 식재료 목록</h2>
 
 <form method="post">
     {% csrf_token %}
 
-    {% if ingredients %}
-        <div>
-            {% for item in ingredients %}
-            <label style="display:block; margin:4px 0;">
-                <input type="checkbox" name="ingredient_ids" value="{{ item.ingredient.id }}">
-                {{ item.ingredient.name }}
-            </label>
-            {% endfor %}
-        </div>
-        <button type="submit">선택 완료</button>
-    {% else %}
-        <p>장바구니에 재료가 없습니다.</p>
-    {% endif %}
+    <h3>최근 장바구니 재료</h3>
+    {% for si in recent_ingredients %}
+        <label>
+        <input type="checkbox"
+                name="ingredient_ids"
+                value="{{ si.ingredient.id }}"
+                {% if selected_ids and si.ingredient.id|stringformat:"s" in selected_ids %}checked{% endif %}>
+        {{ si.ingredient.name }}
+        </label><br>
+    {% empty %}
+        <p>최근 장바구니에 재료가 없습니다.</p>
+    {% endfor %}
+
+    <h3>직접 추가한 재료</h3>
+    {% for ing in extra_ingredients %}
+        <label>
+        <input type="checkbox"
+                name="ingredient_ids"
+                value="{{ ing.id }}"
+                {% if selected_ids and ing.id|stringformat:"s" in selected_ids %}checked{% endif %}>
+        {{ ing.name }}
+        </label><br>
+    {% empty %}
+        <p>직접 추가한 재료가 없습니다.</p>
+    {% endfor %}
+
+    <br>
+    <button type="submit">선택 완료</button>
+</form>
+
+<hr>
+
+<!-- leftover 전용 검색 화면으로 이동 -->
+<form action="{% url 'food:leftover_extra_ingredient_search' %}" method="get" style="display:inline;">
+    <button type="submit" class="btn">직접 추가하기</button>
 </form> -->
 
 {% load static %}
