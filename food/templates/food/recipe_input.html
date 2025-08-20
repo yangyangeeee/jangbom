@@ -20,8 +20,9 @@
     <button type="submit">아직 할 요리를 정하지 못했다면 요리 추천 받기</button>
 </form>
 
-<form method="get" action="{% url 'food:select_recent_ingredients' %}">
-    <button type="submit">냉장고 속 재료가 신경 쓰인다면 갖고 있는 식재료로 요리하기</button>
+<form action="{% url 'food:select_recent_ingredients' %}" method="get">
+    <input type="hidden" name="reset" value="1">
+    <button type="submit">냉장고 속 재료로 요리하기</button>
 </form>
 
 <form method="post" action="{% url 'food:recipe_input' %}">
