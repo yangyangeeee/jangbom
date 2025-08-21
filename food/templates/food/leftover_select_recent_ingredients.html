@@ -91,29 +91,36 @@
 
                 <div id="basicBox">
                     <div class="basicCheckBox">
-                        {% if ingredients %}
-                            {% for item in ingredients %}
-                                <input type="checkbox" id="basic_{{ forloop.counter }}" name="ingredient_ids" value="{{ item.ingredient.id }}" hidden>
-                                <label for="basic_{{ forloop.counter }}" class="ingredient-btn">{{ item.ingredient.name }}</label>
-                            {% endfor %}
-                        {% else %}
+                        {% for si in recent_ingredients %}
+                            <input type="checkbox" id="basic_{{ forloop.counter }}" name="ingredient_ids" value="{{ si.ingredient.id }}" 
+                                {% if selected_ids and ing.id|stringformat:"s" in selected_ids %}{% endif %} hidden>
+                            <label for="basic_{{ forloop.counter }}" class="ingredient-btn"> {{ si.ingredient.name }}</label>
+                        {% empty %}
                             <p class="empty-log">장바구니에 재료가 없습니다</p>
-                        {% endif %}
+                        {% endfor %}
                     </div>
-                    <!-- <div id="extraBox">
-                        <p>직접 추가한 재료</p>
-                        <div class="extraCheckBox">
-                            <input type="checkbox" id="extra_{{ forloop.counter1 }}" name="ingredients" value="{{ i }}"  hidden>
-                            <label for="extra_{{ forloop.counter1 }}" class="ingredient-btn">마늘</label>
-                        </div>
-                    </div> -->
+                </div>
+
+                <div id="extraBox">
+                    <p>직접 추가한 재료</p>
+                    <div class="extraCheckBox">
+                        {% for ing in extra_ingredients %}
+                            <input type="checkbox" id="extra_{{ forloop.counter }}" name="ingredient_ids" value="{{ ing.id }}"  hidden>
+                            <label for="extra_{{ forloop.counter }}" class="ingredient-btn"> {{ ing.name }}</label>
+                        {% empty %}
+                            <p class="empty-log">직접 추가한 재료가 없습니다</p>
+                        {% endfor %}
+                    </div>
                 </div>
             </form>
         </div>
 
         <div class="bottomBoard">
-            <div class="userPick"><a href="{% url 'food:ingredient_search' %}"><p>재료 직접 담기</p></a></div>
-            <form action="{% url 'food:chat_with_selected_ingredients' %}" method="get">
+            <form action="{% url 'food:leftover_extra_ingredient_search' %}" method="get" class="userPick">
+                <button type="submit" class="btn"><p>재료 직접 담기</p></button>
+            </form>
+            <form action="{% url 'food:chat_with_selected_ingredients' %}" method="post">
+                {% csrf_token %}
                 <button type="submit" class="nextBtn">다음</button>
             </form>
         </div>
