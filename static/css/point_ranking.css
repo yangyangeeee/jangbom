@@ -199,11 +199,20 @@ user-select: none;
 
 /* 1등은 더 크고 위로 올리기 */
 .rank-card.first {
+    order: 2; /* 가운데 */
     transform: translateY(-20px);
     width: 94px;
     height: 171px;
-
 }
+
+.rank-card.second {
+    order: 1; /* 왼쪽 */
+}
+
+.rank-card.third {
+    order: 3; /* 오른쪽 */
+}
+
 
 
 

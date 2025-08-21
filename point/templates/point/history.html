@@ -101,7 +101,7 @@
                         {% endif %}
                 </a>
                 <a href="{% url 'point:barcode' %}"><img src="{% static 'img/lucide.svg' %}" class="lucide" alt="lucide"></a>
-                <a href="{% url 'point:point_home' %}"><div class="pointNum"><p>100P</p></div></a>
+                <a href="{% url 'point:point_home' %}"><div class="pointNum"><p>{{ total_point }}P</p></div></a>
             </div>
         </div>
 
