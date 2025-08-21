@@ -112,16 +112,13 @@
                         {% endfor %}
                     </div>
                 </div>
+                <button type="submit">다음</button>
             </form>
         </div>
 
         <div class="bottomBoard">
             <form action="{% url 'food:leftover_extra_ingredient_search' %}" method="get" class="userPick">
                 <button type="submit" class="btn"><p>재료 직접 담기</p></button>
-            </form>
-            <form action="{% url 'food:chat_with_selected_ingredients' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="nextBtn">다음</button>
             </form>
         </div>
     </div>
