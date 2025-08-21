@@ -5,9 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectBtn = document.querySelector('.selectBtn');
     const gptBox = document.getElementById('gptBox');
     const form = document.getElementById('filterForm');
+    const hiddenInput = document.querySelector('.ingredientsGet input[name="recipe"]');
 
     keyboardIcon.style.display = 'none';
     foodBtn.style.display = 'none';
+
+    input.addEventListener('input', () => {
+        hiddenInput.value = input.value;
+    });
 
     // input 글자 체크
     input.addEventListener('input', () => {
@@ -34,3 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         form.submit(); // 재료 담기 버튼 클릭 시 submit 강제
     });
 });
+
+
+
