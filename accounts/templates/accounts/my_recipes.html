@@ -1,89 +1,153 @@
-<a href="javascript:history.back()">◁</a>
-<a href="{% url 'food:cart_view' %}">🧺
-        {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    <a href="{% url 'point:barcode' %}">바코드</a>
-    {{ total_point }}P
-
-<h2>요리법 보관함</h2>
-
-<!-- 검색 폼 -->
-<form method="get" action="">
-    <input type="hidden" name="sort" value="{{ sort|default:'latest' }}">
-    <input type="text" name="q" value="{{ q|default:'' }}" placeholder="검색어를 입력하세요">
-    <button type="submit">검색</button>
-</form>
-
-<!-- 정렬 폼 -->
-<form method="get" action="">
-    <input type="hidden" name="q" value="{{ q|default:'' }}">
-    <label>
-        <input type="radio" name="sort" value="latest" {% if sort == 'latest' %}checked{% endif %} onchange="this.form.submit()">
-        최신순
-    </label>
-    <label>
-        <input type="radio" name="sort" value="alpha" {% if sort == 'alpha' %}checked{% endif %} onchange="this.form.submit()">
-        가나다순
-    </label>
-</form>
-
-<hr>
-
-<!-- 레시피 목록 -->
-{% if recipes %}
-<ul id="recipe-list">
-    {% for recipe in recipes %}
-        <li>
-        <div class="recipe-item" data-id="{{ recipe.id }}" data-title="{{ recipe.title|escape }}">
-            <span class="toggle">▶</span>
-            <span class="title">{{ recipe.title }}</span>
-            <small class="created">({{ recipe.created_at|date:"Y-m-d" }})</small>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/my_recipes.css' %}" />
+    <title>my_recipes</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img
+              class="status2"
+              src="{% static 'img/reception.svg' %}"
+              alt="reception"
+            />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img
+              class="status2"
+              src="{% static 'img/battery.svg' %}"
+              alt="battery"
+            />
+          </div>
         </div>
-        <div class="recipe-detail" id="recipe-detail-{{ recipe.id }}" style="display:none;"></div>
-        </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>저장된 레시피가 없습니다.</p>
-{% endif %}
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".recipe-item").forEach(item => {
-        item.addEventListener("click", function() {
-        const recipeId = this.getAttribute("data-id");
-        const detailDiv = document.getElementById("recipe-detail-" + recipeId);
-        const toggleEl = this.querySelector(".toggle");   // ▶ / ▼ 만 바꿈
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <a href="javascript:history.back()" aria-label="뒤로">
+            <img
+              class="top-back"
+              src="{% static 'img/chevron-left.svg' %}"
+              alt="back"
+            />
+          </a>
+          <div class="top-point">
+            <a
+              href="{% url 'point:barcode' %}"
+              class="barcode-link"
+              style="margin-left: 8px"
+            >
+              <img
+                class="point"
+                src="{% static 'img/lucide.svg' %}"
+                alt="바코드"
+            /></a>
+            <p class="mypoint">{{ total_point }} P</p>
+          </div>
+        </div>
 
-        if (detailDiv.style.display === "block") {
-            // 닫기
-            detailDiv.style.display = "none";
-            toggleEl.textContent = "▶";
-            return;
-        }
+        <div class="myactivity-log">
+          <h3>요리법 보관함</h3>
+        </div>
 
-        // 처음 열 때만 fetch
-        if (!detailDiv.innerHTML.trim()) {
-            fetch(`/accounts/recipes/${recipeId}/ajax/`)
-            .then(res => res.json())
-            .then(data => {
-                detailDiv.innerHTML = `
-                <p><strong>${data.title}</strong></p>
-                <p>요리법 설명</p>
-                <pre>${data.description}</pre>
-                `;
-                detailDiv.style.display = "block";
-                toggleEl.textContent = "▼";
-            });
-        } else {
-            // 이미 내용 있으면 그대로 보여주기
-            detailDiv.style.display = "block";
-            toggleEl.textContent = "▼";
-        }
-        });
-    });
-});
-</script>
+        <main class="app-body">
+          <div class="recipes-list-fullset">
+            <form
+              class="recipes_search"
+              method="get"
+              action="{% url 'accounts:my_recipes' %}"
+            >
+              <div class="input-row">
+                <input
+                  type="text"
+                  name="q"
+                  class="input-rec"
+                  value="{{ q|default:'' }}"
+                  placeholder=" "
+                  autocomplete="off"
+                />
+                <span class="input-placeholder"
+                  >찾으시는 요리법을 검색하세요</span
+                >
+                <button
+                  class="input-rec-search"
+                  aria-label="확인"
+                  type="submit"
+                >
+                  <img src="{% static 'img/search.svg' %}" alt="확인" />
+                </button>
+
+                <input
+                  type="hidden"
+                  name="sort"
+                  value="{{ sort|default:'latest' }}"
+                />
+              </div>
+            </form>
+
+            <div class="search-filter">
+              <a
+                class="lately {% if sort == 'latest' or not sort %}on{% endif %}"
+                href="?{% if q %}q={{ q|urlencode }}&{% endif %}sort=latest"
+                >최신순</a
+              >
+              <a
+                class="abc {% if sort == 'alpha' %}on{% endif %}"
+                href="?{% if q %}q={{ q|urlencode }}&{% endif %}sort=alpha"
+                >가나다순</a
+              >
+            </div>
+
+            <div class="list-set">
+              {% for recipe in recipes %}
+              <a
+                class="recipes_list"
+                href="#"
+                role="button"
+                tabindex="0"
+                data-id="{{ recipe.id }}"
+                data-ajax="{% url 'accounts:recipe_detail_ajax' recipe.id %}"
+              >
+                <img class="recipes_img" src="{% static 'img/album.svg' %}" alt="썸네일" />
+                <div class="menu_item">
+                  <span class="menu_name">{{ recipe.title }}</span>
+                  <p class="menu_date">{{ recipe.created_at|date:"Y.m.d" }} 저장</p>
+                </div>
+                <img class="see-detail" src="{% static 'img/chevron-right(gray).svg' %}" alt="상세보기" />
+              </a>
+              {% empty %}
+              <div class="empty">저장된 레시피가 없습니다.</div>
+              {% endfor %}
+            </div>
+            </div>
+          </div>
+        </main>
+
+        {% comment %} 앱 자체 하단바 {% endcomment %}
+        <div class="bottom-nav">
+          <div class="bottom-nav-item">
+            <img src="{% static 'img/house.svg' %}" alt="홈" />
+            <span class="bottom-nav-item-title">홈</span>
+          </div>
+          <div class="bottom-nav-item">
+            <img src="{% static 'img/footprints.svg' %}" alt="내 활동" />
+            <span class="bottom-nav-item-title">내 활동</span>
+          </div>
+          <div class="bottom-nav-item">
+            <img src="{% static 'img/icons_coin.svg' %}" alt="포인트" />
+            <span class="bottom-nav-item-title">포인트</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'js/my_recipes.js' %}" defer></script>
+  </body>
+</html>

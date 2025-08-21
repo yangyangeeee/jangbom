@@ -1,29 +1,150 @@
-{% load humanize %}
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/activity_log.css' %}" />
+    <title>activity_log(내 활동)</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+      {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img
+              class="status2"
+              src="{% static 'img/reception.svg' %}"
+              alt="reception"
+            />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img
+              class="status2"
+              src="{% static 'img/battery.svg' %}"
+              alt="battery"
+            />
+          </div>
+        </div>
 
-<a href="javascript:history.back()">◁</a>
-<a href="{% url 'food:cart_view' %}">🧺
-        {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    <a href="{% url 'point:barcode' %}">바코드</a>
-    {{ total_point }}P
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <a href="javascript:history.back()" aria-label="뒤로">
+            <img
+              class="top-back"
+              src="{% static 'img/chevron-left.svg' %}"
+              alt="back"
+            />
+          </a>
+          <div class="top-point">
+            <a
+              href="{% url 'food:cart_view' %}"
+              class="cart-link"
+              aria-label="장바구니"
+              style="margin-left: 8px"
+            >
+              🧺{% if cart_items_count %}<span class="cart-badge"
+                >{{ cart_items_count }}</span
+              >{% endif %}
+            </a>
+            <a
+              href="{% url 'point:barcode' %}"
+              class="barcode-link"
+              style="margin-left: 8px"
+            >
+              <img
+                class="point"
+                src="{% static 'img/lucide.svg' %}"
+                alt="바코드"
+            /></a>
+            <p class="mypoint">{{ total_point|default:0|intcomma }} P</p>
+          </div>
+        </div>
 
-<h2>내 활동 내역</h2>
+        <main class="app-body">
+          <div class="myactivity-log">
+            <h3>내 활동 내역</h3>
 
-<p>{{ user.nickname }} - {{ user.addr_level3|default:"" }}</p>
+            <div class="my-profile">
+              <div class="profile-pic"></div>
+              <div>
+                <span class="nickname"
+                  >{{ user.nickname|default:user.username }}</span
+                >
+                <p>{{ user.addr_level3|default:"" }}</p>
+              </div>
+            </div>
 
-<p>장봄 횟수: {{ total_logs }}</p>
-<p>누적 걸음수: {{ total_steps|intcomma }} 걸음</p>
-<p>CO₂ 절감량: {{ co2_saved_kg }} kg</p>
-<p>랭킹: {% if user_rank %}{{ user_rank }}위{% else %}-{% endif %}</p>
+            <div class="perchase-set">
+              <div class="n-perchase-num">
+                <p class="n-perchase2">장봄 횟수</p>
+                <p class="n-perchase3">{{ total_logs|default:0 }}회</p>
+              </div>
+              <div class="n-perchase-num">
+                <p class="n-perchase2">누적 걸음 수</p>
+                <p class="n-perchase3">
+                  {{ total_steps|default:0|intcomma }} 걸음
+                </p>
+              </div>
+            </div>
 
-<a href="{% url 'accounts:my_recipes' %}">요리법 보관함</a><br>
-<a href="{% url 'accounts:activity_history' %}">세부 활동 내역</a><br>
-<a href="{% url 'food:select_recent_ingredients' %}">남은 식재료 활용법 추천</a>
+            <div class="CO2-set">
+              <div class="n-CO2-num">
+                <p class="n-CO2">랭킹</p>
+                <p class="n-CO23">
+                  {% if user_rank %}#{{ user_rank }}{% else %}-{% endif %}
+                </p>
+              </div>
+              <div class="n-CO2-num">
+                <p class="n-CO2">CO₂ 절감량</p>
+                <p class="n-CO23">
+                  {{ co2_saved_kg|default:0|floatformat:1 }} kg
+                </p>
+              </div>
+            </div>
+          </div>
 
-<br><hr><br>
-<a href="{% url 'food:main' %}">홈</a> |
-<a href="{% url 'accounts:activity_log' %}">내 활동</a> |
-<a href="{% url 'point:point_home' %}">포인트</a>
+          <div class="more-function">
+            <a
+              class="more-function-item"
+              href="{% url 'accounts:my_recipes' %}"
+            >
+              <div class="more-function-item2">
+                <span class="function-name">요리법 보관함</span>
+                <img src="{% static 'img/chevron-right.svg' %}" alt="" />
+              </div>
+            </a>
+
+            <a
+              class="more-function-item"
+              href="{% url 'accounts:activity_history' %}"
+            >
+              <div class="more-function-item2">
+                <span class="function-name">세부 활동 내역</span>
+                <img src="{% static 'img/chevron-right.svg' %}" alt="" />
+              </div>
+            </a>
+          </div>
+        </main>
+
+        {% comment %} 앱 자체 하단바 {% endcomment %}
+        <div class="bottom-nav">
+          <a class="bottom-nav-item" href="{% url 'food:main' %}">
+            <img src="{% static 'img/house.svg' %}" alt="홈" />
+            <span class="bottom-nav-item-title">홈</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'accounts:activity_log' %}">
+            <img src="{% static 'img/footprints.svg' %}" alt="내 활동" />
+            <span class="bottom-nav-item-title">내 활동</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'point:point_home' %}">
+            <img src="{% static 'img/icons_coin.svg' %}" alt="포인트" />
+            <span class="bottom-nav-item-title">포인트</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

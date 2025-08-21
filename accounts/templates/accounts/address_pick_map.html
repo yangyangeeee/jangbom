@@ -1,139 +1,100 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <title>지도에서 위치 확인</title>
-  {% if kakao_js_key %}
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_js_key }}&libraries=services"></script>
-  {% endif %}
-</head>
-<body>
-  <a href="{% url 'accounts:address_settings' %}">←</a>
-  <h1>지도에서 위치 확인</h1>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/address_pick_map.css' %}" />
+    <title>지도에서 위치 확인</title>
 
-  <!-- 지도 -->
-  <div id="map" style="width:100%;height:360px;"></div>
+    {% if kakao_js_key %}
+      {% comment %} kakao maps sdk {% endcomment %}
+      <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_js_key }}&libraries=services"></script>
+    {% endif %}
 
-  <!-- 현재 위치로 이동 버튼 -->
-  <button type="button" id="btn-geolocate">🎯</button>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img class="status2" src="{% static 'img/reception.svg' %}" alt="reception" />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img class="status2" src="{% static 'img/battery.svg' %}" alt="battery" />
+          </div>
+        </div>
 
-  <!-- 주소 노출 -->
-  <div>
-    <h3 id="addr-title"></h3>
-  </div>
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <a href="{% url 'accounts:address_settings' %}" class="top-back-link" aria-label="뒤로 가기">
+            <img class="top-back" src="{% static 'img/chevron-left(gray).svg' %}" alt="뒤로 가기" />
+          </a>
+        </div>
 
-  <!-- addr_level 부분은 히든 처리 -->
-  <div style="display:none">
-    <p id="addr-sub"></p>
-  </div>
+        <h3 class="app-title">지도에서 위치 확인</h3>
 
-  <!-- 이 위치로 등록 -->
-  <form id="save-direct" method="post" action="{% url 'accounts:address_save_from_map' %}">
-    {% csrf_token %}
-    <input type="hidden" name="name" id="f-name">
-    <input type="hidden" name="l1"   id="f-l1">
-    <input type="hidden" name="l2"   id="f-l2">
-    <input type="hidden" name="l3"   id="f-l3">
-    <input type="hidden" name="lat"  id="f-lat">
-    <input type="hidden" name="lng"  id="f-lng">
-    상세 주소 <input type="text" name="detail"> <br>
-    <p style="color:#d33">지도의 표시와 실제 주소가 맞는지 확인해주세요</p>
-    <button type="submit">이 위치로 주소 등록</button>
-  </form>
+        <div class="address-pick-map">
+          <div class="map-wrap" style="position:relative">
+            <div
+              id="map"
+              style="width:100%;height:100%;"
+              data-init-lat="{{ init_lat|default:'37.5665' }}"
+              data-init-lng="{{ init_lng|default:'126.9780' }}"
+            ></div>
 
-<script>
-(function(){
-  var initLat = parseFloat("{{ init_lat }}");
-  var initLng = parseFloat("{{ init_lng }}");
+            <img class="center-pin" src="{% static 'img/map-pin.svg' %}" alt="" />
 
-  if (!window.kakao || !kakao.maps) {
-    alert("지도를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
-    return;
-  }
+            <button class="btn-locate" id="btn-geolocate" type="button" aria-label="현재 위치로 이동">
+              <img src="{% static 'img/locate-fixed.svg' %}" alt="" />
+            </button>
+          </div>
 
-  var map = new kakao.maps.Map(document.getElementById('map'), {
-    center: new kakao.maps.LatLng(initLat, initLng),
-    level: 3
-  });
+          <div class="address-pick-modal">
+            <div class="modal-content">
+              <h2 class="modal-title" id="addr-title">주소를 불러오는 중…</h2>
+              <p class="modal-sub" id="addr-sub" style="color:#666"></p>
 
-  var geocoder = new kakao.maps.services.Geocoder();
-  var marker = new kakao.maps.Marker({ position: map.getCenter(), draggable: false });
-  marker.setMap(map);
+              <form id="save-direct" method="post" action="{% url 'accounts:address_save_from_map' %}">
+                {% csrf_token %}
+                <input type="hidden" name="name" id="f-name" />
+                <input type="hidden" name="l1"   id="f-l1" />
+                <input type="hidden" name="l2"   id="f-l2" />
+                <input type="hidden" name="l3"   id="f-l3" />
+                <input type="hidden" name="lat"  id="f-lat" />
+                <input type="hidden" name="lng"  id="f-lng" />
 
-  function updateCenterInfo() {
-    var center = map.getCenter();
-    marker.setPosition(center);
+                <div class="address-detail">
+                  <label for="addrDetail" class="field-label">상세 주소</label>
+                  <input
+                    id="addrDetail"
+                    name="detail"
+                    class="field-input"
+                    type="text"
+                    placeholder="동·호수, 층 등 (선택)"
+                    autocomplete="address-line2"
+                    inputmode="text"
+                    maxlength="50"
+                    aria-describedby="addrWarn"
+                  />
+                </div>
 
-    var lat = center.getLat(), lng = center.getLng();
-    document.getElementById('f-lat').value = lat.toFixed(6);
-    document.getElementById('f-lng').value = lng.toFixed(6);
+                <div class="check-alert" id="addrWarn">
+                  <img src="{% static 'img/triangle-alert.svg' %}" alt="" />
+                  <p>지도의 표시와 실제 주소가 맞는지 확인해주세요</p>
+                </div>
 
-    geocoder.coord2Address(lng, lat, function(result, status){
-      if (status !== kakao.maps.services.Status.OK || !result || !result.length){
-        document.getElementById('addr-title').textContent = "주소를 찾을 수 없습니다";
-        document.getElementById('addr-sub').textContent = "";
-        document.getElementById('f-name').value = "";
-        document.getElementById('f-l1').value = "";
-        document.getElementById('f-l2').value = "";
-        document.getElementById('f-l3').value = "";
-        return;
-      }
-      var r = result[0];
-      var road = r.road_address;
-      var jibun = r.address;
-
-      var name = (road && road.address_name) || (jibun && jibun.address_name) || "";
-      var l1 = (road && road.region_1depth_name) || (jibun && jibun.region_1depth_name) || "";
-      var l2 = (road && road.region_2depth_name) || (jibun && jibun.region_2depth_name) || "";
-      var l3 = (road && road.region_3depth_name) || (jibun && jibun.region_3depth_name) || "";
-
-      document.getElementById('addr-title').textContent = name || "주소 미확인";
-      document.getElementById('addr-sub').textContent   = (l1 + " " + l2 + " " + l3).trim();
-
-      document.getElementById('f-name').value = name;
-      document.getElementById('f-l1').value = l1;
-      document.getElementById('f-l2').value = l2;
-      document.getElementById('f-l3').value = l3;
-    });
-  }
-
-  kakao.maps.event.addListener(map, 'idle', updateCenterInfo);
-  updateCenterInfo();
-
-  function getCurrent(){
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(function(pos){
-      var lat = pos.coords.latitude;
-      var lng = pos.coords.longitude;
-      map.setCenter(new kakao.maps.LatLng(lat, lng)); // idle에서 updateCenterInfo 실행
-    }, function(err){
-      console.warn("geolocation error:", err);
-    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 });
-  }
-
-  // ✅ 페이지 진입 즉시 현재 위치 시도(권한 창 자동 표시)
-  (function autoLocate(){
-    if (!navigator.geolocation) return;
-    if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'geolocation' })
-        .then(function(p){
-          if (p.state === 'granted' || p.state === 'prompt') getCurrent();
-        })
-        .catch(getCurrent);
-    } else {
-      getCurrent();
-    }
-  })();
-
-  // 수동 버튼
-  var btn = document.getElementById('btn-geolocate');
-  if (btn) btn.addEventListener('click', function(){ getCurrent(); });
-
-  // 지도 클릭으로도 위치 선택 가능(원하면 유지)
-  kakao.maps.event.addListener(map, 'click', function(e){
-    map.setCenter(e.latLng);
-  });
-})();
-</script>
-</body>
+                <div class="modal-buttons">
+                  <button type="submit" class="renavigationBtn">이 위치로 주소 등록</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="{% static 'js/address_pick_map.js' %}" defer></script>
+  </body>
 </html>

@@ -1,121 +1,201 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/nearest_market.css' %}" />
     <title>가장 가까운 마켓</title>
-</head>
-<body>
-    <!--상단바-->
-<a href="javascript:history.back()">◁</a>
-<a href="{% url 'food:cart_view' %}">🧺
-    {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    바코드
-    {{ total_point }}P
-
-    
-    <h2>{{ market.name }}</h2>
-    <p>{{ market.address }}</p>
-    <p>{{ distance_m }}m</p>
-
-    {% if market.image %}
-        <img src="{{ market.image.url }}" alt="{{ market.name }} 이미지" width="200">
-    {% endif %}
-
-    <p>-------------{{ expected_time }}분-------------</p>
-    <p>현재 위치에서 {{ expected_time }}분만 걸어가면 돼요!</p>
-
-
-    <!--업체 정보--> 
-    {% if market and market.market_type|lower == 'mart' %}
-    <br><hr>
-    <h3>업체 정보</h3>
-
-    {% if closing_in_minutes > 0 %}
-        {% if closing_in_minutes <= 30 %}
-        <p>영업 종료까지 {{ closing_in_minutes }}분 남았어요.</p>
-        {% else %}
-        <p>현재 영업 중</p>
-        {% endif %}
-    {% else %}
-        <p>영업 종료</p>
-    {% endif %}
-
-    <p>{{ market.info }}</p>
-    <p>{{ market.phone }}</p>
-    <p>{{ market.address }}</p>
-    {% endif %}
-
-
-    <!--장바구니--> <br><hr>
-    <h3>장바구니</h3>
-
-    {% if market.market_type == 'mart' %}
-    <div class="ingredient-list">
-        {% for item in matched_ingredients %}
-        <div class="ingredient-box">
-            {% if item.image %}
-            <img src="{{ item.image }}" alt="{{ item.name }}" style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
-            {% else %}
-            <div class="no-img-box"></div>
-            {% endif %}
-            <div>{{ item.name }}</div>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img class="status2" src="{% static 'img/reception.svg' %}" alt="reception" />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img class="status2" src="{% static 'img/battery.svg' %}" alt="battery" />
+          </div>
         </div>
-        {% empty %}
-        <p>장바구니에 재료가 없습니다.</p>
-        {% endfor %}
-    </div>
 
-    {% if unmatched_ingredients %}
-    <p>
-        {% for item in unmatched_ingredients %}
-        <span class="pill">{{ item.name }}</span>
-        {% endfor %}
-        은(는) 해당 마트에서 판매하지 않습니다.
-    </p>
-    {% endif %}
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <a href="javascript:history.back()" aria-label="뒤로가기">
+            <img class="top-back" src="{% static 'img/chevron-left.svg' %}" alt="뒤로가기" />
+          </a>
 
-    {% elif market.market_type == 'trad' %}
-    <div class="ingredient-list">
-        {% for item in unmatched_ingredients %}
-        <div class="ingredient-box">
-            {% if item.image %}
-            <img src="{{ item.image }}" alt="{{ item.name }}"
-                style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
-            {% else %}
-            <div class="no-img-box"></div>
-            {% endif %}
-            <div>{{ item.name }}</div>
+          <div class="top-point">
+            <a class="top-cart" href="{% url 'food:cart_view' %}" aria-label="장바구니">
+              🧺{% if cart_items_count %}<span class="cart-count">{{ cart_items_count }}</span>{% endif %}
+            </a>
+            <img class="point" src="{% static 'img/lucide.svg' %}" alt="point" />
+            <p class="mypoint">{{ total_point }} P</p>
+          </div>
         </div>
-        {% empty %}
-        <p>장바구니에 재료가 없습니다.</p>
-        {% endfor %}
+
+        <main class="app-body">
+          <div class="mart-info">
+            <div class="mart-title">
+              <h4 class="mart-title2">{{ market.name }}</h4>
+              <p class="mart-title3">{{ market.address }}</p>
+              <p class="mart-dis">{{ distance_m }}m</p>
+            </div>
+
+            {% if market.image %}
+              <img class="mart-pic" src="{{ market.image.url }}" alt="{{ market.name }} 이미지" />
+            {% else %}
+              <img class="mart-pic" src="{% static 'img/image 1.svg' %}" alt="mart-pic" />
+            {% endif %}
+
+            <div class="circle-wrap">
+              <div class="middle-line"></div>
+              <div class="circle-time">
+                <span class="runner-time">{{ expected_time }}분</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mart-due">현재 위치에서 {{ expected_time }}분만 걸어가면 돼요!</div>
+
+          <div class="app-bottom-bar">
+            <div class="bar-content">
+              <div class="bar-list">
+                <div class="mart-dropdown">
+                  <div class="bar-title">
+                    업체 정보
+                    <img class="more-icon" src="{% static 'img/chevron-down.svg' %}" alt="펼치기" />
+                  </div>
+
+                  <div class="mart-info2">
+                    <label class="mi-item">
+                      <img src="{% static 'img/clock.svg' %}" alt="time" />
+                      <span class="mi-name">
+                        {% if closing_in_minutes > 0 %}
+                          {% if closing_in_minutes <= 30 %}
+                            영업 종료까지 {{ closing_in_minutes }}분 남았어요.
+                          {% else %}
+                            현재 영업 중
+                          {% endif %}
+                        {% else %}
+                          영업 종료
+                        {% endif %}
+                      </span>
+                    </label>
+
+                    {% if market.info %}
+                    <label class="mi-item">
+                      <img src="{% static 'img/store.svg' %}" alt="store" />
+                      <span class="mi-name">{{ market.info }}</span>
+                    </label>
+                    {% endif %}
+
+                    {% if market.phone %}
+                    <label class="mi-item">
+                      <img src="{% static 'img/phone.svg' %}" alt="phone" />
+                      <span class="mi-name">{{ market.phone }}</span>
+                    </label>
+                    {% endif %}
+
+                    {% if market.address %}
+                    <label class="mi-item">
+                      <img src="{% static 'img/map-pin.svg' %}" alt="map" />
+                      <span class="mi-name">{{ market.address }}</span>
+                    </label>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="mart-dropdown">
+                  <div class="bar-title">
+                    장바구니
+                    <img class="more-icon" src="{% static 'img/chevron-down.svg' %}" alt="펼치기" />
+                  </div>
+
+                  <div class="mat-block-set">
+                    <div class="item-grid">
+                      {% if market.market_type|lower == 'mart' %}
+                        {% for item in matched_ingredients %}
+                          <div class="item">
+                            {% if item.image %}
+                              <img class="item-pic" src="{{ item.image }}" alt="{{ item.name }}" />
+                            {% else %}
+                              <div class="item-pic no-img-box"></div>
+                            {% endif %}
+                            {{ item.name }}
+                          </div>
+                        {% empty %}
+                          <p>장바구니에 재료가 없습니다.</p>
+                        {% endfor %}
+                      {% elif market.market_type|lower == 'trad' %}
+                        {% for item in unmatched_ingredients %}
+                          <div class="item">
+                            {% if item.image %}
+                              <img class="item-pic" src="{{ item.image }}" alt="{{ item.name }}" />
+                            {% else %}
+                              <div class="item-pic no-img-box"></div>
+                            {% endif %}
+                            {{ item.name }}
+                          </div>
+                        {% empty %}
+                          <p>장바구니에 재료가 없습니다.</p>
+                        {% endfor %}
+                      {% else %}
+                        <p>장바구니 정보를 불러올 수 없습니다.</p>
+                      {% endif %}
+                    </div>
+
+                    {% if market.market_type|lower == 'mart' and unmatched_ingredients %}
+                      <p class="unmatched-note">
+                        {% for item in unmatched_ingredients %}
+                          <span class="pill">{{ item.name }}</span>
+                        {% endfor %}
+                        은(는) 해당 마트에서 판매하지 않습니다.
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer class="start">
+          <span class="start-point">
+            <img src="{% static 'img/coins.svg' %}" alt="coins" /> {{ point_earned }} 포인트 적립
+          </span>
+
+          {% if closing_in_minutes > 0 %}
+            <form method="get" action="{% url 'market:map_direction' %}">
+              <input type="hidden" name="market_id" value="{{ market.id }}" />
+              <input type="hidden" name="expected_time" value="{{ expected_time }}" />
+              <input type="hidden" name="point_earned" value="{{ point_earned }}" />
+              <button type="submit" class="startBtn">출발하기</button>
+            </form>
+          {% else %}
+            <button class="startBtn" disabled aria-disabled="true" title="영업 종료">출발하기</button>
+          {% endif %}
+        </footer>
+
+        {% if closing_in_minutes <= 0 %}
+        <div class="modal open" role="dialog" aria-modal="true" aria-labelledby="closed-title">
+          <div class="modal-content">
+            <img class="closed" src="{% static 'img/frown.svg' %}" alt="" aria-hidden="true" />
+            <p id="closed-title" class="modal-title">현재 운영 중인 상점이 없어요</p>
+            <p class="modal-detail">
+              담긴 재료는 장바구니에 저장되므로<br />다음에 시도해주세요
+            </p>
+            <div class="modal-footer">
+              <a class="modal-exit" href="{% url 'food:main' %}">홈으로</a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    {% endif %}
-
-    <br>
-
-    <p>{{ point_earned }} 포인트 적립</p>
-
-    {% if closing_in_minutes > 0 %}
-    <form method="get" action="{% url 'market:map_direction' %}">
-        <input type="hidden" name="market_id" value="{{ market.id }}">
-        <input type="hidden" name="expected_time" value="{{ expected_time }}">
-        <input type="hidden" name="point_earned" value="{{ point_earned }}">
-        <button type="submit">출발하기</button>
-    </form>
-    {% endif %}
-
-    <!--상점 영업시간 종료 팝업-->
-    {% if closing_in_minutes <= 0 %}
-        <h4>현재 운영중인 상점이 없어요</h4>
-        담은 재료는 장바구니에 저장되므로 다음에 시도해주세요
-    <form method="get" action="{% url 'food:main' %}">
-        <button type="submit">홈으로</button>
-    </form>
-    {% endif %}
-</body>
+    <script src="{% static 'js/nearest_market.js' %}" defer></script>
+  </body>
 </html>
