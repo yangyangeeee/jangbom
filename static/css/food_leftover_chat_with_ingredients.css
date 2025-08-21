@@ -277,6 +277,7 @@
 
     position: absolute;
     bottom:84px;
+
 }
 
 .foodBtn.up {
@@ -315,20 +316,22 @@
 }
 
 /* 모달 박스 */
-.modal-content {
-    position: relative; /* 화면 전체 기준 */
-    top: 40%;         /* 세로 중앙 */
-    left: 50%;        /* 가로 중앙 */
-    transform: translate(-50%, -50%); /* 중앙 정렬 */
+#savedRecipeDialog {
     width: 320px;
     height: 201px;
     border-radius: 20px;
     background: #FFF;
-    box-shadow: 0 6px 9px 0 rgba(0, 0, 0, 0.10);
+    box-shadow: 0 6px 9px rgba(0,0,0,0.1);
 
     display: flex;
     flex-direction: column;
     padding-top: 37px;
+
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000; /* 다른 요소 위 */
 }
 
 .model-ment{

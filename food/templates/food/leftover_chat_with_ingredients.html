@@ -84,9 +84,10 @@
         
         <!-- 모달 -->
         
-        <div id="customModal" class="modal">
-            <div class="modal-overlay"></div>
+        {% if saved_title %}
+        <dialog id="savedRecipeDialog">
             <div class="modal-content">
+                <!-- 닫기 버튼 -->
                 <button value="close" id="backBtn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
                         <path d="M24 8L8 24M8 8L24 24" stroke="#D9D9D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -100,11 +101,14 @@
                     <p>요리법 저장 완료</p>                    
                 </div>
 
-                <a href="{% url 'accounts:my_recipes' %}">
-                    <button id="confirmBtn" type="submit">저장한 요리법 보러 가기</button>
-                </a>
+                <!-- 확인 버튼 -->
+                <button type="button" id="confirmBtn" data-href="{% url 'accounts:my_recipes' %}">
+                    저장한 요리법 보러 가기
+                </button>
             </div>
-        </div>
+        </dialog>
+        {% endif %}
+
     </div>
 </body>
 </html>
