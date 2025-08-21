@@ -34,7 +34,7 @@
 
         <div id="mainBoard">
             <div class="board1">
-                <div class="userPoint">{{ user.addr_level3|default:"주소 없음" }} 포인트 랭킹</div>
+                <div class="userPoint">{{ district|default:"" }} 포인트 랭킹</div>
                 <div class="userResult">
                     <div class="totalUser">
                         <p class="title">총 장보미 수</p>
@@ -81,7 +81,7 @@
                         <div class="rankingItem">
                             <div class="rank">{{ forloop.counter }}</div>
                             <div class="info">
-                                <span class="location">{{ row.user__addr_level3|default:"" }}</span>
+                                <span class="location">{{ district|default:"" }}</span>
                                 <span class="username">{{ row.user__nickname }}</span>
                             </div>
                             <div class="points">{{ row.points }} P</div>
