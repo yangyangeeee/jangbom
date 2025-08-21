@@ -118,6 +118,7 @@
         
         <form method="post" class="ingredientsGet" action="{% url 'food:recipe_input' %}">
             {% csrf_token %}
+            <input type="hidden" name="recipe" value="{{ initial_recipe }}">
             <button type="submit" class="foodBtn">재료 담기</button>
         </form>
         
