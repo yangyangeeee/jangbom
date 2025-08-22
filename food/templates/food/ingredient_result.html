@@ -1,52 +1,123 @@
-<body>
-  <!--상단바-->
-<a href="{% url 'food:ingredient_input' %}">◁</a>
-<a href="{% url 'food:cart_view' %}">🧺
-    {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    <a href="{% url 'point:barcode' %}">바코드</a>
-    {{ total_point }}P
-  <h2>재료 선택 완료</h2>
-  <p>장 보러 갈 준비 되었나요?</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/ingredient_result.css' %}" />
+    <title>재료 선택 완료</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img class="status2" src="{% static 'img/reception.svg' %}" alt="reception" />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img class="status2" src="{% static 'img/battery.svg' %}" alt="battery" />
+          </div>
+        </div>
 
-{% if shopping_list.shoppinglistingredient_set.exists %}
-  <ul>
-    {% for item in shopping_list.shoppinglistingredient_set.all %}
-      <li>
-        <form method="post"
-              action="{% url 'food:delete_ingredient' item.ingredient.name %}"
-              id="delete-form-{{ item.ingredient.id }}"
-              style="display:inline;">
-          {% csrf_token %}
-          <input type="hidden" name="ingredient" value="{{ item.ingredient.name }}">
-          {% if item.ingredient.image %}
-            <img src="{{ item.ingredient.image.url }}" alt="{{ item.ingredient.name }}"
-                 style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <!-- 뒤로가기 -->
+          <a href="{% url 'food:ingredient_input' %}" aria-label="뒤로가기">
+            <img class="top-back" src="{% static 'img/chevron-left.svg' %}" alt="back" />
+          </a>
+          <div class="top-actions" style="display:flex;align-items:center;gap:12px;">
+            <a href="{% url 'food:cart_view' %}" class="top-cart" aria-label="장바구니">
+              🧺{% if cart_items_count %}<span class="cart-count">{{ cart_items_count }}</span>{% endif %}
+            </a>
+            <div class="top-point" style="display:flex;align-items:center;gap:6px;">
+              <a href="{% url 'point:barcode' %}" class="top-barcode">
+                <img class="point" src="{% static 'img/lucide.svg' %}" alt="point" />
+              </a>
+              <p class="mypoint">{{ total_point }} P</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="choose-mat">
+          <h4 class="choose-title">재료 선택 완료</h4>
+          <p class="choose-title2">
+            장 보러 갈 준비 되었나요?<br />
+            각 재료를 클릭하면 활용법도 볼 수 있어요!
+          </p>
+        </div>
+
+        <div class="mat-block-set">
+          {% if shopping_list.shoppinglistingredient_set.exists %}
+            <div class="item-grid">
+              {% for item in shopping_list.shoppinglistingredient_set.all %}
+                <a class="item"
+                   href="{% url 'food:ingredient_idea_page' %}?name={{ item.ingredient.name|urlencode }}"
+                   aria-label="{{ item.ingredient.name }} 활용법 보기">
+                  {% if item.ingredient.image %}
+                    <img class="item-pic" src="{{ item.ingredient.image.url }}" alt="{{ item.ingredient.name }}" />
+                  {% else %}
+                    <div class="item-pic"
+                         aria-label="이미지 없음"
+                         style="display:flex;align-items:center;justify-content:center;background:#f4f4f4;color:#9e9e9e;">
+                      이미지 없음
+                    </div>
+                  {% endif %}
+                  <div class="item-name">
+                    {{ item.ingredient.name }}
+                    <img src="{% static 'img/chevron-right(green).svg' %}" alt="" />
+                  </div>
+                </a>
+
+                <form method="post"
+                      action="{% url 'food:delete_ingredient' item.ingredient.name %}"
+                      style="display:none;">
+                  {% csrf_token %}
+                  <input type="hidden" name="ingredient" value="{{ item.ingredient.name }}">
+                </form>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div style="padding:16px 24px;color:#666;">장바구니에 담긴 재료가 없습니다.</div>
           {% endif %}
-          <br>{{ item.ingredient.name }}
-        </form>
+        </div>
 
-        <!-- 여기만 수정 -->
-        <a href="{% url 'food:ingredient_idea_page' %}?name={{ item.ingredient.name|urlencode }}">&gt;</a>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>장바구니에 담긴 재료가 없습니다.</p>
-{% endif %}
-  <br><hr><br>
+        <div class="start">
+          <a class="start-point" href="{% url 'market:edit_market_filter_ingredient' %}">
+            상점 필터 설정
+            <img src="{% static 'img/arrow-right-thick.svg' %}" alt="arrow-right" />
+          </a>
 
-  <a href="{% url 'market:edit_market_filter_ingredient' %}">상점 필터 설정 →</a>
-    <form action="{% url 'market:nearest_market' %}" method="get">
-      <button type="submit">장 보러 가기</button>
-    </form>
+          <form action="{% url 'market:nearest_market' %}" method="get">
+            <button type="submit" class="startBtn">장 보러 가기</button>
+          </form>
+        </div>
 
-  <br><hr><br>
-<a href="{% url 'food:main' %}">홈</a> |
-<a href="{% url 'accounts:activity_log' %}">내 활동</a> |
-<a href="{% url 'point:point_home' %}">포인트</a> 
-</body>
+        {% comment %} 앱 자체 하단바 {% endcomment %}
+        <div class="bottom-nav">
+          <a class="bottom-nav-item" href="{% url 'food:main' %}">
+            <img src="{% static 'img/house.svg' %}" alt="홈" />
+            <span class="bottom-nav-item-title">홈</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'accounts:activity_log' %}">
+            <img src="{% static 'img/footprints.svg' %}" alt="내 활동" />
+            <span class="bottom-nav-item-title">내 활동</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'point:point_home' %}">
+            <img src="{% static 'img/icons_coin.svg' %}" alt="포인트" />
+            <span class="bottom-nav-item-title">포인트</span>
+          </a>
+        </div>
+
+        {% if messages %}
+          <ul class="django-messages" aria-live="polite">
+            {% for message in messages %}
+              <li class="django-message">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </body>
 </html>

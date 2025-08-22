@@ -1,105 +1,207 @@
-{% load humanize %}
-
-<a href="javascript:history.back()">◁</a>
-<a href="{% url 'food:cart_view' %}">🧺
-        {% if cart_items_count == 0 %}
-        {% else %}
-            {{ cart_items_count }}
-        {% endif %}
-    </a>
-    <a href="{% url 'point:barcode' %}">바코드</a>
-    {{ total_point }}P
-
-<h2>세부 활동 내역</h2>
-
-<!-- 검색 폼 -->
-<form method="get" action="">
-    <input type="hidden" name="period" value="{{ period }}">
-    <input type="hidden" name="sort" value="{{ sort }}">
-    <input type="text" name="q" value="{{ q|default:'' }}" placeholder="검색어를 입력하세요">
-    <button type="submit">검색</button>
-    <a href="?">초기화</a>
-</form>
-
-<!-- 필터 폼 -->
-<form method="get" action="">
-    <input type="hidden" name="q" value="{{ q }}">
-    <select name="period" onchange="this.form.submit()">
-        <option value="1m" {% if period == '1m' %}selected{% endif %}>최근 1개월</option>
-        <option value="3m" {% if period == '3m' %}selected{% endif %}>최근 3개월</option>
-        <option value="6m" {% if period == '6m' %}selected{% endif %}>최근 6개월</option>
-        <option value="1y" {% if period == '1y' %}selected{% endif %}>최근 1년</option>
-        <option value="all" {% if period == 'all' %}selected{% endif %}>전체</option>
-    </select>
-    <label>
-        <input type="radio" name="sort" value="latest" onchange="this.form.submit()" {% if sort == 'latest' %}checked{% endif %}> 최신순
-    </label>
-    <label>
-        <input type="radio" name="sort" value="points" onchange="this.form.submit()" {% if sort == 'points' %}checked{% endif %}> 포인트순
-    </label>
-</form>
-
-<!-- 결과 리스트 -->
-{% if log_data %}
-    <div id="activity-list">
-        {% for log in log_data %}
-        <div class="activity-item" data-id="{{ log.shopping_list_id }}">
-            <div class="activity-header">
-            <span class="toggle" aria-hidden="true">▶</span>
-            <strong>{{ log.market_name }}</strong>
-            <span> — {{ log.visited_at|date:"Y.m.d H:i" }}</span>
-            </div>
-            <div class="detail-box" id="detail-{{ log.shopping_list_id }}" style="display:none;"></div>
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/activity_history.css' %}" />
+    <title>activity_history</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img
+              class="status2"
+              src="{% static 'img/reception.svg' %}"
+              alt="reception"
+            />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img
+              class="status2"
+              src="{% static 'img/battery.svg' %}"
+              alt="battery"
+            />
+          </div>
         </div>
-        {% endfor %}
+
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <a href="javascript:history.back()" aria-label="뒤로">
+            <img
+              class="top-back"
+              src="{% static 'img/chevron-left.svg' %}"
+              alt="back"
+            />
+          </a>
+          <div class="top-point">
+            <a
+              href="{% url 'point:barcode' %}"
+              class="barcode-link"
+              aria-label="바코드"
+            >
+              <img class="point" src="{% static 'img/lucide.svg' %}" alt="" />
+            </a>
+            <p class="mypoint">{{ total_point|default:0|intcomma }} P</p>
+          </div>
+        </div>
+
+        <div class="myactivity-log">
+          <h3>세부 활동 내역</h3>
+        </div>
+
+        <div class="ah-list-fullset">
+          <form
+            class="ah_search"
+            method="get"
+            action="{% url 'accounts:activity_history' %}"
+          >
+            <div class="input-row">
+              <input
+                type="text"
+                name="q"
+                class="input-rec"
+                value="{{ q|default:'' }}"
+                placeholder=" "
+                autocomplete="off"
+              />
+              <span class="input-placeholder"
+                >방문했던 상점명을 입력해주세요</span
+              >
+              <button class="input-rec-search" aria-label="확인" type="submit">
+                <img src="{% static 'img/search.svg' %}" alt="확인" />
+              </button>
+              <input
+                type="hidden"
+                name="period"
+                value="{{ period|default:'1m' }}"
+              />
+              <input
+                type="hidden"
+                name="sort"
+                value="{{ sort|default:'latest' }}"
+              />
+            </div>
+          </form>
+
+          <div class="search-filter">
+            <div class="range-dropdown">
+              <button
+                type="button"
+                class="range-btn"
+                id="rangeBtn"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="rangeMenu"
+              >
+                {% if period == '3m' %}최근 3개월{% elif period == '6m' %}최근
+                6개월{% elif period == '1y' %}최근 1년{% elif period == 'all'
+                %}전체 보기{% else %}최근 1개월{% endif %}
+                <span class="caret" aria-hidden="true"></span>
+              </button>
+              <ul class="range-menu" id="rangeMenu" role="listbox" hidden>
+                <li
+                  class="range-item {% if period == '1m' %}is-selected{% endif %}"
+                  role="option"
+                  data-value="1m"
+                >
+                  최근 1개월
+                </li>
+                <li
+                  class="range-item {% if period == '3m' %}is-selected{% endif %}"
+                  role="option"
+                  data-value="3m"
+                >
+                  최근 3개월
+                </li>
+                <li
+                  class="range-item {% if period == '6m' %}is-selected{% endif %}"
+                  role="option"
+                  data-value="6m"
+                >
+                  최근 6개월
+                </li>
+                <li
+                  class="range-item {% if period == '1y' %}is-selected{% endif %}"
+                  role="option"
+                  data-value="1y"
+                >
+                  최근 1년
+                </li>
+                <li
+                  class="range-item {% if period == 'all' %}is-selected{% endif %}"
+                  role="option"
+                  data-value="all"
+                >
+                  전체 보기
+                </li>
+              </ul>
+            </div>
+
+            <a
+              class="lately {% if sort == 'latest' or not sort %}on{% endif %}"
+              href="?{% if q %}q={{ q|urlencode }}&{% endif %}period={{ period|default:'1m' }}&sort=latest"
+              >최신순</a
+            >
+            <a
+              class="abc {% if sort == 'alpha' %}on{% endif %}"
+              href="?{% if q %}q={{ q|urlencode }}&{% endif %}period={{ period|default:'1m' }}&sort=alpha"
+              >가나다순</a
+            >
+          </div>
+
+          <div class="list-set">
+            {% if log_data %} {% for log in log_data %}
+            <div class="history-row" data-id="{{ log.shopping_list_id }}">
+              <div class="recipes_list js-toggle">
+                <img
+                  class="recipes_img"
+                  src="{% static 'img/footprints(gray).svg' %}"
+                  alt="방문"
+                />
+                <div class="menu_item">
+                  <span class="menu_name">{{ log.market_name }}</span>
+                  <p class="menu_date">{{ log.visited_at|date:"Y.m.d H:i" }}</p>
+                </div>
+                <img
+                  class="see-detail"
+                  src="{% static 'img/chevron-right(gray).svg' %}"
+                  alt=""
+                />
+              </div>
+              <div
+                class="detail-box"
+                id="detail-{{ log.shopping_list_id }}"
+                hidden
+              ></div>
+            </div>
+            {% endfor %} {% else %}
+            <div class="empty">해당 조건의 활동 내역이 없습니다.</div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% comment %} 앱 자체 하단바 {% endcomment %}
+        <div class="bottom-nav">
+          <a class="bottom-nav-item" href="{% url 'food:main' %}">
+            <img src="{% static 'img/house.svg' %}" alt="홈" />
+            <span class="bottom-nav-item-title">홈</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'accounts:activity_log' %}">
+            <img src="{% static 'img/footprints.svg' %}" alt="내 활동" />
+            <span class="bottom-nav-item-title">내 활동</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'point:point_home' %}">
+            <img src="{% static 'img/icons_coin.svg' %}" alt="포인트" />
+            <span class="bottom-nav-item-title">포인트</span>
+          </a>
+        </div>
+      </div>
     </div>
-{% else %}
-    <p>해당 조건의 활동 내역이 없습니다.</p>
-{% endif %}
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  // Django URL 리버스 사용 (0을 자리표시자로 두고 JS에서 치환)
-    const ajaxPattern = "{% url 'accounts:activity_detail_ajax' 0 %}".replace('0', '__ID__');
-
-    document.querySelectorAll('.activity-item .activity-header').forEach(function (header) {
-        header.addEventListener('click', function () {
-        const item = this.closest('.activity-item');
-        const id = item.dataset.id;
-        const box = item.querySelector('.detail-box');
-        const icon = this.querySelector('.toggle');
-
-        if (box.style.display === 'block') {
-            // 닫기
-            box.style.display = 'none';
-            icon.textContent = '▶';
-            return;
-        }
-
-        // 처음 열 때만 fetch
-        if (!box.dataset.loaded) {
-            fetch(ajaxPattern.replace('__ID__', id))
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                box.innerHTML = `
-                <h4>걷기 기록</h4>
-                <p>획득 포인트: +${data.point_earned}P</p>
-                <p>이동 시간: ${data.travel_minutes} 분</p>
-                <p>걸음 수: ${data.steps} 걸음</p>
-                <p>소모 칼로리: ${data.calories_kcal} kcal</p>
-                <h4>구매한 식재료</h4>
-                <ul>${(data.ingredients || []).map(function(i){ return `<li>${i}</li>`; }).join('')}</ul>
-                `;
-                box.dataset.loaded = '1';
-                box.style.display = 'block';
-                icon.textContent = '▼';
-            });
-        } else {
-            // 이미 불러왔으면 그냥 열기
-            box.style.display = 'block';
-            icon.textContent = '▼';
-        }
-        });
-    });
-});
-</script>
+    <script src="{% static 'js/activity_history.js' %}" defer></script>
+  </body>
+</html>

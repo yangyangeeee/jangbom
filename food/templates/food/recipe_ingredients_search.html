@@ -1,83 +1,139 @@
- <html>
-<body>
-  <a href="{% url 'food:cancel_ingredient_search' %}" aria-label="뒤로가기">✕</a>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/recipe_ingredients_search.css' %}" />
+    <title>재료 직접 담기</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img class="status2" src="{% static 'img/reception.svg' %}" alt="reception" />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img class="status2" src="{% static 'img/battery.svg' %}" alt="battery" />
+          </div>
+        </div>
 
-  <h2>재료 직접 담기</h2>
-  <p>따로 구매할 재료가 있다면 직접 추가해보세요!</p>
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <a href="{% url 'food:cancel_ingredient_search' %}" aria-label="뒤로가기">
+            <img class="top-back" src="{% static 'img/chevron-x.svg' %}" alt="close" />
+          </a>
+        </div>
 
-  <!-- 재료 검색 (GET) -->
-  <form method="get" action="{% url 'food:ingredient_search' %}">
-    <input type="text" name="search" value="{{ search_query|default:'' }}">
-    <button type="submit" name="action" value="search">🔍</button>
-  </form>
-  <!-- 검색 결과: 체크 즉시 추가 (각 항목 개별 폼) -->
-  {% if category_ingredients %}
-    <ul>
-      {% for ing in category_ingredients %}
-        <li>
-          <form method="post" action="{% url 'food:add_extra_ingredient' %}">
-            {% csrf_token %}
-            <input type="hidden" name="search" value="{{ request.GET.search }}">
-            <label>
-              <input type="checkbox" name="ingredient" value="{{ ing.name }}" onchange="this.form.submit()">
-              {{ ing.name }}
-            </label>
+        <h3 class="add-mat-title">재료 직접 담기</h3>
+        <p>따로 구매할 재료가 있다면 직접 추가해보세요!</p>
+
+        <div class="ah_search">
+          <form class="input-row" method="get" action="{% url 'food:ingredient_search' %}">
+            <textarea
+              class="input-rec"
+              name="search"
+              placeholder=" "
+              rows="1"
+            >{{ search_query|default:'' }}</textarea>
+            <button class="input-rec-search" type="submit" name="action" value="search" aria-label="검색">
+              <img src="{% static 'img/search.svg' %}" alt="확인" />
+            </button>
           </form>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+        </div>
 
-  <hr>
+        {% if category_ingredients %}
+          <ul class="search-result-list">
+            {% for ing in category_ingredients %}
+              <li class="search-result-item">
+                <form method="post" action="{% url 'food:add_extra_ingredient' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+                  <label class="result-label">
+                    <input type="checkbox" name="ingredient" value="{{ ing.name }}" onchange="this.form.submit()">
+                    <span class="result-name">{{ ing.name }}</span>
+                  </label>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
 
-  <!-- 최근 검색어 (최대 여섯 개의 단어까지만 노출)-->
-  <h3>최근 검색어</h3>
-  <div>
-    {% if recent_searches %}
-      <a href="{% url 'food:clear_recent_searches' %}">전체삭제</a><br>
-      {% for word in recent_searches %}
-        <span style="margin-right:12px;">
-          <a href="{% url 'food:ingredient_search' %}?search={{ word|urlencode }}">{{ word }}</a>
-          <a href="{% url 'food:delete_recent_search' word %}" aria-label="{{ word }} 삭제">×</a>
-        </span>
-      {% endfor %}
-    {% else %}
-      <span>최근 검색어가 없습니다.</span>
-    {% endif %}
-  </div>
+        <div
+          class="toast"
+          id="noResultToast"
+          aria-live="polite"
+          aria-hidden="true"
+          data-has-query="{% if search_query %}1{% else %}0{% endif %}"
+          data-has-results="{% if category_ingredients %}1{% else %}0{% endif %}"
+        >
+          해당되는 검색어가 없습니다
+        </div>
 
-  <hr>
+        <section class="recent-search">
+          <div class="recent-search-head">
+            <h4>최근 검색어</h4>
+            {% if recent_searches %}
+              <a class="recent-clear" href="{% url 'food:clear_recent_searches' %}">전체삭제</a>
+            {% endif %}
+          </div>
 
-  <!-- 장바구니(확정된 항목: optional_selected 기준) -->
-  <ul>
-    {% for ing in selected_ingredients %}
-        <!-- 삭제: 세션+DB 동시에 제거, 검색어 유지 -->
-        <form method="post" action="{% url 'food:delete_extra_ingredient' ing.name %}">
-          {% csrf_token %}
-          <input type="hidden" name="search" value="{{ request.GET.search }}">
-          <!-- 버튼을 텍스트처럼 보이게 -->
-          <button type="submit" style="background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;">
-            {{ ing.name }} ✕
-          </button>
-        </form>
-    {% empty %}
-      장바구니에 담긴 재료가 없습니다.
-    {% endfor %}
-  </ul>
+          <div class="recent-chips">
+            {% if recent_searches %}
+              {% for word in recent_searches %}
+                <span class="chip">
+                  <a class="chip-link" href="{% url 'food:ingredient_search' %}?search={{ word|urlencode }}">{{ word }}</a>
+                  <a class="chip-x" href="{% url 'food:delete_recent_search' word %}" aria-label="{{ word }} 삭제">×</a>
+                </span>
+              {% endfor %}
+            {% else %}
+              <span class="recent-empty">최근 검색어가 없습니다.</span>
+            {% endif %}
+          </div>
+        </section>
 
-  <hr>
+        <section class="selected-section">
+          <h4 class="selected-title">담은 재료</h4>
+          <ul class="selected-list">
+            {% for ing in selected_ingredients %}
+              <li class="selected-item">
+                <form method="post" action="{% url 'food:delete_extra_ingredient' ing.name %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="search" value="{{ search_query|default:'' }}">
+                  <button type="submit" class="chip selected-remove-btn" aria-label="{{ ing.name }} 삭제">
+                    <span class="chip-label">{{ ing.name }}</span>
+                    <span class="chip-x" aria-hidden="true">×</span>
+                  </button>
+                </form>
+              </li>
+            {% empty %}
+              <li class="selected-empty">장바구니에 담긴 재료가 없습니다.</li>
+            {% endfor %}
+          </ul>
+        </section>
 
-  <!-- 작업 마무리하고 레시피 재료 화면으로 이동하고 싶을 때 -->
-  <a href="{% url 'food:recipe_ingredients' %}">완료</a>
+        <div class="add-mat">
+          <div class="add-mat-item">
+            <a class="add-item-done" href="{% url 'food:recipe_ingredients' %}">완료</a>
+          </div>
+        </div>
 
-  <!-- 메시지 영역 -->
-  {% if messages %}
-    <ul>
-      {% for message in messages %}
-        {{ message }}
-      {% endfor %}
-    </ul>
-  {% endif %}
+        <div class="dialpad hidden" id="dialpad">
+          <img src="{% static 'img/iOS-Keypad.svg' %}" alt="dialpad" />
+        </div>
 
-</body>
+        {% if messages %}
+          <ul class="django-messages" aria-live="polite">
+            {% for message in messages %}
+              <li class="django-message">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+    <script src="{% static 'js/recipe_ingredients_search.js' %}" defer></script>
+  </body>
 </html>
