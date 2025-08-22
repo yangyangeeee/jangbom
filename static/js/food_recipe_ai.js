@@ -10,20 +10,27 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', () => {
         if (input.value.trim() !== "") {
             keyboardIcon.style.display = 'block';
-            foodBtn.classList.add('up'); // 보여주기
+            if (foodBtn) {
+                foodBtn.classList.add('up');
+            } else {
+                // ✅ chat_history가 비어있을 때는 gptBox만 올리기
+                const isEmptyChat = document.body.dataset.emptyChat === "true";
+                if (isEmptyChat) {
+                    gptBox.classList.add('up');
+                }
+            }
             gptBox.classList.add('up');
         } else {
             keyboardIcon.style.display = 'none';
-            foodBtn.classList.add('up');// 숨기기
+            if (foodBtn) foodBtn.classList.remove('up');
             gptBox.classList.remove('up');
         }
     });
 
-    // input 외부 클릭 시 원래 상태로 돌아오기
     document.addEventListener('click', (e) => {
-        if (!input.contains(e.target)) { // 클릭한 곳이 input이 아니면
+        if (!gptBox.contains(e.target)) {
             keyboardIcon.style.display = 'none';
-            foodBtn.classList.remove('up');
+            if (foodBtn) foodBtn.classList.remove('up');
             gptBox.classList.remove('up');
         }
     });

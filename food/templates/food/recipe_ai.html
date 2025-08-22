@@ -8,7 +8,7 @@
     <script src="{% static 'js/food_recipe_ai.js' %}" defer></script>
     <title>Document</title>
 </head>
-<body>
+<body data-empty-chat="{% if chat_history|length == 0 %}true{% else %}false{% endif %}">
     <div id="Container">
         <img id="statusBar" src="{% static 'img/iPhone Status bar.png' %}"/>
         <div id="pointBar">
