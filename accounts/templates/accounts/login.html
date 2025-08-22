@@ -1,28 +1,3 @@
-<!-- <h2>로그인</h2>
-<form method="post">
-    {% csrf_token %}
-    <p>
-        아이디:<br>
-        {{ form.username }}
-        {% if form.username.errors %}
-            <div class="error">{{ form.username.errors }}</div>
-        {% endif %}
-    </p>
-
-    <p>
-        비밀번호:<br>
-        {{ form.password }}
-        {% if form.password.errors %}
-            <div class="error">{{ form.password.errors }}</div>
-        {% endif %}
-    </p>
-    <button type="submit">로그인</button>
-</form>
-
-<a href="{% url 'accounts:signup' %}">회원가입</a>
--->
-
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="ko">
@@ -53,7 +28,7 @@
             <div class="idBox">
                 <p>아이디</p>
                 <div class="idInput">
-                    <input type="text" id="id" name="username" placeholder="twodoor@email.com">
+                    <input type="text" id="id" name="username" placeholder="2자 이상 입력해주세요">
                 </div>
             </div>
 
