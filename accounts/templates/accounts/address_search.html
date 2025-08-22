@@ -59,7 +59,7 @@
               <ul>
                 {% for r in results %}
                   <li class="result-item">
-                    <form method="get" action="{% url 'accounts:address_confirm' %}" class="result-form">
+                    <form method="get" action="{% url 'accounts:address_search' %}" class="result-form">
                       <img class="result-pin" src="{% static 'img/map-pin(gray).svg' %}" alt="" aria-hidden="true" />
 
                       <div class="address-result">
@@ -89,9 +89,6 @@
                       <input type="hidden" name="lat"  value="{{ r.lat }}" />
                       <input type="hidden" name="lng"  value="{{ r.lng }}" />
 
-                      <button type="submit" class="result-go" aria-label="이 주소 선택">
-                        <img src="{% static 'img/chevron-right(gray).svg' %}" alt="" />
-                      </button>
                     </form>
                   </li>
                 {% empty %}
