@@ -35,9 +35,7 @@
     align-items: center;
     z-index: 1001;
 }
-.hidden {
-    display: none;
-}
+
 
 .modal-content {
     background: #fff;
