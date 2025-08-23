@@ -8,9 +8,6 @@
     <script src="{% static 'js/food_recipe_ingredients.js' %}" defer></script>
     <title>Document</title>
 </head>
-
-
-
 <body>
     <div id="Container">
         <img id="statusBar" src="{% static 'img/iPhone Status bar.png' %}"/>
@@ -48,7 +45,12 @@
                     <div class="basicCheckBox">
                         {% if basic and basic|length > 0 %}
                             {% for i in basic %}
-                                <input type="checkbox" id="basic_{{ forloop.counter }}" name="ingredients" value="{{ i }}"  hidden>
+                                <input type="checkbox"
+                                        id="basic_{{ forloop.counter }}"
+                                        name="ingredients"
+                                        value="{{ i }}"
+                                        {% if optional_selected and i in optional_selected %}checked{% endif %}
+                                        hidden>
                                 <label for="basic_{{ forloop.counter }}" class="ingredient-btn">{{ i }}</label>
                             {% endfor %}
                         {% endif %}
@@ -59,8 +61,12 @@
                     <div class="optionalCheckBox">
                         {% if optional and optional|length > 0 %}
                             {% for i in optional %}
-                                <input type="checkbox" id="optional_{{ forloop.counter }}" name="ingredients" value="{{ i }}"
-                                    {% if optional_selected and i in optional_selected %}{% endif %} hidden>
+                                <input type="checkbox"
+                                        id="optional_{{ forloop.counter }}"
+                                        name="ingredients"
+                                        value="{{ i }}"
+                                        {% if optional_selected and i in optional_selected %}checked{% endif %}
+                                        hidden>
                                 <label for="optional_{{ forloop.counter }}" class="ingredient-btn">{{ i }}</label>
                             {% endfor %}
                         {% endif %}

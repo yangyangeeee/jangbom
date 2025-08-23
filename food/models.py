@@ -10,6 +10,9 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ['name'] 
     
 class SavedRecipe(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
