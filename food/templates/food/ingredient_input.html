@@ -119,14 +119,6 @@
         <div class="dialpad hidden" id="dialpad">
           <img src="{% static 'img/iOS-Keypad.svg' %}" alt="dialpad" />
         </div>
-
-        {% if messages %}
-          <ul class="django-messages" aria-live="polite">
-            {% for message in messages %}
-              <li class="django-message">{{ message }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
       </div>
     </div>
     <script src="{% static 'js/recipe_ingredients_search.js' %}" defer></script>

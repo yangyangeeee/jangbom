@@ -45,7 +45,7 @@
                     <div class="basicCheckBox">
                         {% for si in recent_ingredients %}
                             <input type="checkbox" id="basic_{{ forloop.counter }}" name="ingredient_ids" value="{{ si.ingredient.id }}" 
-                                {% if selected_ids and ing.id|stringformat:"s" in selected_ids %}{% endif %} hidden>
+                                {% if selected_ids and ing.id|stringformat:"s" in selected_ids %}checked{% endif %} hidden>
                             <label for="basic_{{ forloop.counter }}" class="ingredient-btn"> {{ si.ingredient.name }}</label>
                         {% empty %}
                             <p class="empty-log">장바구니에 재료가 없습니다</p>
@@ -57,7 +57,8 @@
                     <p>직접 추가한 재료</p>
                     <div class="extraCheckBox">
                         {% for ing in extra_ingredients %}
-                            <input type="checkbox" id="extra_{{ forloop.counter }}" name="ingredient_ids" value="{{ ing.id }}"  hidden>
+                            <input type="checkbox" id="extra_{{ forloop.counter }}" name="ingredient_ids" value="{{ ing.id }}"
+                                {% if selected_ids and ing.id|stringformat:"s" in selected_ids %}checked{% endif %} hidden>
                             <label for="extra_{{ forloop.counter }}" class="ingredient-btn"> {{ ing.name }}</label>
                         {% empty %}
                             <p class="empty-log">직접 추가한 재료가 없습니다</p>
