@@ -170,6 +170,7 @@ user-select: none;
     display: flex;
     justify-content: center;
     flex-direction: row;
+    align-items: center;
     gap: 5px;
 }
 .selectTab p{

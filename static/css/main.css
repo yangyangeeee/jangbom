@@ -25,6 +25,68 @@
     border: 1px solid var(--Gray-Primary, #d9d9d9);
 }
 
+.modal {
+    position: absolute;
+    top: 0; right: 10;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+}
+.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 20px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden; 
+    padding: 20px 20px 0 20px; 
+}
+
+
+.modal-icon {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e74c3c; 
+    margin-bottom: 20px;
+}
+
+.modal-btn {
+    display: block;
+    width: 300px;
+    padding: 14px 0;
+    border: none;
+    background: #D9D9D9;
+    font-size: 16px;
+    font-weight: bold;
+    color: #888;
+    cursor: pointer;
+    border-radius: 0 0 20px 20px; 
+
+
+    color: #FFF;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: normal;
+    }
+
+
 #locationBar{
     display: flex;
     flex-direction: row;
@@ -39,8 +101,8 @@
 
 .basket-count {
     position: absolute;
-    bottom: -1px;  /* 아래쪽으로 */
-    right: -6px;   /* 오른쪽으로 */
+    bottom: -1px; 
+    right: -6px;  
     background: #545454;
     color: #FFFFFF;
     font-size: 10px;
@@ -82,7 +144,6 @@
     padding: 0 15px;
     justify-content: center;
     align-items: center;
-    /* border: 1px solid #ccc; */
     gap: 7px;
 }
 
@@ -147,11 +208,11 @@
 
 .clickable {
     border: 2px solid #D9D9D9 ;  
-    transition: border-color 0.3s;    /* 기본 테두리 색상 */
+    transition: border-color 0.3s;   
 }
 
 .clickable p {
-    color: #D9D9D9;                 /* 기본 글자 색상 */
+    color: #D9D9D9;                
     transition: color 0.3s;
 }
 
@@ -234,8 +295,8 @@
 }
 
 .food-ingredient button:hover {
-    background: #D7E5B4; /* 마우스 올렸을 때 색상 */
-    cursor: pointer;      /* 마우스 커서도 포인터로 변경 */
+    background: #D7E5B4; 
+    cursor: pointer;     
 }
 
 .food-ingredient button:hover svg path {
@@ -294,7 +355,7 @@
     gap: 4px;
 }
 .myTab p, .pointTab p {
-    color: #A5A5A5; /* 기본 글자 색상 - 연한 회색 */
+    color: #A5A5A5; 
 }
 .homeTab p {
     color: #000;
@@ -308,7 +369,8 @@
 }
 
 .homeTab a svg path {
-  stroke: #000000; /* 활성 아이콘 색상 */
+    stroke: #000000;
 }
+
 
 
