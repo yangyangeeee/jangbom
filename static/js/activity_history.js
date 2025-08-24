@@ -1,184 +1,6 @@
-document.addEventListener("DOMContentLoaded", () => {
-  /* ===== 공통 엘리먼트 ===== */
-  const rangeBtn = document.getElementById("rangeBtn");
-  const rangeMenu = document.getElementById("rangeMenu");
-  const rangeItems = Array.from(
-    rangeMenu?.querySelectorAll(".range-item") || []
-  );
-  const listWrap = document.querySelector(".list-set");
-  const items = Array.from(listWrap?.querySelectorAll(".recipes_list") || []);
-  const latestTab = document.querySelector(".search-filter .lately");
-  const alphaTab = document.querySelector(".search-filter .abc");
+"use strict";
 
-  if (!rangeBtn || !rangeMenu || !items.length || !latestTab || !alphaTab)
-    return;
-
-  /* ===== 유틸: 날짜/제목 파싱 ===== */
-  const parseDate = (str) => {
-    // 예: "2025.08.13 15:00"
-    const m = String(str || "")
-      .trim()
-      .match(/(\d{4})[.\-\/](\d{2})[.\-\/](\d{2})\s+(\d{2}):(\d{2})/);
-    if (!m) return 0;
-    const [, y, M, d, h, min] = m;
-    return new Date(`${y}-${M}-${d}T${h}:${min}:00`).getTime();
-  };
-  const getTitle = (el) =>
-    el.querySelector(".menu_name")?.textContent.trim() || "";
-  const getTime = (el) => {
-    // 캐시(없으면 menu_date에서 읽어와 data-ts로 저장)
-    let ts = el.dataset.ts ? Number(el.dataset.ts) : NaN;
-    if (Number.isNaN(ts)) {
-      ts = parseDate(el.querySelector(".menu_date")?.textContent);
-      el.dataset.ts = String(ts);
-    }
-    return ts;
-  };
-
-  // 초기 DOM 순서 기억(안전한 재배치용)
-  items.forEach((el, i) => (el._idx = i));
-
-  /* ===== 1) 범위 드롭다운 ===== */
-
-  // 메뉴 열고/닫기
-  const openMenu = () => {
-    rangeMenu.hidden = false;
-    rangeBtn.setAttribute("aria-expanded", "true");
-    document.addEventListener("click", onDocClick);
-    document.addEventListener("keydown", onEscClose);
-  };
-  const closeMenu = () => {
-    rangeMenu.hidden = true;
-    rangeBtn.setAttribute("aria-expanded", "false");
-    document.removeEventListener("click", onDocClick);
-    document.removeEventListener("keydown", onEscClose);
-  };
-  const toggleMenu = () => (rangeMenu.hidden ? openMenu() : closeMenu());
-
-  // 바깥 클릭 시 닫기
-  const onDocClick = (e) => {
-    if (e.target.closest(".range-dropdown")) return;
-    closeMenu();
-  };
-  const onEscClose = (e) => {
-    if (e.key === "Escape") closeMenu();
-  };
-
-  rangeBtn.addEventListener("click", toggleMenu);
-
-  // 범위 → 기준 시각 계산
-  const calcSince = (value) => {
-    const now = new Date();
-    const since = new Date(now);
-    switch (value) {
-      case "1m":
-        since.setMonth(now.getMonth() - 1);
-        break;
-      case "3m":
-        since.setMonth(now.getMonth() - 3);
-        break;
-      case "6m":
-        since.setMonth(now.getMonth() - 6);
-        break;
-      case "1y":
-        since.setFullYear(now.getFullYear() - 1);
-        break;
-      case "all":
-        return 0; // 전체
-      default:
-        return 0;
-    }
-    return since.getTime();
-  };
-
-  // 메뉴 항목 선택
-  const selectRange = (li) => {
-    rangeItems.forEach((el) => {
-      const on = el === li;
-      el.classList.toggle("is-selected", on);
-      el.setAttribute("aria-selected", on ? "true" : "false");
-    });
-    // 버튼 라벨 업데이트
-    rangeBtn.childNodes[0].nodeValue = (li.textContent || "").trim() + " ";
-    rangeBtn.dataset.value = li.dataset.value || "";
-
-    // 필터 적용
-    applyRangeFilter(li.dataset.value || "all");
-    closeMenu();
-  };
-
-  // 실제 필터링
-  const applyRangeFilter = (value) => {
-    const sinceTs = calcSince(value);
-    items.forEach((el) => {
-      const ts = getTime(el);
-      const visible = value === "all" ? true : ts >= sinceTs;
-      el.style.display = visible ? "" : "none";
-    });
-  };
-
-  // 메뉴 항목 클릭 바인딩
-  rangeItems.forEach((li) =>
-    li.addEventListener("click", () => selectRange(li))
-  );
-
-  // 초기 상태(현재 is-selected된 값으로)
-  const initialRange =
-    rangeItems.find((el) => el.classList.contains("is-selected")) ||
-    rangeItems[0];
-  if (initialRange) selectRange(initialRange);
-
-  /* ===== 2) 최신순 / 가나다순 정렬 ===== */
-
-  const setActiveTab = (btn) => {
-    [latestTab, alphaTab].forEach((el) =>
-      el.classList.toggle("is-active", el === btn)
-    );
-  };
-
-  const sortList = (mode) => {
-    // 현재 display:none인 항목은 그대로 두고, 보이는 항목만 정렬
-    const visible = items.filter((el) => el.style.display !== "none");
-    const hidden = items.filter((el) => el.style.display === "none");
-
-    const sorted = visible.slice().sort((a, b) => {
-      if (mode === "alpha") {
-        return getTitle(a).localeCompare(getTitle(b), "ko", {
-          sensitivity: "base",
-          numeric: true,
-        });
-      }
-      // 최신순(내림차순)
-      return getTime(b) - getTime(a);
-    });
-
-    // DOM 재배치: 보이는 것들 먼저 순서대로, 그 뒤에 감춰진 것들 원래 순서대로
-    sorted.forEach((el) => listWrap.appendChild(el));
-    hidden
-      .sort((a, b) => a._idx - b._idx)
-      .forEach((el) => listWrap.appendChild(el));
-  };
-
-  latestTab.addEventListener("click", () => {
-    setActiveTab(latestTab);
-    sortList("latest");
-  });
-  alphaTab.addEventListener("click", () => {
-    setActiveTab(alphaTab);
-    sortList("alpha");
-  });
-
-  // 초기: 최신순
-  setActiveTab(latestTab);
-  sortList("latest");
-});
-
-// ../js/activity_history.js
-("use strict");
-
-/* =========================
-   공통 전환/잠금 유틸
-   ========================= */
+// 유틸
 const DURATION = 280;
 const baseH = new WeakMap();
 const busyRows = new WeakSet();
@@ -195,9 +17,7 @@ const onTransitionEnd = (el, prop) =>
     el.addEventListener("transitionend", h);
   });
 
-/* =========================
-   상세 패널 생성
-   ========================= */
+// 상세 모달
 function makeActivityPanel(name, dateText, data) {
   const d = data || {};
   const items = Array.isArray(d.ingredients) ? d.ingredients : [];
@@ -228,7 +48,6 @@ function makeActivityPanel(name, dateText, data) {
 
   panel.innerHTML = `
     <div class="detail-body">
-
       <div style="display:flex; align-items:center; gap:8px; margin:0 0 10px;">
         <span style="font-size:16px">📝</span>
         <h4 style="margin:0; font-size:15px;">걷기 기록</h4>
@@ -268,21 +87,16 @@ function makeActivityPanel(name, dateText, data) {
       }
     </div>
   `;
-
-  // 마지막 아이템 보더 제거
   const lis = panel.querySelectorAll("ul > li");
   if (lis.length) lis[lis.length - 1].style.borderBottom = "0";
-
   return panel;
 }
 
-/* =========================
-   하단 CTA (열린 카드가 1개 이상이면 표시)
-   ========================= */
+// 하단 버튼 모달
 let fridgeCta = null;
 function ensureCTA() {
   if (fridgeCta) return fridgeCta;
-  const box = document.querySelector(".box") || document.body;
+  const parent = document.querySelector(".box") || document.body;
 
   fridgeCta = document.createElement("div");
   fridgeCta.id = "fridgeCta";
@@ -327,13 +141,12 @@ function ensureCTA() {
     cursor: "pointer",
   });
   btn.addEventListener("click", () => {
-    // TODO: 라우팅/모달 연결
     console.log("[CTA] 기존 식재료로 요리법 찾기");
   });
 
   fridgeCta.append(msg, btn);
+
   const bottomNav = document.querySelector(".bottom-nav");
-  const parent = document.querySelector(".box") || document.body;
   if (bottomNav && bottomNav.parentElement === parent) {
     parent.insertBefore(fridgeCta, bottomNav);
   } else {
@@ -342,28 +155,21 @@ function ensureCTA() {
   return fridgeCta;
 }
 function showCTA() {
-  const el = ensureCTA();
-  el.style.display = "block";
+  ensureCTA().style.display = "block";
 }
 function hideCTA() {
   if (fridgeCta) fridgeCta.style.display = "none";
 }
 function updateCTAVisibility() {
-  const anyOpen = document.querySelector(".recipes_list.open");
-  if (anyOpen) showCTA();
-  else hideCTA();
+  document.querySelector(".recipes_list.open") ? showCTA() : hideCTA();
 }
 
-/* =========================
-   데이터 로딩 (처음 열 때만 fetch)
-   - row.dataset.id 와 window.ajaxPattern 사용
-   - 실패/부재 시 graceful fallback
-   ========================= */
+// 데이터 로딩
 async function loadRowDataOnce(row) {
-  if (row._detailData) return row._detailData; // 이미 로드된 경우
+  if (row._detailData) return row._detailData;
 
-  const id = row.dataset.id; // <div class="recipes_list" data-id="...">
-  const ajaxPattern = window.ajaxPattern; // 예: "/api/activity/__ID__"
+  const id = row.dataset.id;
+  const ajaxPattern = window.ajaxPattern;
   if (id && typeof ajaxPattern === "string" && ajaxPattern.includes("__ID__")) {
     const url = ajaxPattern.replace("__ID__", id);
     try {
@@ -374,7 +180,6 @@ async function loadRowDataOnce(row) {
       return data;
     } catch (e) {
       console.error("[activity_history] fetch 실패:", e);
-      // 실패 시 최소 구조 반환
       row._detailData = {
         point_earned: 0,
         travel_minutes: "-",
@@ -385,7 +190,6 @@ async function loadRowDataOnce(row) {
       return row._detailData;
     }
   } else {
-    // demo 용: 페이지에 하드코딩된 텍스트에서 키 추출하거나 빈 데이터
     const name = row.querySelector(".menu_name")?.textContent.trim();
     row._detailData = {
       point_earned: 0,
@@ -402,9 +206,7 @@ async function loadRowDataOnce(row) {
   }
 }
 
-/* =========================
-   아코디언 열기/닫기
-   ========================= */
+// 아코디언 열기/닫기
 async function closeRow(row) {
   if (busyRows.has(row)) return;
   busyRows.add(row);
@@ -454,7 +256,6 @@ async function openRowWithDetail(row) {
   lockRow(row, true);
 
   try {
-    // 중복 제거
     row.querySelectorAll(".activity-detail-inline").forEach((n) => n.remove());
 
     if (!baseH.has(row)) baseH.set(row, row.offsetHeight);
@@ -467,10 +268,7 @@ async function openRowWithDetail(row) {
 
     const name = row.querySelector(".menu_name")?.textContent.trim() || "";
     const dateText = row.querySelector(".menu_date")?.textContent.trim() || "";
-
-    // ⚡ 처음 열 때만 fetch
     const data = await loadRowDataOnce(row);
-
     const panel = makeActivityPanel(name, dateText, data);
     row.appendChild(panel);
 
@@ -504,21 +302,167 @@ async function openRowWithDetail(row) {
   }
 }
 
-/* =========================
-   초기 바인딩
-   ========================= */
+// 초기 설정
 document.addEventListener("DOMContentLoaded", () => {
-  const listSet = document.querySelector(".list-set");
+  const rangeBtn = document.getElementById("rangeBtn");
+  const rangeMenu = document.getElementById("rangeMenu");
+  const rangeItems = Array.from(
+    rangeMenu?.querySelectorAll(".range-item") || []
+  );
+  const listWrap = document.querySelector(".list-set");
+  const items = Array.from(listWrap?.querySelectorAll(".recipes_list") || []);
+  const latestTab = document.querySelector(".search-filter .lately");
+  const alphaTab = document.querySelector(".search-filter .abc");
+  if (!rangeBtn || !rangeMenu || !items.length || !latestTab || !alphaTab)
+    return;
+
+  const parseDate = (str) => {
+    const m = String(str || "")
+      .trim()
+      .match(/(\d{4})[.\-\/](\d{2})[.\-\/](\d{2})\s+(\d{2}):(\d{2})/);
+    if (!m) return 0;
+    const [, y, M, d, h, min] = m;
+    return new Date(`${y}-${M}-${d}T${h}:${min}:00`).getTime();
+  };
+  const getTitle = (el) =>
+    el.querySelector(".menu_name")?.textContent.trim() || "";
+  const getTime = (el) => {
+    let ts = el.dataset.ts ? Number(el.dataset.ts) : NaN;
+    if (Number.isNaN(ts)) {
+      ts = parseDate(el.querySelector(".menu_date")?.textContent);
+      el.dataset.ts = String(ts);
+    }
+    return ts;
+  };
+
+  items.forEach((el, i) => (el._idx = i));
+
+// 범위 드롭다운
+  const onDocClick = (e) => {
+    if (e.target.closest(".range-dropdown")) return;
+    closeMenu();
+  };
+  const onEscClose = (e) => {
+    if (e.key === "Escape") closeMenu();
+  };
+  const openMenu = () => {
+    rangeMenu.hidden = false;
+    rangeBtn.setAttribute("aria-expanded", "true");
+    document.addEventListener("click", onDocClick);
+    document.addEventListener("keydown", onEscClose);
+  };
+  const closeMenu = () => {
+    rangeMenu.hidden = true;
+    rangeBtn.setAttribute("aria-expanded", "false");
+    document.removeEventListener("click", onDocClick);
+    document.removeEventListener("keydown", onEscClose);
+  };
+  const toggleMenu = () => (rangeMenu.hidden ? openMenu() : closeMenu());
+  rangeBtn.addEventListener("click", toggleMenu);
+
+  const calcSince = (value) => {
+    const now = new Date();
+    const since = new Date(now);
+    switch (value) {
+      case "1m":
+        since.setMonth(now.getMonth() - 1);
+        break;
+      case "3m":
+        since.setMonth(now.getMonth() - 3);
+        break;
+      case "6m":
+        since.setMonth(now.getMonth() - 6);
+        break;
+      case "1y":
+        since.setFullYear(now.getFullYear() - 1);
+        break;
+      case "all":
+        return 0;
+      default:
+        return 0;
+    }
+    return since.getTime();
+  };
+
+  const applyRangeFilter = (value) => {
+    const sinceTs = calcSince(value);
+    items.forEach((el) => {
+      const ts = getTime(el);
+      const visible = value === "all" ? true : ts >= sinceTs;
+      el.style.display = visible ? "" : "none";
+    });
+  };
+
+  const selectRange = (li) => {
+    rangeItems.forEach((el) => {
+      const on = el === li;
+      el.classList.toggle("is-selected", on);
+      el.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    rangeBtn.childNodes[0].nodeValue = (li.textContent || "").trim() + " ";
+    rangeBtn.dataset.value = li.dataset.value || "";
+    applyRangeFilter(li.dataset.value || "all");
+    closeMenu();
+  };
+
+  rangeItems.forEach((li) =>
+    li.addEventListener("click", () => selectRange(li))
+  );
+
+  const initialRange =
+    rangeItems.find((el) => el.classList.contains("is-selected")) ||
+    rangeItems[0];
+  if (initialRange) selectRange(initialRange);
+
+// 최신순/가나다순 정렬
+  const setActiveTab = (btn) => {
+    [latestTab, alphaTab].forEach((el) => {
+      const on = el === btn;
+      el.classList.toggle("is-active", on);
+      el.classList.toggle("on", on);              // ✅ 동그라미/강조용 클래스도 동기화
+      el.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  };
+
+  const sortList = (mode) => {
+    const visible = items.filter((el) => el.style.display !== "none");
+    const hidden = items.filter((el) => el.style.display === "none");
+
+    const sorted = visible.slice().sort((a, b) => {
+      if (mode === "alpha") {
+        return getTitle(a).localeCompare(getTitle(b), "ko", {
+          sensitivity: "base",
+          numeric: true,
+        });
+      }
+      return getTime(b) - getTime(a); // 최신순
+    });
+
+    sorted.forEach((el) => listWrap.appendChild(el));
+    hidden
+      .sort((a, b) => a._idx - b._idx)
+      .forEach((el) => listWrap.appendChild(el));
+  };
+
+  latestTab.addEventListener("click", () => {
+    setActiveTab(latestTab);
+    sortList("latest");
+  });
+  alphaTab.addEventListener("click", () => {
+    setActiveTab(alphaTab);
+    sortList("alpha");
+  });
+
+  setActiveTab(latestTab);
+  sortList("latest");
+
+// 리스트 토글(열기/닫기) 바인딩
+  const listSet = listWrap;
   if (listSet) {
     listSet.addEventListener("click", (e) => {
       const row = e.target.closest(".recipes_list");
       if (!row) return;
-
-      if (row.classList.contains("open")) {
-        closeRow(row);
-      } else {
-        openRowWithDetail(row);
-      }
+      row.classList.contains("open") ? closeRow(row) : openRowWithDetail(row);
     });
 
     listSet.addEventListener("keydown", (e) => {
@@ -526,8 +470,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = e.target.closest(".recipes_list");
       if (!row) return;
       e.preventDefault();
-      if (row.classList.contains("open")) closeRow(row);
-      else openRowWithDetail(row);
+      row.classList.contains("open") ? closeRow(row) : openRowWithDetail(row);
     });
   }
 
@@ -537,5 +480,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .forEach((row) => closeRow(row));
   });
 
-  initRangeDropdown();
+  if (typeof initRangeDropdown === "function") {
+    initRangeDropdown();
+  }
 });

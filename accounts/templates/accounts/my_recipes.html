@@ -34,11 +34,20 @@
           <a href="javascript:history.back()" aria-label="뒤로">
             <img
               class="top-back"
-              src="{% static 'img/chevron-left.svg' %}"
+              src="{% static 'img/chevron-left(gray).svg' %}"
               alt="back"
             />
           </a>
           <div class="top-point">
+            <a href="{% url 'food:cart_view' %}" class="basket-container">
+                {% if cart_items_count == 0 %}
+                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                    <span class="basket-count">{{ cart_items_count }}</span>
+                {% else %}
+                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                    <span class="basket-count">{{ cart_items_count }}</span>
+                {% endif %}
+            </a>
             <a
               href="{% url 'point:barcode' %}"
               class="barcode-link"
@@ -60,7 +69,7 @@
         <main class="app-body">
           <div class="recipes-list-fullset">
             <form
-              class="recipes_search"
+              class="recipes-search"
               method="get"
               action="{% url 'accounts:my_recipes' %}"
             >
@@ -132,18 +141,18 @@
 
         {% comment %} 앱 자체 하단바 {% endcomment %}
         <div class="bottom-nav">
-          <div class="bottom-nav-item">
-            <img src="{% static 'img/house.svg' %}" alt="홈" />
+          <a class="bottom-nav-item" href="{% url 'food:main' %}">
+            <img src="{% static 'img/house(gray).svg' %}" alt="홈" />
             <span class="bottom-nav-item-title">홈</span>
-          </div>
-          <div class="bottom-nav-item">
+          </a>
+          <a class="bottom-nav-item" href="{% url 'accounts:activity_log' %}">
             <img src="{% static 'img/footprints.svg' %}" alt="내 활동" />
-            <span class="bottom-nav-item-title">내 활동</span>
-          </div>
-          <div class="bottom-nav-item">
-            <img src="{% static 'img/icons_coin.svg' %}" alt="포인트" />
+            <span class="bottom-nav-item-title" style="color:black">내 활동</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'point:point_home' %}">
+            <img src="{% static 'img/point(gray).svg' %}" alt="포인트" />
             <span class="bottom-nav-item-title">포인트</span>
-          </div>
+          </a>
         </div>
       </div>
     </div>
