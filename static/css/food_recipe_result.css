@@ -18,7 +18,6 @@
     margin: 0 auto;
     border: 1px solid var(--Gray-Primary, #d9d9d9);
 }
-
 .basket-container {
     position: relative;
     display: inline-block;
@@ -26,8 +25,8 @@
 
 .basket-count {
     position: absolute;
-    bottom: -1px;
-    right: -6px;
+    bottom: -1px;  /* 아래쪽으로 */
+    right: -6px;   /* 오른쪽으로 */
     background: #545454;
     color: #FFFFFF;
     font-size: 10px;
@@ -39,7 +38,7 @@
     align-items: center;
     justify-content: center;
 }
-
+/* 상단 바 */
 #pointBar{
     display: flex;
     width: 100%;
@@ -47,6 +46,7 @@
     align-items: center;
     margin-top: 12px;
 }
+
 
 .userBar{
     display: inline-flex;
@@ -80,6 +80,7 @@
     text-overflow: ellipsis;
 }
 
+/* 멘트부분 */
 .mainMent{
     margin : 12px auto;
 }
@@ -105,6 +106,7 @@
     line-height: normal;
 }
 
+/* 메인 보드 */
 #mainBoard {
     position: absolute;       
     left: 50%; 
@@ -112,25 +114,25 @@
     bottom: 190px;    
     transform: translateX(-50%);
 
-    overflow-y: auto;
-    scrollbar-width: none;
+    overflow-y: auto;       /* 스크롤 가능 */
+    scrollbar-width: none;  /* Firefox 스크롤바 숨김 */
 }
 #mainBoard * {
 user-select: none;
 }
 
 #mainBoard::-webkit-scrollbar {
-    display: none;
+    display: none; /* Chrome, Safari 스크롤바 숨김 */
 }
 
 
 .imgBoard{
         display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    column-gap: 38px;
+    grid-template-columns: repeat(2, 1fr); /* 2열 고정 */
+    column-gap: 38px; /* 가로 간격 */
     row-gap: 20px;
     padding: 12px 40px;
-    justify-items: center;
+    justify-items: center; /* 카드 가운데 정렬 */
 }
 
 .ingredientsImg {
@@ -232,22 +234,22 @@ user-select: none;
 }
 
 #bottomTab p {
-    color: #A5A5A5;
+    color: #A5A5A5; /* 기본 글자 색상 - 연한 회색 */
     text-decoration: none;
     transition: color 0.3s;
 }
 
 #bottomTab a.active p{
-  color: #000000;
+  color: #000000; /* 활성 탭 글자 색상 - 진한 검정 */
 }
 
 #bottomTab a svg path {
-    stroke: #A5A5A5;
+    stroke: #A5A5A5; /* 기본 아이콘 색상 */
     transition: stroke 0.3s;
 }
 
 #bottomTab a.active svg path {
-  stroke: #000000;
+  stroke: #000000; /* 활성 아이콘 색상 */
 }
 
 

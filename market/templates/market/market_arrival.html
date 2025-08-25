@@ -55,7 +55,7 @@
             </div>
           </div>
 
-          {% comment %} {% if market.market_type == 'mart' and market.image %} {% endcomment %}
+          {% if market.market_type == 'mart' and market.image %}
           <section class="section-title">
             <div class="section-title2">
               입구 사진 확인하기
@@ -69,7 +69,7 @@
               <p>사진과 도착지가 다르다면?</p>
             </div>
           </section>
-          {% comment %} {% endif %} {% endcomment %}
+          {% endif %}
 
           <h4 class="section-title2 mt-6">
             장바구니 체크리스트

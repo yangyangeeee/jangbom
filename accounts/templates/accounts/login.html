@@ -1,111 +1,53 @@
-<!-- <h2>로그인</h2>
-<form method="post">
-    {% csrf_token %}
-    <p>
-        아이디:<br>
-        {{ form.username }}
-        {% if form.username.errors %}
-            <div class="error">{{ form.username.errors }}</div>
-        {% endif %}
-    </p>
-
-    <p>
-        비밀번호:<br>
-        {{ form.password }}
-        {% if form.password.errors %}
-            <div class="error">{{ form.password.errors }}</div>
-        {% endif %}
-    </p>
-    <button type="submit">로그인</button>
-</form>
-
-<a href="{% url 'accounts:signup' %}">회원가입</a>
--->
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
-    <link rel="stylesheet" href="{% static 'style.css' %}" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
     <script src="{% static 'js/login.js' %}" defer></script>
     <title>로그인</title>
-  </head>
-  <body>
-    <div class="container">
-      <div class="box">
-        <!-- 상단바 -->
-        <div class="status-bar">
-          <p>19:02</p>
-          <div class="status1">
-            <img
-              class="status2"
-              src="{% static 'img/reception.svg' %}"
-              alt="reception"
-            />
-            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
-            <img
-              class="status2"
-              src="{% static 'img/battery.svg' %}"
-              alt="battery"
-            />
-          </div>
-        </div>
-
-        <main class="app-body">
-          <div class="titleBox">
+</head>
+<body>
+    <div id="Container">
+        <img id="statusBar" src="{% static 'img/iPhone Status bar.png' %}"/>
+        
+        <div class="titleBox">
             <div class="title1">
-              <img
-                id="mainTitle"
-                src="{% static 'img/장봄_logo.svg' %}"
-                alt="장봄"
-              />
+                <img id="mainTitle" src="{% static 'img/title.png' %}"/>
             </div>
             <div class="title2">
-              <p class="ment1">로그인하고 장 보러 가요!</p>
-              <p class="ment2">지금 시작해보세요!</p>
+                <p class="ment1">로그인하고 장 보러 가요!</p>
+                <p class="ment2">지금 시작해보세요!</p>
             </div>
-          </div>
+        </div>
 
-          <form id="loginInput" method="post">
+        <form id="loginInput" method="post">
             {% csrf_token %}
 
             <div class="idBox">
-              <p>아이디</p>
-              <div class="idInput">
-                <input
-                  type="text"
-                  id="id"
-                  name="username"
-                  placeholder="twodoor@email.com"
-                />
-              </div>
+                <p>아이디</p>
+                <div class="idInput">
+                    <input type="text" id="id" name="username" placeholder="2자 이상 입력해주세요">
+                </div>
             </div>
 
             <div class="passwordBox">
-              <p>비밀번호</p>
-              <div class="passwordInput">
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="8자 이상 입력해주세요"
-                />
-              </div>
+                <p>비밀번호</p>
+                <div class="passwordInput">
+                    <input type="password" id="password" name="password" placeholder="8자 이상 입력해주세요">
+                </div>
             </div>
 
             <div class="exBtn">
-              <a href="#">아이디 찾기</a>
-              <a href="#">비밀번호 찾기</a>
-              <a href="{% url 'accounts:signup' %}">회원가입</a>
+                <a href="#">아이디 찾기</a>
+                <a href="#">비밀번호 찾기</a>
+                <a href="{% url 'accounts:signup' %}">회원가입</a>
             </div>
 
-            <button type="submit" class="cta-fixed"><p>로그인 하기</p></button>
-          </form>
-        </main>
-      </div>
+            <button type="submit"><p>로그인 하기</p></button>
+        </form>
+
     </div>
-  </body>
+</body>
 </html>

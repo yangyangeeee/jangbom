@@ -1,6 +1,7 @@
 @font-face {
   font-family: "HSSanTokki20-Regular";
-  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2") format("woff2");
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
+    format("woff2");
   font-weight: normal;
   font-style: normal;
 }
@@ -12,33 +13,41 @@
   --cta-h: 88px;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
 
-.box {
+.container {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  justify-content: center;
+  min-height: 100dvh;
+  background: #efefef;
+}
+
+.box {
   position: static;
   width: min(100vw, var(--app-max-w));
   min-height: 100dvh;
   margin: 0 auto;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .status-bar {
   position: sticky;
   top: 0;
   z-index: 50;
+  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: var(--status-h);
   padding: 0 25px;
-  background: #fff;
   font-size: 18px;
   font-weight: 600;
 }
@@ -49,7 +58,7 @@ html, body {
   gap: 5px;
 }
 
-.status2 {
+.status2 img {
   width: 18px;
   height: 13px;
 }
@@ -58,39 +67,18 @@ html, body {
   position: sticky;
   top: var(--status-h);
   z-index: 49;
+  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: var(--apptop-h);
   padding: 0 15px;
-  background: #fff;
 }
 
 .top-back img {
   width: 24px;
   height: auto;
-}
-
-.basket-container {
-  position: relative;
-  display: inline-block;
-}
-
-.basket-count {
-  position: absolute;
-  right: -6px;
-  bottom: -1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  background: #545454;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 300;
-  border-radius: 50%;
 }
 
 .top-point {
@@ -99,26 +87,26 @@ html, body {
   gap: 10px;
 }
 
-.point {
-  margin-top: 4px;
-}
-
 .point img {
   width: 22px;
   height: 20px;
 }
 
+.point {
+  margin-top: 4px;
+}
+
 .mypoint {
+  font-size: 14px;
+  font-weight: 600;
+  width: 61px;
+  height: 27px;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 61px;
-  height: 27px;
   background: #f5f5f5;
   border: 1px solid #d9d9d9;
   border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .app-body {
@@ -126,33 +114,23 @@ html, body {
   min-height: 0;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+  /* padding: 12px 16px calc(var(--cta-h) + env(safe-area-inset-bottom)); */
   box-sizing: border-box;
 }
 
 .app-body img {
-  display: block;
   max-width: 100%;
   height: auto;
+  display: block;
 }
 
 .myactivity-log {
+  width: 100%;
+  padding: 8px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  padding: 8px 16px;
-  position: sticky;
-  top: calc(var(--status-h) + var(--apptop-h));
-  z-index: 48;
-  justify-content: center;
-  height: var(--apptitle-h);
-  padding-bottom: 15px;
-  background: #fff;
-  color: #545454;
-  letter-spacing: -0.48px;
-  font-size: 24px;
-  font-weight: 600;
 }
 
 .myactivity-log h3 {
@@ -165,12 +143,15 @@ html, body {
 
 .recipes-list-fullset {
   width: 393px;
-  height: 700px;
+  height: 800px;
   margin-top: 0;
-  padding: 10px 16px calc(16px + 65px);
   background: #f6f6f6;
   border-top: 1px solid #e9e9e9;
+  padding: 10px 16px 16px;
   box-sizing: border-box;
+  padding-bottom: calc(16px + 65px);
+  /* max-height: calc(100vh - 44px- 44px- 65px);
+  overflow-y: auto; */
   overflow-y: auto;
 }
 
@@ -178,7 +159,7 @@ html, body {
   margin-bottom: 5px;
 }
 
-.recipes-search {
+.recipes_search {
   display: flex;
   justify-content: center;
   padding: 0;
@@ -194,9 +175,9 @@ html, body {
   width: 100%;
   height: 100%;
   padding: 0 48px 0 18px;
+  background: #fff;
   border: 1px solid #d9d9d9;
   border-radius: 999px;
-  background: #fff;
   outline: none;
   resize: none;
   overflow: hidden;
@@ -214,9 +195,13 @@ html, body {
   pointer-events: none;
 }
 
-.input-rec::placeholder { color: transparent; }
+.input-rec::placeholder {
+  color: transparent;
+}
 
-.input-rec:focus ~ .input-placeholder { opacity: 0.5; }
+.input-rec:focus ~ .input-placeholder {
+  opacity: 0.5;
+}
 
 .input-rec:not(:placeholder-shown) ~ .input-placeholder {
   opacity: 0;
@@ -231,9 +216,9 @@ html, body {
   transform: translateY(-50%);
   width: 32px;
   height: 32px;
-  padding: 0;
   border: 0;
   background: transparent;
+  padding: 0;
   cursor: pointer;
 }
 
@@ -262,13 +247,13 @@ html, body {
   display: inline-block;
   padding: 10px 14px;
   border-radius: 999px;
-  background: transparent;
-  color: #d0d0d0;
-  font-size: 16px;
   font-weight: 800;
+  font-size: 16px;
   line-height: 1;
-  user-select: none;
+  color: #d0d0d0;
+  background: transparent;
   cursor: pointer;
+  user-select: none;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -285,67 +270,70 @@ html, body {
 }
 
 .recipes_list {
+  margin: 10px 16px;
+  padding: 9px 16px;
+  width: 330px;
+  /* height: 70px; */
+  min-height: 70px;
   display: flex;
   align-items: center;
   column-gap: 12px;
-  width: 330px;
-  min-height: 70px;
-  margin: 10px 16px;
-  padding: 9px 16px;
   background: #fff;
   border: 1px solid #d9d9d9;
   border-radius: 20px;
-  overflow: visible;
   transition: height 0.28s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  overflow: visible;
 }
 
-.recipes_list + .recipes_list { margin-top: 8px; }
+.recipes_list + .recipes_list {
+  margin-top: 8px;
+}
 
-.recipes_list:active { transform: translateY(1px); }
+.recipes_list:active {
+  transform: translateY(1px);
+}
 
 .recipes_img {
-  flex-shrink: 0;
   width: 24px;
   height: 24px;
-  margin: 0 5px;
+  flex-shrink: 0;
   object-fit: contain;
   opacity: 0.9;
+  margin: 0 5px;
 }
 
 .menu_item {
-  display: flex;
-  flex-direction: column;
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .menu_name {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: #acce58;
   font-size: 20px;
   font-weight: 600;
+  color: #acce58;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menu_date {
   margin: 0;
-  color: #c1c1c1;
   font-size: 15px;
+  color: #c1c1c1;
 }
 
 .see-detail {
-  flex-shrink: 0;
   width: 24px;
   height: 24px;
+  flex-shrink: 0;
   opacity: 0.45;
-  transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .recipes_list.open .see-detail {
   transform: rotate(90deg);
-  filter: brightness(0);
-  opacity: 1;
 }
 
 .recipe-detail-inline {
@@ -358,27 +346,42 @@ html, body {
   line-height: 1.55;
 }
 
-.recipe-detail-inline .lead { margin: 0 0 10px; font-weight: 700; }
-.recipe-detail-inline .sec-title { margin: 10px 0 6px; font-weight: 700; }
-.recipe-detail-inline .ing,
-.recipe-detail-inline .steps { margin: 0 0 6px 18px; }
-.recipe-detail-inline .tip { margin-top: 8px; color: #6b7280; font-style: italic; }
+.recipe-detail-inline .lead {
+  margin: 0 0 10px;
+  font-weight: 700;
+}
 
-/* 앱 자체 하단바 */
+.recipe-detail-inline .sec-title {
+  margin: 10px 0 6px;
+  font-weight: 700;
+}
+
+.recipe-detail-inline .ing,
+.recipe-detail-inline .steps {
+  margin: 0 0 6px 18px;
+}
+
+.recipe-detail-inline .tip {
+  margin-top: 8px;
+  color: #6b7280;
+  font-style: italic;
+}
+
 .bottom-nav {
   position: fixed;
   bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 393px;
+  height: 65px;
   z-index: 300;
   display: flex;
   justify-content: space-around;
   align-items: center;
   gap: 20px;
-  height: 65px;
-  background: #f5f5f5;
-  border-top: 1px solid #d9d9d9;
-  box-sizing: border-box;
-  width: min(100vw, var(--app-max-w));
-  overflow: visible;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  overflow: hidden;
 }
 
 .bottom-nav-item {
@@ -390,12 +393,20 @@ html, body {
 .bottom-nav-item img {
   width: 24px;
   height: auto;
-  color: black;
 }
 
 .bottom-nav-item-title {
   font-size: 12px;
   font-weight: 600;
-  color: #a5a5a5;
 }
 
+.see-detail {
+  transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+}
+
+/* 행이 열렸을 때: 회전 + 검정색 + 불투명도 ↑ */
+.recipes_list.open .see-detail {
+  transform: rotate(90deg);
+  filter: brightness(0); /* ← 아이콘을 검정으로 */
+  opacity: 1;
+}
