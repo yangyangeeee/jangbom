@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/my_recipes.css' %}" />
+    <title>my_recipes</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img
+              class="status2"
+              src="{% static 'img/reception.svg' %}"
+              alt="reception"
+            />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img
+              class="status2"
+              src="{% static 'img/battery.svg' %}"
+              alt="battery"
+            />
+          </div>
+        </div>
+
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <a href="javascript:history.back()" aria-label="뒤로">
+            <img
+              class="top-back"
+              src="{% static 'img/chevron-left(gray).svg' %}"
+              alt="back"
+            />
+          </a>
+          <div class="top-point">
+            <a href="{% url 'food:cart_view' %}" class="basket-container">
+                {% if cart_items_count == 0 %}
+                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                    <span class="basket-count">{{ cart_items_count }}</span>
+                {% else %}
+                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                    <span class="basket-count">{{ cart_items_count }}</span>
+                {% endif %}
+            </a>
+            <a
+              href="{% url 'point:barcode' %}"
+              class="barcode-link"
+              style="margin-left: 8px"
+            >
+              <img
+                class="point"
+                src="{% static 'img/lucide.svg' %}"
+                alt="바코드"
+            /></a>
+            <p class="mypoint">{{ total_point }} P</p>
+          </div>
+        </div>
+
+        <div class="myactivity-log">
+          <h3>요리법 보관함</h3>
+        </div>
+
+        <main class="app-body">
+          <div class="recipes-list-fullset">
+            <form
+              class="recipes-search"
+              method="get"
+              action="{% url 'accounts:my_recipes' %}"
+            >
+              <div class="input-row">
+                <input
+                  type="text"
+                  name="q"
+                  class="input-rec"
+                  value="{{ q|default:'' }}"
+                  placeholder=" "
+                  autocomplete="off"
+                />
+                <span class="input-placeholder"
+                  >찾으시는 요리법을 검색하세요</span
+                >
+                <button
+                  class="input-rec-search"
+                  aria-label="확인"
+                  type="submit"
+                >
+                  <img src="{% static 'img/search.svg' %}" alt="확인" />
+                </button>
+
+                <input
+                  type="hidden"
+                  name="sort"
+                  value="{{ sort|default:'latest' }}"
+                />
+              </div>
+            </form>
+
+            <div class="search-filter">
+              <a
+                class="lately {% if sort == 'latest' or not sort %}on{% endif %}"
+                href="?{% if q %}q={{ q|urlencode }}&{% endif %}sort=latest"
+                >최신순</a
+              >
+              <a
+                class="abc {% if sort == 'alpha' %}on{% endif %}"
+                href="?{% if q %}q={{ q|urlencode }}&{% endif %}sort=alpha"
+                >가나다순</a
+              >
+            </div>
+
+            <div class="list-set">
+              {% for recipe in recipes %}
+              <a
+                class="recipes_list"
+                href="#"
+                role="button"
+                tabindex="0"
+                data-id="{{ recipe.id }}"
+                data-ajax="{% url 'accounts:recipe_detail_ajax' recipe.id %}"
+              >
+                <img class="recipes_img" src="{% static 'img/album.svg' %}" alt="썸네일" />
+                <div class="menu_item">
+                  <span class="menu_name">{{ recipe.title }}</span>
+                  <p class="menu_date">{{ recipe.created_at|date:"Y.m.d" }} 저장</p>
+                </div>
+                <img class="see-detail" src="{% static 'img/chevron-right(gray).svg' %}" alt="상세보기" />
+              </a>
+              {% empty %}
+              <div class="empty">저장된 레시피가 없습니다.</div>
+              {% endfor %}
+            </div>
+            </div>
+          </div>
+        </main>
+
+        {% comment %} 앱 자체 하단바 {% endcomment %}
+        <div class="bottom-nav">
+          <a class="bottom-nav-item" href="{% url 'food:main' %}">
+            <img src="{% static 'img/house(gray).svg' %}" alt="홈" />
+            <span class="bottom-nav-item-title">홈</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'accounts:activity_log' %}">
+            <img src="{% static 'img/footprints.svg' %}" alt="내 활동" />
+            <span class="bottom-nav-item-title" style="color:black">내 활동</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'point:point_home' %}">
+            <img src="{% static 'img/point(gray).svg' %}" alt="포인트" />
+            <span class="bottom-nav-item-title">포인트</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'js/my_recipes.js' %}" defer></script>
+  </body>
+</html>

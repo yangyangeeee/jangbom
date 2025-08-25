@@ -1,0 +1,335 @@
+:root {
+  --app-max-w: 393px;
+  --status-h: 44px;
+  --apptop-h: 44px;
+  --cta-h: 66px;
+  --nav-h: 0px;
+}
+
+* {
+  font-family: "Pretendard";
+  font-style: normal;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  text-decoration: none;
+  background: none;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.box {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(100vw, var(--app-max-w));
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.status-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: var(--status-h);
+  padding: 0 25px;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.status1 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status2 {
+  display: block;
+  width: 18px;
+  height: 13px;
+}
+
+.app-top-bar {
+  position: sticky;
+  top: var(--status-h);
+  z-index: 49;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: var(--apptop-h);
+  padding: 0 15px;
+  background: #fff;
+}
+
+.top-back img {
+  display: block;
+  width: 32px;
+  height: auto;
+}
+
+.basket-container {
+  position: relative;
+  display: inline-block;
+}
+
+.basket-count {
+  position: absolute;
+  bottom: -1px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #545454;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.top-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mypoint {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 61px;
+  height: 27px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background: #f5f5f5;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.app-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 0;   
+}
+
+#mainBoard {
+  margin: 0 25px;
+}
+
+.mainMent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 12px;
+  gap: 12px;
+}
+
+.userFood p {
+  color: #545454;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.userFood {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.date p {
+  color: #000;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 300;
+  line-height: normal;
+}
+
+.selectBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 200px;
+  gap: 28px;
+}
+
+.selectBtn button {
+  display: flex;
+  width: 308px;
+  height: 120px;
+  padding: 21px 22px;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+  border-radius: 20px;
+  background: #f5f5f5;
+  transition: background 0.3s;
+}
+
+.selectBtn button:hover {
+  background: #d7e5b4;
+  cursor: pointer;
+}
+
+.selectBtn button:hover svg path {
+  stroke: #545454 !important;
+}
+
+.foodRecommend,
+.otherIngredient {
+  position: relative;
+}
+
+.foodRecommend svg,
+.otherIngredient svg {
+  position: absolute;
+  top: 15px;
+  left: 21px;
+}
+
+.textBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.text1 {
+  color: #000;
+  text-align: right;
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.text2 {
+  color: #545454;
+  text-align: right;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.text22 {
+  color: #545454;
+  text-align: right;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+#gptBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  border: 1px solid #d9d9d9;
+  background: #fff;
+  bottom: 20px;
+  width: 346px;
+  height: 49px;
+  transition: transform 0.3s ease;
+  transform: translateX(-50%);
+  position: fixed;
+  left: 50%;
+  z-index: 60;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.inputBar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap:5px;
+    justify-content: space-between;
+}
+
+.gptInput{
+    width:100%
+}
+
+.gptInput::placeholder {
+    color: #D9D9D9;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: normal;
+}
+
+.keyboard-icon {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 393px;
+    height: 305px;
+    display: none;
+    z-index: 1000;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+#gptBox.up {
+    bottom: 615px;
+    transition: bottom 0.3s ease;
+    z-index: 1001;
+}
+
+.selectBtn.hidden {
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none; 
+}
+
+.foodBtn {
+    display: flex ;
+    justify-content: center;
+    align-items: center;
+    width: 271px;
+    height: 53px;
+    padding: 14px 0;
+    gap: 10px;
+    flex-shrink: 0;
+    border-radius: 15px;
+    margin-left: 61px;
+    background: #BEDA78;
+    border: none;
+    cursor: pointer;
+    color: #FFF;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: normal;
+}
+
+.foodBtn p{
+    color: #FFF;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+        display: flex;
+    line-height: normal;
+        justify-content: center;
+    align-items: center;
+}

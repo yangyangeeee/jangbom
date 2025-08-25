@@ -1,0 +1,340 @@
+@font-face {
+  font-family: "HSSanTokki20-Regular";
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
+    format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --app-max-w: 393px;
+  --status-h: 44px;
+  --apptop-h: 44px;
+  --nav-h: 65px;
+  --start-h: 66px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.w-app {
+  width: min(100vw, var(--app-max-w));
+}
+
+.box {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(100vw, var(--app-max-w));
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.status-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--status-h);
+  padding: 0 25px;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.status1 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status2 {
+  width: 18px;
+  height: 13px;
+  display: block;
+}
+
+.app-top-bar {
+  position: sticky;
+  top: var(--status-h);
+  z-index: 49;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--apptop-h);
+  padding: 0 15px;
+  background: #fff;
+}
+
+.top-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.basket-container {
+  position: relative;
+  display: inline-block;
+}
+
+.basket-count {
+  position: absolute;
+  right: -6px;
+  bottom: -1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #545454;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 300;
+}
+
+.point {
+  margin-top: 4px;
+  width: 24px;
+  height: auto;
+}
+
+.mypoint {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 61px;
+  height: 27px;
+  background: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.app-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 0 calc(var(--start-h) + env(safe-area-inset-bottom));
+}
+
+.mainMent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.userFood {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+.text1 {
+  color: #545454;
+  text-align: center;
+  font-family: "HSSanTokki20-Regular";
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.text2 {
+  color: #000;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.line img {
+  display: block;
+  width: 235px;
+  height: 6px;
+  margin-top: 8px;
+}
+
+#mainBoard {
+  margin: 20px 25px 0;
+}
+
+.cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px 16px;
+  text-align: center;
+  border: 1px dashed #ddd;
+  border-radius: 16px;
+  background: #fafafa;
+}
+
+.cart-empty img {
+  width: 48px;
+  height: 48px;
+  opacity: 0.6;
+}
+
+.cart-empty p {
+  color: #8a8a8a;
+  font-weight: 600;
+}
+
+.cart-empty .go-explore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #efefef;
+  color: #555;
+  font-weight: 700;
+}
+
+.selectBoard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.selectBtn {
+  background: transparent;
+  color: #000;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.custom-checkbox input[type="checkbox"],
+.custom-checkbox2 input[type="checkbox"] {
+  display: none;
+}
+
+.custom-checkbox span,
+.custom-checkbox2 span {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.custom-checkbox2 span {
+  margin-right: 23px;
+}
+
+.custom-checkbox input[type="checkbox"]:checked + span::after,
+.custom-checkbox2 input[type="checkbox"]:checked + span::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  width: 8px;
+  height: 5px;
+  transform: rotate(45deg);
+  border: solid #000;
+  border-width: 0 2px 2px 0;
+}
+
+.cart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.imgBoard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.custom-checkbox2 {
+  display: flex;
+  align-items: center;
+}
+
+.imgBoard img {
+  width: 130px;
+  height: 100px;
+  margin-right: 15px;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 1px solid #d9d9d9;
+}
+
+.ingredientInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+}
+
+.foodName {
+  color: #000;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.foodDate {
+  color: #d9d9d9;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.remove-one {
+  position: absolute;
+  right: 0;
+  top: 2px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.start {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 16px 15px;
+  box-sizing: border-box;
+  width: min(100vw, var(--app-max-w));
+  background: #f5f5f5;
+  border-top: 1px solid #ebe9e9;
+}
+
+.start .cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 135px;
+  height: 34px;
+  border-radius: 15px;
+  background: #beda78;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+}

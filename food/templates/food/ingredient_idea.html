@@ -1,0 +1,145 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>요리 아이디어</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/food_ingredient_idea.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        <!-- 상단바 -->
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img class="status2" src="{% static 'img/reception.svg' %}" alt="reception" />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img class="status2" src="{% static 'img/battery.svg' %}" alt="battery" />
+          </div>
+        </div>
+
+        <!-- 앱 자체 상단바 -->
+        <div class="app-top-bar">
+          <a class="top-back" href="{% url 'food:ingredient_result' %}" aria-label="뒤로가기">
+            <img src="{% static 'img/chevron-left(gray).svg' %}" alt="back" />
+          </a>
+          <div class="top-point">
+            <a href="{% url 'food:cart_view' %}" class="basket-container" aria-label="장바구니">
+              <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket" />
+              <span class="basket-count">{{ cart_items_count|default:0 }}</span>
+            </a>
+            <a href="{% url 'point:barcode' %}" aria-label="바코드">
+              <img class="point" src="{% static 'img/lucide.svg' %}" alt="point" />
+            </a>
+            <a href="{% url 'point:point_home' %}" aria-label="포인트">
+              <p class="mypoint">{{ total_point|default:"0" }} P</p>
+            </a>
+          </div>
+        </div>
+
+        <div class="mainMent">
+          <div class="userFood">
+            <p>{{ name }}로</p>
+            <p>이런 요리를 할 수 있어요!</p>
+          </div>
+        </div>
+
+        <main class="app-body">
+          <section id="mainBoard">
+            <div class="chatBoard" id="chat"><!-- 메시지 append --></div>
+          </section>
+
+          <div id="gptBox" class="gptBox">
+            <form method="post" class="inputBar" id="ask-form" action="">
+              {% csrf_token %}
+              <input type="text" name="q" placeholder="요리명을 입력해주세요" class="gptInput" id="ask-input" />
+              <button type="submit" class="rightArrow" aria-label="전송">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5L19 12M19 12L12 19M19 12H5" stroke="#ACCE58" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- (데모) 키보드 이미지: 필요할 때만 표시 -->
+    <img src="{% static 'img/iOS.png' %}" alt="keyboard" class="keyboard-icon" />
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const input = document.querySelector('.gptInput');
+        const keyboardIcon = document.querySelector('.keyboard-icon');
+        const gptBox = document.getElementById('gptBox');
+        const chatWrap = document.getElementById('chat');
+        const scroller = document.querySelector('.app-body');
+        const apiBase = "{% url 'food:ingredient_idea_api' %}";
+
+        keyboardIcon.style.display = 'none';
+
+        function scrollToBottom() {
+          scroller.scrollTop = scroller.scrollHeight;
+        }
+
+        function append(role, text) {
+          const div = document.createElement('div');
+          div.className = role === 'user' ? 'userMsg' : 'gptMsg';
+          const p = document.createElement('p');
+          p.textContent = text;
+          div.appendChild(p);
+          chatWrap.appendChild(div);
+          scrollToBottom();
+        }
+
+        async function fetchInitial() {
+          try {
+            const nameParam = encodeURIComponent("{{ name }}");
+            const res = await fetch(`${apiBase}?name=${nameParam}`);
+            const data = await res.json();
+            append('gpt', data.ok ? data.text : '초기 추천을 불러오지 못했습니다.');
+          } catch {
+            append('gpt', '네트워크 오류가 발생했습니다.');
+          }
+        }
+        fetchInitial();
+
+        input.addEventListener('input', () => {
+          const hasText = input.value.trim() !== "";
+          keyboardIcon.style.display = hasText ? 'block' : 'none';
+          gptBox.classList.toggle('up', hasText);
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!gptBox.contains(e.target)) {
+            keyboardIcon.style.display = 'none';
+            gptBox.classList.remove('up');
+          }
+        });
+
+        const form = document.getElementById('ask-form');
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const q = input.value.trim();
+          if (!q) return;
+          append('user', q);
+          input.value = "";
+          keyboardIcon.style.display = 'none';
+          gptBox.classList.remove('up');
+
+          try {
+            const nameParam = encodeURIComponent("{{ name }}");
+            const res = await fetch(`${apiBase}?name=${nameParam}&q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            append('gpt', data.ok ? data.text : '답변을 불러오지 못했습니다.');
+          } catch {
+            append('gpt', '네트워크 오류가 발생했습니다.');
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,280 @@
+:root {
+  --app-max-w: 393px;
+  --status-h: 44px;
+  --apptop-h: 44px;
+  --cta-h: 88px;
+  --nav-h: 65px;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Pretendard";
+  font-style: normal;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  text-decoration: none;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(100vw, var(--app-max-w));
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.status-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: var(--status-h);
+  padding: 0 25px;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.status1 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status2 {
+  display: block;
+  width: 18px;
+  height: 13px;
+}
+
+.app-top-bar {
+  position: sticky;
+  top: var(--status-h);
+  z-index: 49;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: var(--apptop-h);
+  padding: 0 15px;
+  background: #fff;
+}
+
+.top-back img {
+  display: block;
+  width: 32px;
+  height: auto;
+}
+
+.basket-container {
+  position: relative;
+  display: inline-block;
+}
+
+.basket-count {
+  position: absolute;
+  right: -6px;
+  bottom: -1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #545454;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 300;
+}
+
+.top-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.point {
+  display: block;
+  width: 22px;
+  height: 20px;
+}
+
+.mypoint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 61px;
+  height: 27px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background: #f5f5f5;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.app-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 160px;
+}
+
+.mainMent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.userFood {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.userFood p {
+  color: #545454;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+#mainBoard {
+  margin: 0 25px;
+  overflow: visible;
+}
+
+.chatBoard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.userMsg,
+.gptMsg {
+  display: inline-block;
+  padding: 5px 10px;
+  margin: 10px 0;
+  border-radius: 20px;
+  background: #f5f5f5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.userMsg {
+  align-self: flex-end;
+  max-width: 70%;
+  text-align: right;
+}
+.gptMsg {
+  align-self: flex-start;
+  width: 316px;
+  text-align: left;
+}
+
+.userMsg p,
+.gptMsg p {
+  color: #545454;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: normal;
+}
+
+#gptBox {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 1001;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  width: min(calc(100vw - 32px), calc(var(--app-max-w) - 32px));
+  padding: 13px 13px 12px 21px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background: #fff;
+  transition: bottom 0.3s ease, transform 0.3s ease;
+}
+
+#gptBox.up {
+  bottom: 320px;
+}
+
+.inputBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  width: 100%;
+}
+
+.gptInput {
+  width: 100%;
+}
+
+.gptInput::placeholder {
+  color: #d9d9d9;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.foodBtn {
+  position: fixed;
+  left: 50%;
+  bottom: 84px;
+  z-index: 1000;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 271px;
+  height: 53px;
+  padding: 14px 0;
+  border-radius: 15px;
+  background: #beda78;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.foodBtn.up {
+  bottom: 384px;
+}
+
+.keyboard-icon {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 900;
+  transform: translateX(-50%);
+  width: var(--app-max-w);
+  height: 305px;
+  display: none;
+  object-fit: contain;
+  pointer-events: none;
+}

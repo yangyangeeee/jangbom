@@ -1,0 +1,270 @@
+@font-face {
+  font-family: "HSSanTokki20-Regular";
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
+    format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --app-max-w: 393px;
+  --status-h: 44px;
+  --apptop-h: 44px;
+  --cta-h: 88px;
+  --nav-h: 65px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.box {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(100vw, var(--app-max-w));
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.status-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--status-h);
+  width: 100%;
+  padding: 0 25px;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.status1 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status2 {
+  display: block;
+  width: 18px;
+  height: 13px;
+}
+
+.app-top-bar {
+  position: sticky;
+  top: var(--status-h);
+  z-index: 49;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--apptop-h);
+  width: 100%;
+  padding: 0 15px;
+  background: #fff;
+}
+
+.top-back img {
+  display: block;
+  width: 32px;
+  height: auto;
+}
+
+.basket-container {
+  position: relative;
+  display: inline-block;
+}
+
+.basket-count {
+  position: absolute;
+  right: -6px;
+  bottom: -1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #545454;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 300;
+}
+
+.top-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.point {
+  display: block;
+  width: 22px;
+  height: 20px;
+}
+
+.mypoint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 61px;
+  height: 27px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background: #f5f5f5;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mainMent {
+  position: sticky;
+  top: calc(var(--status-h) + var(--apptop-h));
+  z-index: 48;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(100vw, var(--app-max-w));
+  height: var(--apptitle-h);
+  margin: 0 auto;
+  padding: 15px 0;
+  background: #fff;
+}
+
+.userFood {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.userFood p {
+  max-width: 300px;
+  overflow-wrap: break-word;
+  color: #545454;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.app-body {
+  overflow-y: auto;
+  height: calc(100dvh - var(--status-h) - var(--apptop-h) - var(--nav-h));
+  padding: 12px 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+#mainBoard {
+  margin: 0 16px 8px;
+}
+
+.chatBoard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.userMsg,
+.gptMsg {
+  display: inline-block;
+  padding: 10px 12px;
+  margin: 6px 0;
+  border-radius: 16px;
+  background: #f5f5f5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.userMsg {
+  align-self: flex-end;
+  max-width: 70%;
+  text-align: right;
+}
+
+.gptMsg {
+  align-self: flex-start;
+  max-width: 90%;
+  text-align: left;
+}
+
+.userMsg p,
+.gptMsg p {
+  margin: 0;
+  color: #545454;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.gptBox {
+  position: fixed;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 350;
+  display: flex;
+  align-items: center;
+  height: 49px;
+  width: min(
+    calc(100vw - 32px),
+    calc(var(--app-max-w) - 32px)
+  );
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.inputBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.gptInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  font-size: 16px;
+  caret-color: auto;
+}
+
+.gptInput::placeholder {
+  color: #d9d9d9;
+  font-weight: 500;
+}
+
+.rightArrow {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+}
+
+.keyboard-icon {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: none;
+  width: min(100vw, var(--app-max-w));
+  height: 305px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.gptBox.up {
+  bottom: calc(305px + 12px);
+  z-index: 1001;
+}

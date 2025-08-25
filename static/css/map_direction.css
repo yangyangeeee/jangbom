@@ -1,0 +1,432 @@
+@font-face {
+  font-family: "HSSanTokki20-Regular";
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ================================
+   Root & Reset
+================================ */
+:root {
+  --app-max-w: 393px;
+  --status-h: 44px;
+  --apptop-h: 44px;
+  --cta-h: 88px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* ================================
+   App Shell
+================================ */
+.container {
+  display: flex;
+  justify-content: center;
+  min-height: 100dvh;
+  background: #efefef;
+}
+
+.box {
+  position: static !important;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(100vw, var(--app-max-w));
+  min-height: 100dvh;
+  margin: 0 auto;
+  overflow: visible;
+  background: #fff;
+}
+
+/* ================================
+   Top Bars
+================================ */
+.status-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: var(--status-h);
+  padding: 0 25px;
+  font-size: 18px;
+  font-weight: 600;
+  background: #fff;
+}
+
+.status1 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status2 img {
+  width: 18px;
+  height: 13px;
+}
+
+.app-top-bar {
+  position: sticky;
+  top: var(--status-h);
+  z-index: 49;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: var(--apptop-h);
+  padding: 0 15px;
+  background: #fff;
+}
+
+.top-back img {
+  width: 24px;
+  height: auto;
+}
+
+.top-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.point {
+  margin-top: 4px;
+}
+
+.point img {
+  width: 22px;
+  height: 20px;
+}
+
+.mypoint {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 61px;
+  height: 27px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #f5f5f5;
+}
+
+/* ================================
+   Scrollable Body
+================================ */
+.app-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px calc(var(--cta-h) + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.app-body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ================================
+   Moving/Timer Section
+================================ */
+.moving {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 30px;
+}
+
+.circle-wrap {
+  position: relative;
+  margin: 10px auto 28px;
+  padding-bottom: 6px;
+}
+
+.middle-line {
+  width: 291px;
+  height: 12px;
+  margin: 0 auto;
+  border-radius: 20px;
+  background: #c9b899;
+}
+
+.circle-time {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  z-index: 10;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 -5px 2px rgba(0, 0, 0, 0.2);
+}
+
+.circle-time p {
+  font-size: 14px;
+  color: #c4c4c4;
+}
+
+.runner-time {
+  font-family: "HSSanTokki20-Regular", sans-serif;
+  font-size: 32px;
+  color: #545454;
+}
+
+.tree2 {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  height: 47px;
+  pointer-events: none;
+}
+
+.moving-status {
+  position: relative;
+  z-index: 11;
+  width: 100%;
+  max-width: 307px;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+/* ================================
+   Hero / Map
+================================ */
+.mart-loc {
+  display: block;
+  width: 100%;
+  max-width: 374px;
+  height: auto;
+  margin: 14px auto 0;
+  border: 2px solid #d9d9d9;
+  border-radius: 20px;
+}
+
+/* ================================
+   Expandable Section
+================================ */
+.app-bottom-bar {
+  margin-top: 15px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.bar-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bar-list,
+.mart-dropdown {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bar-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 15px 0;
+  padding: 0 40px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.more-icon {
+  width: 24px;
+  height: auto;
+  transition: transform 200ms ease, filter 150ms ease;
+}
+
+.mart-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 13px;
+  width: 100%;
+  max-width: 306px;
+  margin: 0 auto 12px;
+  padding: 15px 20px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  box-sizing: border-box;
+}
+
+.mi-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.mi-item img {
+  width: 16px;
+  height: 16px;
+}
+
+.mi-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #545454;
+}
+
+.mat-block-set {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 306px;
+  margin: 0 auto 12px;
+  padding: 15px 20px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  box-sizing: border-box;
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 15px;
+  row-gap: 15px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.item-pic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 130px;
+  height: 106px;
+  border-radius: 20px;
+  background: #d9d9d9;
+  font-weight: bold;
+}
+
+.bar-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.barBtn {
+  width: 108px;
+  height: 44px;
+  border: none;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  background: #f5f5f5;
+  cursor: pointer;
+}
+
+/* ================================
+   Bottom Sticky CTA
+================================ */
+.start {
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid #eee;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.start-point {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background: #f5f5f5;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.start-point img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.startBtn {
+  width: 271px;
+  height: 53px;
+  border: 0;
+  border-radius: 15px;
+  background: #beda78;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ================================
+   Responsive (viewport unit fix)
+================================ */
+@supports (height: 100svh) {
+  .container { min-height: 100svh; }
+}
+
+/* ================================
+   Behaviors
+================================ */
+.mart-dropdown .mart-info,
+.mart-dropdown .mat-block-set {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 240ms ease, padding 240ms ease, margin 240ms ease, opacity 160ms ease;
+}
+
+.mart-dropdown.open .mart-info,
+.mart-dropdown.open .mat-block-set {
+  max-height: 1000px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 12px;
+  opacity: 1;
+}
+
+.mart-dropdown.open .more-icon {
+  transform: rotate(180deg);
+  filter: brightness(0) saturate(100%);
+}

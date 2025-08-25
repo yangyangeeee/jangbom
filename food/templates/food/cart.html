@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>장바구니</title>
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        <!-- 상단바 -->
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img class="status2" src="{% static 'img/reception.svg' %}" alt="reception" />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img class="status2" src="{% static 'img/battery.svg' %}" alt="battery" />
+          </div>
+        </div>
+
+        <!-- 앱 자체 상단바 -->
+        <div class="app-top-bar">
+          <a class="top-back" href="javascript:history.back()" aria-label="뒤로가기">
+            <img src="{% static 'img/chevron-left(gray).svg' %}" alt="back" />
+          </a>
+          <div class="top-point">
+            <a href="{% url 'food:cart_view' %}" class="basket-container" aria-label="장바구니">
+              <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket" />
+              <span class="basket-count">{{ cart_items_count|default:0 }}</span>
+            </a>
+            <a href="{% url 'point:barcode' %}" aria-label="바코드">
+              <img class="point" src="{% static 'img/lucide.svg' %}" alt="point" />
+            </a>
+            <a href="{% url 'point:point_home' %}" aria-label="포인트">
+              <p class="mypoint">{{ total_point|default:"0" }} P</p>
+            </a>
+          </div>
+        </div>
+
+        <main class="app-body">
+          <section class="mainMent">
+            <div class="userFood">
+              <p class="text1">장바구니</p>
+              <p class="text2">장 보러 갈 준비 되었나요?</p>
+            </div>
+            <div class="line">
+              <img src="{% static 'img/line-deco.svg' %}" alt="" />
+            </div>
+          </section>
+
+          <section id="mainBoard">
+            {% if not shopping_list or not items %}
+              <div class="cart-empty">
+                <img src="{% static 'img/basket.svg' %}" alt="" />
+                <p>장바구니에 담긴 식재료가 없어요</p>
+                <a class="go-explore" href="{% url 'food:ingredient_input' %}">식재료 사러가기</a>
+              </div>
+            {% else %}
+              <form method="post" action="{% url 'food:cart_view' %}">
+                {% csrf_token %}
+
+                <div class="selectBoard">
+                  <label class="custom-checkbox">
+                    <input type="checkbox" id="check-all" />
+                    <span></span>
+                    전체 선택
+                  </label>
+                  <button type="submit" name="action" value="remove_selected" class="selectBtn">선택 삭제</button>
+                </div>
+
+                <div class="cart-list" id="cart-list">
+                  {% for it in items %}
+                  <div class="imgBoard">
+                    <label class="custom-checkbox2">
+                      <input type="checkbox" name="selected" value="{{ it.id }}" />
+                      <span></span>
+                      {% if it.ingredient.image %}
+                        <img src="{{ it.ingredient.image.url }}" alt="{{ it.ingredient.name }}" />
+                      {% endif %}
+                      <div class="ingredientInfo">
+                        <p class="foodName">{{ it.ingredient.name }}</p>
+                        <p class="foodDate">{{ shopping_list.created_at|date:"Y.m.d" }}</p>
+                      </div>
+                    </label>
+
+                    <button class="remove-one" type="submit" name="remove_one" value="{{ it.id }}" aria-label="삭제">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4L12 12" stroke="#D9D9D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  {% endfor %}
+                </div>
+
+                <div class="start">
+                  <button class="cta" type="submit" name="action" value="go_confirm">장 보러 가기</button>
+                </div>
+              </form>
+            {% endif %}
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var allBox = document.getElementById('check-all');
+        if (!allBox) return;
+        allBox.addEventListener('change', function () {
+          var boxes = document.querySelectorAll('input[name="selected"]');
+          boxes.forEach(function (cb) { cb.checked = allBox.checked; });
+        });
+      })();
+    </script>
+  </body>
+</html>

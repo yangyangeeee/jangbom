@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/shopping_success.css' %}" />
+    <title>shopping_success(도착)</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box">
+        {% comment %} 상단바 {% endcomment %}
+        <div class="status-bar">
+          <p>19:20</p>
+          <div class="status1">
+            <img class="status2" src="{% static 'img/reception.svg' %}" alt="reception" />
+            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
+            <img class="status2" src="{% static 'img/battery.svg' %}" alt="battery" />
+          </div>
+        </div>
+
+        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <div class="app-top-bar">
+          <a class="top-back" href="javascript:history.back()" aria-label="뒤로가기">
+            <img src="{% static 'img/chevron-left(gray).svg' %}" alt="back" />
+          </a>
+          <div class="top-point">
+            <a href="{% url 'food:cart_view' %}" class="basket-container">
+                {% if cart_items_count == 0 %}
+                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                    <span class="basket-count">{{ cart_items_count }}</span>
+                {% else %}
+                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                    <span class="basket-count">{{ cart_items_count }}</span>
+                {% endif %}
+            </a>
+            <img class="point" src="{% static 'img/lucide.svg' %}" alt="point" />
+            <p class="mypoint">{{ total_point|default:"0" }} P</p>
+          </div>
+        </div>
+
+        <main class="app-body">
+          <div class="point-saving">
+            <img src="{% static 'img/박.svg' %}" alt="" />
+            <span class="start-point">
+              <img src="{% static 'img/coins.svg' %}" alt="" />
+              {% if message %}
+                {{ message }}
+              {% else %}
+                {{ point_earned|default:"0" }} 포인트 적립!
+              {% endif %}
+            </span>
+
+            <div class="total-point">
+              <p>누적 포인트</p>
+              <p>{{ total_point|default:"0" }}P</p>
+            </div>
+            <div class="total-runtime">
+              <p>누적 걸음 시간</p>
+              <p>
+                {% if total_runtime %}{{ total_runtime }}
+                {% elif total_steps %}{{ total_steps }}
+                {% else %}0{% endif %}
+              </p>
+            </div>
+
+            <div class="goto-myactivity">
+              <a class="saving-history-set" href="{% url 'point:point_history' %}">
+                <img class="set-img" src="{% static 'img/돈주머니.svg' %}" alt="적립내역" />
+                <div class="saving-history">
+                  적립내역
+                  <img src="{% static 'img/chevron-right(gray).svg' %}" alt="" />
+                </div>
+              </a>
+              <a class="check-ranking-set" href="{% url 'point:point_ranking' %}">
+                <img class="set-img" src="{% static 'img/훈장.svg' %}" alt="랭킹확인" />
+                <div class="check-ranking">
+                  랭킹확인
+                  <img src="{% static 'img/chevron-right(gray).svg' %}" alt="" />
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <div class="rec-more-place" data-market-id="{{ market.id }}">
+            <div class="rec-header">
+              <h3>주변에 이런 장소도 있어요</h3>
+              <button class="rec-refresh" id="nearby-refresh" type="button" aria-label="새로고침">
+                <img src="{% static 'img/rotate-ccw.svg' %}" alt="새로고침" />
+              </button>
+            </div>
+
+            <div id="nearby-empty" {% if nearby_places %}hidden{% endif %}>
+              등록된 주변 장소가 없어요.
+            </div>
+
+            <div class="rec-more-place-list" id="nearby-list">
+              {% for p in nearby_places %}
+              <div class="rec-more-place-item">
+                {% if p.image %}
+                  <img src="{{ p.image.url }}" alt="추천 장소" />
+                {% else %}
+                  <img src="{% static 'img/rec-placeholder.svg' %}" alt="추천 장소" />
+                {% endif %}
+                <div class="about-place">
+                  <div class="rec-place">
+                    <span class="rec-place-name">{{ p.name }}</span>
+                    {% if p.category %}
+                      <span class="market-sort">{{ p.category }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="rec-place-detail">
+                    <p>{{ p.info }}</p>
+                    <div class="rec-place-more">
+                      <p>영업중</p>
+                      <p>{{ p.distance_m }}m</p>
+                      {% if p.link_url %}
+                        <a class="more-btn" href="{{ p.link_url }}" target="_blank" rel="noopener">더보기</a>
+                      {% else %}
+                        <button class="more-btn" type="button" disabled>더보기</button>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </main>
+
+        {% comment %} 앱 자체 하단바 {% endcomment %}
+        <nav class="bottom-nav">
+          <a class="bottom-nav-item" href="{% url 'food:main' %}">
+            <img src="{% static 'img/house.svg' %}" alt="홈" />
+            <span class="bottom-nav-item-title">홈</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'accounts:activity_log' %}">
+            <img src="{% static 'img/footprints.svg' %}" alt="내 활동" />
+            <span class="bottom-nav-item-title">내 활동</span>
+          </a>
+          <a class="bottom-nav-item" href="{% url 'point:point_home' %}">
+            <img src="{% static 'img/circle-parking.svg' %}" alt="포인트" />
+            <span class="bottom-nav-item-title">포인트</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const btn = document.getElementById('nearby-refresh');
+        if (!btn) return;
+
+        async function refreshNearby() {
+          const marketId = document.querySelector('.rec-more-place')?.dataset?.marketId;
+          if (!marketId) return;
+
+          try {
+            const res = await fetch("{% url 'market:nearby_random' market.id %}");
+            if (!res.ok) {
+              const text = await res.text();
+              console.error("HTTP", res.status, text);
+              alert("서버 응답 오류: " + res.status);
+              return;
+            }
+
+            const data = await res.json();
+            const list = document.getElementById('nearby-list');
+            const empty = document.getElementById('nearby-empty');
+            list.innerHTML = "";
+
+            if (!data.ok || !data.items || data.items.length === 0) {
+              empty.hidden = false;
+              return;
+            }
+            empty.hidden = true;
+
+            for (const p of data.items) {
+              const item = document.createElement('div');
+              item.className = 'rec-more-place-item';
+              item.innerHTML = `
+                ${p.image_url
+                  ? `<img src="${p.image_url}" alt="추천 장소" />`
+                  : `<img src="{% static 'img/rec-placeholder.svg' %}" alt="추천 장소" />`
+                }
+                <div class="about-place">
+                  <div class="rec-place">
+                    <span class="rec-place-name">${p.name ?? ""}</span>
+                    ${p.category ? `<span class="market-sort">${p.category}</span>` : ""}
+                  </div>
+                  <div class="rec-place-detail">
+                    <p>${p.info ?? ""}</p>
+                    <div class="rec-place-more">
+                      <p>영업중${p.closing_in_minutes ? ` · ${p.closing_in_minutes}분 남음` : ""}</p>
+                      <p>${p.distance_m ?? ""}m</p>
+                      ${p.link_url ? `<a class="more-btn" href="${p.link_url}" target="_blank" rel="noopener">더보기</a>` : `<button class="more-btn" type="button" disabled>더보기</button>`}
+                    </div>
+                  </div>
+                </div>`;
+              list.appendChild(item);
+            }
+          } catch (e) {
+            console.error(e);
+            alert("주변 장소를 불러오는 중 오류가 발생했어요.");
+          }
+        }
+
+        btn.addEventListener('click', refreshNearby);
+      })();
+    </script>
+  </body>
+</html>
