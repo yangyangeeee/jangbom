@@ -11,7 +11,7 @@
   <body>
     <div class="container">
       <div class="box">
-        <!--상단바-->
+        {% comment %} 상단바 {% endcomment %}
         <div class="status-bar">
           <p>19:20</p>
           <div class="status1">
@@ -21,20 +21,15 @@
           </div>
         </div>
 
-        <!--앱 자체 상단바-->
+        {% comment %} 앱 자체 상단바 {% endcomment %}
         <div class="app-top-bar">
+          <!-- 뒤로가기 -->
           <a href="{% url 'food:ingredient_input' %}" aria-label="뒤로가기">
-            <img class="top-back" src="{% static 'img/chevron-left(gray).svg' %}" alt="back" />
+            <img class="top-back" src="{% static 'img/chevron-left.svg' %}" alt="back" />
           </a>
           <div class="top-actions" style="display:flex;align-items:center;gap:12px;">
-            <a href="{% url 'food:cart_view' %}" class="basket-container">
-                {% if cart_items_count == 0 %}
-                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
-                    <span class="basket-count">{{ cart_items_count }}</span>
-                {% else %}
-                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
-                    <span class="basket-count">{{ cart_items_count }}</span>
-                {% endif %}
+            <a href="{% url 'food:cart_view' %}" class="top-cart" aria-label="장바구니">
+              🧺{% if cart_items_count %}<span class="cart-count">{{ cart_items_count }}</span>{% endif %}
             </a>
             <div class="top-point" style="display:flex;align-items:center;gap:6px;">
               <a href="{% url 'point:barcode' %}" class="top-barcode">
@@ -84,7 +79,7 @@
               {% endfor %}
             </div>
           {% else %}
-            <div class="empty-cart" role="status">장바구니에 담긴 재료가 없습니다.</div>
+            <div style="padding:16px 24px;color:#666;">장바구니에 담긴 재료가 없습니다.</div>
           {% endif %}
         </div>
 
@@ -99,18 +94,18 @@
           </form>
         </div>
 
-        <!--앱 자체 하단바-->
+        {% comment %} 앱 자체 하단바 {% endcomment %}
         <div class="bottom-nav">
           <a class="bottom-nav-item" href="{% url 'food:main' %}">
-            <img src="{% static 'img/house(gray).svg' %}" alt="홈" />
+            <img src="{% static 'img/house.svg' %}" alt="홈" />
             <span class="bottom-nav-item-title">홈</span>
           </a>
           <a class="bottom-nav-item" href="{% url 'accounts:activity_log' %}">
-            <img src="{% static 'img/footprints(gray).svg' %}" alt="내 활동" />
+            <img src="{% static 'img/footprints.svg' %}" alt="내 활동" />
             <span class="bottom-nav-item-title">내 활동</span>
           </a>
           <a class="bottom-nav-item" href="{% url 'point:point_home' %}">
-            <img src="{% static 'img/point(gray).svg' %}" alt="포인트" />
+            <img src="{% static 'img/icons_coin.svg' %}" alt="포인트" />
             <span class="bottom-nav-item-title">포인트</span>
           </a>
         </div>

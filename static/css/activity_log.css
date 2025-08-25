@@ -1,6 +1,7 @@
 @font-face {
   font-family: "HSSanTokki20-Regular";
-  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2") format("woff2");
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
+    format("woff2");
   font-weight: normal;
   font-style: normal;
 }
@@ -9,36 +10,44 @@
   --app-max-w: 393px;
   --status-h: 44px;
   --apptop-h: 44px;
-  --nav-h: 65px;
+  --cta-h: 88px;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
 
+.container {
+  display: flex;
+  justify-content: center;
+  min-height: 100dvh;
+  background: #efefef;
+}
+
 .box {
   position: static;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
   width: min(100vw, var(--app-max-w));
   min-height: 100dvh;
   margin: 0 auto;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .status-bar {
   position: sticky;
   top: 0;
   z-index: 50;
+  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: var(--status-h);
   padding: 0 25px;
-  background: #fff;
   font-size: 18px;
   font-weight: 600;
 }
@@ -49,7 +58,7 @@ html, body {
   gap: 5px;
 }
 
-.status2 {
+.status2 img {
   width: 18px;
   height: 13px;
 }
@@ -58,39 +67,18 @@ html, body {
   position: sticky;
   top: var(--status-h);
   z-index: 49;
+  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: var(--apptop-h);
   padding: 0 15px;
-  background: #fff;
 }
 
 .top-back img {
   width: 24px;
   height: auto;
-}
-
-.basket-container {
-  position: relative;
-  display: inline-block;
-}
-
-.basket-count {
-  position: absolute;
-  right: -6px;
-  bottom: -1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  background: #545454;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 300;
-  border-radius: 50%;
 }
 
 .top-point {
@@ -106,71 +94,63 @@ html, body {
 }
 
 .mypoint {
+  font-size: 14px;
+  font-weight: 600;
+  width: 61px;
+  height: 27px;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 61px;
-  height: 27px;
   background: #f5f5f5;
   border: 1px solid #d9d9d9;
   border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .app-body {
-  flex: 1 1 auto;
+  flex: 1;
   min-height: 0;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  background: #f5f5f5;
-  padding: 0 0 calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);
-}
-
-.myactivity-log{
-  margin-bottom: 0;
-  background:#fff;
+  /* padding: 12px 16px calc(var(--cta-h) + env(safe-area-inset-bottom)); */
+  box-sizing: border-box;
 }
 
 .app-body img {
-  display: block;
   max-width: 100%;
   height: auto;
+  display: block;
 }
 
-/* 내 활동 내역 */
 .myactivity-log {
+  width: 100%;
+  padding: 8px 16px 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  padding: 8px 16px 30px;
 }
 
 .myactivity-log h3 {
   margin: 8px 0 16px;
   font-family: "HSSanTokki20-Regular", sans-serif;
+  text-align: center;
   font-size: 26px;
   color: #545454;
-  text-align: center;
 }
 
 .my-profile {
   display: grid;
   grid-template-columns: 72px 1fr;
-  align-items: center;
   gap: 30px;
+  align-items: center;
   margin-bottom: 14px;
 }
 
 .profile-pic {
   width: 70px;
   height: 70px;
-  background: #f5f5f5;
   border-radius: 50%;
+  background: #f5f5f5;
 }
 
 .nickname {
@@ -193,9 +173,9 @@ html, body {
   justify-content: space-between;
   align-items: stretch;
   gap: 33px;
+  padding: 15px 20px 15px 10px;
   width: 285px;
   height: 78px;
-  padding: 15px 20px 15px 10px;
   background: #f5f5f5;
   border-radius: 22px;
 }
@@ -213,10 +193,11 @@ html, body {
 
 .n-perchase-num,
 .n-CO2-num {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
+  /* gap: 6px; */
 }
 
 .n-perchase2,
@@ -226,7 +207,6 @@ html, body {
   font-weight: 600;
   color: #d9d9d9;
 }
-
 .n-perchase3,
 .n-CO23 {
   margin: 0;
@@ -235,20 +215,13 @@ html, body {
   color: #545454;
 }
 
-/* log 카드 */
 .more-function {
+  width: 393px;
+  height: 852px;
+  background: #f5f5f5;
+  padding: 23px;
   display: flex;
   flex-direction: column;
-  /* width: 393px;
-  height: 852px; */
-  padding: 23px;
-  background: #f5f5f5;
-  width: auto; 
-  height: auto;
-  margin-top: 0;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  min-height: 0;
 }
 
 .more-function-item + .more-function-item {
@@ -276,21 +249,20 @@ html, body {
   height: 24px;
 }
 
-/* 앱 자체 하단바 */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  z-index: 300;
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  gap: 20px;
+  background-color: #fff;
+  bottom: 0;
   width: 393px;
   height: 65px;
-  background: #f5f5f5;
-  border-top: 1px solid #d9d9d9;
-  box-sizing: border-box;
+  z-index: 300;
   overflow-y: auto;
+  box-sizing: border-box;
+  border: 1px solid #d9d9d9;
+  gap: 20px;
+  justify-content: space-around;
+  align-items: center;
 }
 
 .bottom-nav-item {
@@ -308,5 +280,4 @@ html, body {
 .bottom-nav-item-title {
   font-size: 12px;
   font-weight: 600;
-  color: #a5a5a5;
 }

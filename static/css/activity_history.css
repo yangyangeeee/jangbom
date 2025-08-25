@@ -6,42 +6,23 @@
   font-style: normal;
 }
 
-:root {
-  --app-max-w: 393px;
-  --status-h: 44px;
-  --apptop-h: 44px;
-  --cta-h: 88px;
-  --nav-h: 65px;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
-
 .box {
+  width: 100%;
+  position: absolute;
   display: flex;
+  justify-content: center;
+  align-items: center;
   flex-direction: column;
-  align-items: stretch;
-  position: static;
-  width: min(100vw, var(--app-max-w));
-  min-height: 100dvh;
-  margin: 0 auto;
-  background: #fff;
+  top: 0;
 }
 
 .status-bar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  height: var(--status-h);
+  width: 393px;
+  height: 44px;
   padding: 0 25px;
-  background: #fff;
   font-size: 18px;
   font-weight: 600;
 }
@@ -58,42 +39,17 @@ body {
 }
 
 .app-top-bar {
-  position: sticky;
-  top: var(--status-h);
-  z-index: 49;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  height: var(--apptop-h);
+  width: 393px;
+  height: 44px;
   padding: 0 15px;
-  background: #fff;
 }
 
 .top-back img {
   width: 24px;
   height: auto;
-}
-
-.basket-container {
-  position: relative;
-  display: inline-block;
-}
-
-.basket-count {
-  position: absolute;
-  right: -6px;
-  bottom: -1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  background: #545454;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 300;
-  border-radius: 50%;
 }
 
 .top-point {
@@ -102,93 +58,63 @@ body {
   gap: 10px;
 }
 
-.point {
-  margin-top: 4px;
-}
-
 .point img {
   width: 22px;
   height: 20px;
 }
 
+.point {
+  margin-top: 4px;
+}
+
 .mypoint {
+  font-size: 14px;
+  font-weight: 600;
+  width: 61px;
+  height: 27px;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 61px;
-  height: 27px;
-  background: #f5f5f5;
+  background-color: #f5f5f5;
   border: 1px solid #d9d9d9;
   border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.app-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  padding: 0 0 calc(var(--nav-h, 65px) + env(safe-area-inset-bottom) + 16px);
-  background: #f5f5f5;
-}
-
-.app-body img {
-  display: block;
-  max-width: 100%;
-  height: auto;
 }
 
 .ah-list-fullset {
   width: 393px;
-  height: 700px;
-  margin-top: 0;
-  padding: 10px 16px;
+  height: 800px;
   background: #f6f6f6;
-  border-top: 1px solid #e9e9e9;
   box-sizing: border-box;
-  overflow-y: auto;
-}
-
-.ah-list-fullset > *:first-child {
-  margin-bottom: 5px;
-}
-
-.list-set {
-  min-height: 0;
+  padding-bottom: 16px;
+  margin-top: 0;
+  border-top: 1px solid #e9e9e9;
+  padding: 10px 16px 16px;
+  box-sizing: border-box;
 }
 
 .myactivity-log {
+  width: 100%;
+  padding: 8px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  padding: 8px 16px;
-  position: sticky;
-  top: calc(var(--status-h) + var(--apptop-h));
-  z-index: 48;
-  justify-content: center;
-  height: var(--apptitle-h);
-  padding-bottom: 15px;
-  background: #fff;
-  color: #545454;
-  letter-spacing: -0.48px;
-  font-size: 24px;
-  font-weight: 600;
 }
 
 .myactivity-log h3 {
   margin: 5px 0;
-  text-align: center;
   font-family: "HSSanTokki20-Regular", sans-serif;
+  text-align: center;
   font-size: 26px;
   color: #545454;
 }
 
-.ah-search {
+.ah-list-fullset > *:first-child {
+  /* margin-top: 0 !important; */
+  margin-bottom: 5px;
+}
+
+.ah_search {
   display: flex;
   justify-content: center;
   padding: 0;
@@ -204,9 +130,9 @@ body {
   width: 100%;
   height: 100%;
   padding: 0 48px 0 18px;
+  background: #fff;
   border: 1px solid #d9d9d9;
   border-radius: 999px;
-  background: #fff;
   outline: none;
   resize: none;
   overflow: hidden;
@@ -216,12 +142,17 @@ body {
 
 .input-placeholder {
   position: absolute;
+
   left: 18px;
   top: 48%;
   transform: translateY(-50%);
   color: #b9b9b9;
   font-size: 15px;
   pointer-events: none;
+}
+
+.input-rec:focus ~ .input-placeholder {
+  opacity: 0.5;
 }
 
 .input-rec::placeholder {
@@ -245,9 +176,9 @@ body {
   transform: translateY(-50%);
   width: 32px;
   height: 32px;
-  padding: 0;
   border: 0;
   background: transparent;
+  padding: 0;
   cursor: pointer;
 }
 
@@ -263,28 +194,6 @@ body {
   gap: 5px;
   padding: 9px 16px 4px;
   background: #f6f6f6;
-}
-
-.search-filter p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.search-filter .lately,
-.search-filter .abc {
-  display: inline-block;
-  padding: 10px 14px;
-  border-radius: 999px;
-  font-weight: 800;
-  color: #cfcfcf;
-  cursor: pointer;
-}
-
-.search-filter .is-active {
-  color: #2b2b2b;
-  background: #f5f6f7;
-  box-shadow: inset 0 0 0 1px #e9e9e9;
 }
 
 .filters {
@@ -306,8 +215,8 @@ body {
   gap: 6px;
   padding: 0 10px;
   background: transparent;
-  color: #545454;
   font-weight: 600;
+  color: #545454;
   cursor: pointer;
 }
 
@@ -325,28 +234,24 @@ body {
   transform: translateY(1px);
 }
 
-.range-dropdown [aria-expanded="true"] .caret {
-  transform: rotate(180deg);
-}
-
 .range-menu {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  z-index: 500;
   width: 145px;
-  margin: 0;
-  list-style: none;
   background: #fff;
   border: 1px solid #e6e6e6;
   border-radius: 8px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  margin: 0;
+  list-style: none;
+  z-index: 500;
 }
 
 .range-item {
   padding: 9px 12px;
-  color: #9e9e9e;
   font-size: 14px;
+  color: #9e9e9e;
   cursor: pointer;
 }
 
@@ -356,9 +261,15 @@ body {
 }
 
 .range-item.is-selected {
-  background: #f2f7ea;
   color: #222;
   font-weight: 900;
+  background: #f2f7ea;
+}
+
+.search-filter p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .list-set {
@@ -368,13 +279,13 @@ body {
 }
 
 .recipes_list {
+  margin: 10px 16px;
+  padding: 9px 16px;
+  width: 330px;
+  height: 70px;
   display: flex;
   align-items: center;
   column-gap: 12px;
-  width: 330px;
-  height: 70px;
-  margin: 10px 16px;
-  padding: 9px 16px;
   background: #fff;
   border: 1px solid #d9d9d9;
   border-radius: 20px;
@@ -384,46 +295,42 @@ body {
   margin-top: 8px;
 }
 
-.recipes_list:last-child {
-  margin-bottom: 16px;
-}
-
 .recipes_img {
-  flex-shrink: 0;
   width: 24px;
   height: 24px;
-  margin: 0 5px;
+  flex-shrink: 0;
   object-fit: contain;
   opacity: 0.9;
+  margin: 0 5px;
 }
 
 .menu_item {
-  display: flex;
-  flex-direction: column;
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .menu_name {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: #acce58;
   font-size: 20px;
   font-weight: 600;
+  color: #acce58;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menu_date {
   margin: 0;
-  color: #545454;
   font-size: 15px;
+  color: #545454;
   font-weight: 500;
 }
 
 .see-detail {
-  flex-shrink: 0;
   width: 24px;
   height: 24px;
+  flex-shrink: 0;
   opacity: 0.45;
 }
 
@@ -431,21 +338,20 @@ body {
   transform: translateY(1px);
 }
 
-/* 앱 자체 하단바 */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  z-index: 300;
   display: flex;
+  background-color: #fff;
+  bottom: 0;
+  width: 393px;
+  height: 65px;
+  z-index: 300;
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 1px solid #d9d9d9;
+  gap: 20px;
   justify-content: space-around;
   align-items: center;
-  gap: 20px;
-  height: 65px;
-  background: #f5f5f5;
-  border-top: 1px solid #d9d9d9;
-  box-sizing: border-box;
-  width: min(100vw, var(--app-max-w));
-  overflow: visible;
 }
 
 .bottom-nav-item {
@@ -463,5 +369,22 @@ body {
 .bottom-nav-item-title {
   font-size: 12px;
   font-weight: 600;
-  color: #a5a5a5;
+}
+
+.search-filter .lately,
+.search-filter .abc {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  color: #cfcfcf;
+  cursor: pointer;
+}
+.search-filter .is-active {
+  color: #2b2b2b;
+  background: #f5f6f7;
+  box-shadow: inset 0 0 0 1px #e9e9e9;
+}
+.range-dropdown [aria-expanded="true"] .caret {
+  transform: rotate(180deg);
 }

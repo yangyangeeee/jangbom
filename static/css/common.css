@@ -1,7 +1,6 @@
 button,
 a {
   cursor: pointer;
-  background: transparent;
 }
 
 body {
@@ -16,6 +15,10 @@ body {
 }
 
 .container {
+  /* display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; */
   position: relative;
   width: 393px;
   height: 852px;

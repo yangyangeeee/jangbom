@@ -11,7 +11,7 @@
   <body>
     <div class="container">
       <div class="box">
-        <!--상단바-->
+        {% comment %} 상단바 {% endcomment %}
         <div class="status-bar">
           <p>19:20</p>
           <div class="status1">
@@ -21,7 +21,7 @@
           </div>
         </div>
 
-        <!--앱 자체 상단바-->
+        {% comment %} 앱 자체 상단바 {% endcomment %}
         <div class="app-top-bar">
           <a href="{% url 'food:main' %}" aria-label="닫기">
             <img class="top-back" src="{% static 'img/chevron-x.svg' %}" alt="close" />
@@ -31,20 +31,12 @@
         <h3 class="add-mat-title">재료 직접 담기</h3>
         <p>따로 구매할 재료가 있다면 직접 추가해보세요!</p>
 
-        <div class="addr-inputbar">
-          <form action="{% url 'food:ingredient_input' %}" method="get" class="addr-input" role="search">
-            <button type="submit" class="addr-send" aria-label="검색" name="action" value="search">
-              <img src="{% static 'img/search.svg' %}" alt="검색" />
+        <div class="ah_search">
+          <form class="input-row" method="get" action="{% url 'food:ingredient_input' %}">
+            <textarea class="input-rec" name="search" placeholder=" " rows="1">{{ search_query|default:'' }}</textarea>
+            <button class="input-rec-search" type="submit" name="action" value="search" aria-label="검색">
+              <img src="{% static 'img/search.svg' %}" alt="확인" />
             </button>
-            <input
-              id="search"
-              name="search"
-              type="text"
-              placeholder="재료명으로 검색"
-              autocomplete="off"
-              aria-label="재료 검색 입력"
-              value="{{ search_query|default:'' }}"
-            />
           </form>
         </div>
 

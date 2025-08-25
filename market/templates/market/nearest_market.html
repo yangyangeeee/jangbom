@@ -11,7 +11,7 @@
   <body>
     <div class="container">
       <div class="box">
-        <!-- 상단바 -->
+        {% comment %} 상단바 {% endcomment %}
         <div class="status-bar">
           <p>19:20</p>
           <div class="status1">
@@ -21,27 +21,18 @@
           </div>
         </div>
 
-        <!-- 앱 자체 상단바-->
+        {% comment %} 앱 자체 상단바 {% endcomment %}
         <div class="app-top-bar">
           <a href="javascript:history.back()" aria-label="뒤로가기">
             <img class="top-back" src="{% static 'img/chevron-left.svg' %}" alt="뒤로가기" />
           </a>
-          <div class="top-actions" style="display:flex;align-items:center;gap:12px;">
-            <a href="{% url 'food:cart_view' %}" class="basket-container">
-              {% if cart_items_count == 0 %}
-                <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
-                <span class="basket-count">{{ cart_items_count }}</span>
-              {% else %}
-                <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
-                <span class="basket-count">{{ cart_items_count }}</span>
-              {% endif %}
+
+          <div class="top-point">
+            <a class="top-cart" href="{% url 'food:cart_view' %}" aria-label="장바구니">
+              🧺{% if cart_items_count %}<span class="cart-count">{{ cart_items_count }}</span>{% endif %}
             </a>
-            <div class="top-point" style="display:flex;align-items:center;gap:6px;">
-              <a href="{% url 'point:barcode' %}" class="top-barcode">
-                <img class="point" src="{% static 'img/lucide.svg' %}" alt="point" />
-              </a>
-              <p class="mypoint">{{ total_point }} P</p>
-            </div>
+            <img class="point" src="{% static 'img/lucide.svg' %}" alt="point" />
+            <p class="mypoint">{{ total_point }} P</p>
           </div>
         </div>
 

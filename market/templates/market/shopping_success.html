@@ -24,17 +24,18 @@
         {% comment %} 앱 자체 상단바 {% endcomment %}
         <div class="app-top-bar">
           <a class="top-back" href="javascript:history.back()" aria-label="뒤로가기">
-            <img src="{% static 'img/chevron-left(gray).svg' %}" alt="back" />
+            <img src="{% static 'img/chevron-left.svg' %}" alt="back" />
           </a>
           <div class="top-point">
-            <a href="{% url 'food:cart_view' %}" class="basket-container">
-                {% if cart_items_count == 0 %}
-                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
-                    <span class="basket-count">{{ cart_items_count }}</span>
-                {% else %}
-                    <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
-                    <span class="basket-count">{{ cart_items_count }}</span>
-                {% endif %}
+            <a
+              href="{% url 'food:cart_view' %}"
+              class="cart-link"
+              aria-label="장바구니"
+              style="margin-left: 8px"
+            >
+              🧺{% if cart_items_count %}<span class="cart-badge"
+                >{{ cart_items_count }}</span
+              >{% endif %}
             </a>
             <img class="point" src="{% static 'img/lucide.svg' %}" alt="point" />
             <p class="mypoint">{{ total_point|default:"0" }} P</p>
