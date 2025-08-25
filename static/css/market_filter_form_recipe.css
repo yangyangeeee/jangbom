@@ -1,198 +1,137 @@
-:root {
-  --app-max-w: 393px;
-  --status-h: 44px;
-  --apptop-h: 44px;
-  --cta-h: 66px;
-}
-
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  outline: 0;
-  font-family: "Pretendard";
-  font-style: normal;
-  text-decoration: none;
-  cursor: default;
-  caret-color: transparent;
+    font-family: 'Pretendard';
+    font-style: normal;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    box-sizing: border-box;
+    text-decoration: none;
+    cursor: default;
+    caret-color: transparent;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
+#Container{
+    position: relative;
+    width: 393px;
+    height: 852px;
+    margin: 0 auto;
+    border: 1px solid var(--Gray-Primary, #d9d9d9);
 }
 
-.box {
-  position: static;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  width: min(100vw, var(--app-max-w));
-  min-height: 100dvh;
-  margin: 0 auto;
-  background: #fff;
+/* 상단 바 */
+#pointBar{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    margin-left: 10px;
 }
 
-.status-bar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: var(--status-h);
-  padding: 0 25px;
-  background: #fff;
-  font-size: 18px;
-  font-weight: 600;
+
+
+/* 멘트부분 */
+.mainMent{
+    margin-top : 12px ;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.mainMent p{
+    color: #545454;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: normal;
 }
 
-.status1 {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
 
-.status2 {
-  display: block;
-  width: 18px;
-  height: 13px;
-}
+/* 메인 보드 */
 
-.app-top-bar {
-  position: sticky;
-  top: var(--status-h);
-  z-index: 49;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: var(--apptop-h);
-  padding: 0 15px;
-  background: #fff;
+#mainBoard{
+    padding: 0 48px;
 }
-
-.top-back img {
-  display: block;
-  width: 24px;
-  height: auto;
-}
-
-.app-body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--cta-h) + 20px);
-}
-
-.mainMent {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 12px;
-}
-
-.mainMent p {
-  color: #545454;
-  text-align: center;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: normal;
-}
-
-#mainBoard {
-  padding: 0 48px;
-}
-
 #mainBoard * {
-  user-select: none;
+user-select: none;
 }
 
-.subTitle {
-  margin-top: 30px;
-  color: #a5a5a5;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: normal;
+.subTitle{
+    color: #A5A5A5;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: normal;
+    margin-top: 30px;
 }
 
-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 8px;
-  border-bottom: 1px solid #e0e0e0;
-  color: #545454;
-  font-size: 20px;
-  font-weight: 500;
-  line-height: normal;
-  cursor: pointer;
-}
 
+
+
+/* 체크박스 숨기기 */
 label input[type="checkbox"] {
-  display: none;
+    display: none;
 }
+
+/* 커스텀 체크박스 만들기 */
+label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 글자와 체크박스 분리 */
+    padding: 14px 8px;
+    border-bottom: 1px solid #E0E0E0; /* 각 항목 구분선 */
+    cursor: pointer;
+    color: #545454;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: normal;
+}
+
 
 label span {
-  position: relative;
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  border: 1px solid #000;
-  border-radius: 4px;
-  transition: background 0.2s, border-color 0.2s;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #000;
+    display: inline-block;
+    border-radius: 4px; /* 사각 모서리 */
+    transition: background 0.2s, border-color 0.2s;
+    position: relative;
 }
 
+/* 체크되었을 때 체크 표시 */
 label input[type="checkbox"]:checked + span::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 7px;
-  width: 6px;
-  height: 12px;
-  border: 1px solid #000;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 7px;
+    width: 6px;
+    height: 12px;
+    border: 1px solid #000;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
 }
 
-.add-mat {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  z-index: 60;
-  display: flex;
-  justify-content: center;
-  width: min(100vw, var(--app-max-w));
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  background: #fff;
-  border-top: 1px solid #eee;
-}
 
-.add-mat-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
 
-.savaBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 271px;
-  height: 53px;
-  border-radius: 15px;
-  background: #beda78;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: normal;
-  cursor: pointer;
+/* 저장하기 버튼 */
+button{
+    position: absolute;
+    bottom: 102px;
+    left: 61px;
+
+    display: flex;
+    width: 271px;
+    height: 53px;
+    padding: 14px 0;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 15px;
+    background: #BEDA78;
+
+    color: #FFF;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: normal;
 }

@@ -60,20 +60,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderBoxes = (val) => {
     const digits = (val || "").replace(/\D/g, "").slice(0, 4);
-
     boxes.forEach((b, i) => {
-      const filled = !!digits[i];
-      b.textContent = filled ? "•" : "";           // ← 숫자 대신 점 표시
-      b.classList.toggle("has-value", filled);
+      b.textContent = digits[i] ?? "";
+      b.classList.toggle("has-value", !!digits[i]);
       b.classList.toggle("next", i === digits.length && digits.length < boxes.length);
       b.classList.remove("error");
     });
-
-    // 실제 값은 히든 인풋에 유지 → 서버로 숫자 그대로 전송됨
     hidden.value = digits;
     btnNext.disabled = digits.length !== 4;
+
+    // if (pinError && !pinError.hasAttribute("hidden")) {
+    //   pinError.setAttribute("hidden", "");
+    // }
   };
-  
+
   // 초기 상태
   closeDialpad();
   renderBoxes("");

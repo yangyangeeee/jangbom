@@ -1,270 +1,225 @@
-@font-face {
-  font-family: "HSSanTokki20-Regular";
-  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
-    format("woff2");
-  font-weight: normal;
-  font-style: normal;
+* {
+    font-family: 'Pretendard';
+    font-style: normal;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    box-sizing: border-box;
+    text-decoration: none;
+    background: none; 
 }
 
-:root {
-  --app-max-w: 393px;
-  --status-h: 44px;
-  --apptop-h: 44px;
-  --cta-h: 88px;
-  --nav-h: 65px;
+#Container{
+    position: relative;
+    width: 393px;
+    height: 852px;
+    margin: 0 auto;
+    border: 1px solid var(--Gray-Primary, #d9d9d9);
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
+/* 상단 바 */
+#pointBar{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 12px;
 }
 
-.box {
-  position: static;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  width: min(100vw, var(--app-max-w));
-  min-height: 100dvh;
-  margin: 0 auto;
-  background: #fff;
-}
 
-.status-bar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--status-h);
-  width: 100%;
-  padding: 0 25px;
-  background: #fff;
-  font-size: 18px;
-  font-weight: 600;
-}
 
-.status1 {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
 
-.status2 {
-  display: block;
-  width: 18px;
-  height: 13px;
-}
 
-.app-top-bar {
-  position: sticky;
-  top: var(--status-h);
-  z-index: 49;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--apptop-h);
-  width: 100%;
-  padding: 0 15px;
-  background: #fff;
-}
-
-.top-back img {
-  display: block;
-  width: 32px;
-  height: auto;
-}
-
-.basket-container {
-  position: relative;
-  display: inline-block;
-}
-
-.basket-count {
-  position: absolute;
-  right: -6px;
-  bottom: -1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #545454;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 300;
-}
-
-.top-point {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.point {
-  display: block;
-  width: 22px;
-  height: 20px;
-}
-
-.mypoint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 61px;
-  height: 27px;
-  border: 1px solid #d9d9d9;
-  border-radius: 20px;
-  background: #f5f5f5;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.mainMent {
-  position: sticky;
-  top: calc(var(--status-h) + var(--apptop-h));
-  z-index: 48;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: min(100vw, var(--app-max-w));
-  height: var(--apptitle-h);
-  margin: 0 auto;
-  padding: 15px 0;
-  background: #fff;
-}
-
-.userFood {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.userFood p {
-  max-width: 300px;
-  overflow-wrap: break-word;
-  color: #545454;
-  text-align: center;
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.app-body {
-  overflow-y: auto;
-  height: calc(100dvh - var(--status-h) - var(--apptop-h) - var(--nav-h));
-  padding: 12px 0;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
+/* 메인 보드 */
 #mainBoard {
-  margin: 0 16px 8px;
+    margin: 0 25px;
+    height: 600px;
+
+    /* 스크롤 설정 */
+    overflow-y: auto;    /* 세로 스크롤만 가능 */
+    overflow-x: hidden;  /* 가로 스크롤 숨김 */
+
+    /* 스크롤바 숨기기 (웹킷 기반 브라우저) */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
 }
 
+#mainBoard::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+
+.mainMent{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 40px;
+}
+
+.mainMent p{
+    color: #545454;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: normal;
+}
+
+
+
+
+
+
+
+/* 메인 gpt 대화 부분 */
 .chatBoard {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.userMsg,
-.gptMsg {
-  display: inline-block;
-  padding: 10px 12px;
-  margin: 6px 0;
-  border-radius: 16px;
-  background: #f5f5f5;
-  white-space: pre-wrap;
-  word-break: break-word;
+    display: flex;
+    flex-direction: column; /* 세로로 메시지 쌓기 */
+    gap:10px;
 }
 
 .userMsg {
-  align-self: flex-end;
-  max-width: 70%;
-  text-align: right;
+    display: inline-block;
+    max-width: 70%; 
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin: 10px 0;
+    background: #F5F5F5;
+
+    align-self: flex-end;  /* 부모 flex 기준 오른쪽 끝으로 이동 */
+    text-align: right; 
+
+    word-wrap: break-word;     /* 긴 단어라도 줄바꿈 */
+    overflow-wrap: break-word; /* 호환용 */
+    white-space: normal;
+}
+
+.userMsg p{
+    color: #545454;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: normal;
 }
 
 .gptMsg {
-  align-self: flex-start;
-  max-width: 90%;
-  text-align: left;
+    display: inline-block;
+    width:316px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin: 10px 0;
+    background: #F5F5F5;
+
+    align-items: flex-start;  /* 부모 flex 기준 오른쪽 끝으로 이동 */
+    text-align: left; 
+
+    word-wrap: break-word;     /* 긴 단어라도 줄바꿈 */
+    overflow-wrap: break-word; /* 호환용 */
+    white-space: normal;
+    background: #F5F5F5;
 }
 
-.userMsg p,
-.gptMsg p {
-  margin: 0;
-  color: #545454;
-  font-size: 15px;
-  font-weight: 400;
+.gptMsg p{
+    color: #545454;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: normal;
 }
 
-.gptBox {
-  position: fixed;
-  left: 50%;
-  bottom: 8px;
-  transform: translateX(-50%);
-  z-index: 350;
-  display: flex;
-  align-items: center;
-  height: 49px;
-  width: min(
-    calc(100vw - 32px),
-    calc(var(--app-max-w) - 32px)
-  );
-  padding: 8px 12px;
-  margin-bottom: 5px;
-  border: 1px solid #d9d9d9;
-  border-radius: 20px;
-  background: #fff;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* gpt 부분 */
+
+#gptBox{
+    display: flex;
+    padding: 13px 13px 12px 21px;
+    align-items: center;
+    border-radius: 20px;
+    border: 1px solid #D9D9D9;
+    background: #FFF;
+    position: absolute;
+    bottom: 20px;
+    left: 24px;
+    width: 346px;
+    transition: transform 0.3s ease;
 }
 
 .inputBar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap:5px;
+    justify-content: space-between;
 }
-
-.gptInput {
-  flex: 1 1 auto;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  font-size: 16px;
-  caret-color: auto;
+.gptInput{
+    width:100%
 }
-
 .gptInput::placeholder {
-  color: #d9d9d9;
-  font-weight: 500;
+    color: #D9D9D9;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: normal;
 }
 
-.rightArrow {
-  display: flex;
-  align-items: center;
-  padding: 0;
-  background: transparent;
-}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* input이 입력될 떄 키보드 생성 */
+/* 기본 상태는 키보드 이미지 숨김 */
+
+
+/* 키보드 이미지 */
 .keyboard-icon {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  z-index: 1000;
-  display: none;
-  width: min(100vw, var(--app-max-w));
-  height: 305px;
-  object-fit: contain;
-  pointer-events: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 393px;
+    height: 305px;
+    display: none;
+    z-index: 1000;
+    object-fit: contain;
+    pointer-events: none;
 }
 
-.gptBox.up {
-  bottom: calc(305px + 12px);
-  z-index: 1001;
+
+#gptBox.up {
+    bottom: 320px; /* 키보드 높이(305px) + 여유(20px) 만큼 올림 */
+    z-index: 1001;
 }
+
+
+

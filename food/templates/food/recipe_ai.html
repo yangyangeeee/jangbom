@@ -1,140 +1,84 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/food_recipe_ai.css' %}" />
-    <link rel="stylesheet" href="{% static 'style.css' %}" />
     <script src="{% static 'js/food_recipe_ai.js' %}" defer></script>
     <title>Document</title>
-  </head>
-  <body>
-    <div class="container">
-      <div class="box">
-        <!-- 상단바 -->
-        <div class="status-bar">
-          <p>19:20</p>
-          <div class="status1">
-            <img
-              class="status2"
-              src="{% static 'img/reception.svg' %}"
-              alt="reception"
-            />
-            <img class="status2" src="{% static 'img/wifi.svg' %}" alt="wifi" />
-            <img
-              class="status2"
-              src="{% static 'img/battery.svg' %}"
-              alt="battery"
-            />
-          </div>
-        </div>
-
-        <!-- 앱 자체 상단바 -->
-        <div class="app-top-bar">
-          <a
-            class="top-back"
-            href="{% url 'food:recipe_input' %}"
-            aria-label="뒤로가기"
-          >
-            <img src="{% static 'img/chevron-left(gray).svg' %}" alt="back" />
-          </a>
-          <div class="top-point">
-            <a
-              href="{% url 'food:cart_view' %}"
-              class="basket-container"
-              aria-label="장바구니"
-            >
-              <img
-                src="{% static 'img/basket.svg' %}"
-                class="basket"
-                alt="basket"
-              />
-              <span class="basket-count">{{ cart_items_count }}</span>
+</head>
+<body data-empty-chat="{% if chat_history|length == 0 %}true{% else %}false{% endif %}">
+    <div id="Container">
+        <img id="statusBar" src="{% static 'img/iPhone Status bar.png' %}"/>
+        <div id="pointBar">
+            <a href="{% url 'food:recipe_input' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M20 24L12 16L20 8" stroke="#D9D9D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
             </a>
-            <a href="{% url 'point:barcode' %}">
-              <img
-                class="point"
-                src="{% static 'img/lucide.svg' %}"
-                alt="point"
-              />
-            </a>
-            <a href="{% url 'point:point_home' %}">
-              <p class="mypoint">{{ total_point|default:"0" }} P</p>
-            </a>
-          </div>
-        </div>
-
-        <main class="app-body">
-          <div class="mainMent">
-            <div class="userFood">
-              <p>{{ user.addr_level3 }} {{ user.nickname }}님,</p>
-              <p>어떤 요리를 만드실 건가요?</p>
+            <div class="userBar">
+                <a href="{% url 'food:cart_view' %}" class="basket-container">
+                        {% if cart_items_count == 0 %}
+                            <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                            <span class="basket-count">{{ cart_items_count }}</span>
+                        {% else %}
+                            <img src="{% static 'img/basket.svg' %}" class="basket" alt="basket">
+                            <span class="basket-count">{{ cart_items_count }}</span>
+                        {% endif %}
+                </a>
+                <a href="{% url 'point:barcode' %}"><img src="{% static 'img/lucide.svg' %}" class="lucide" alt="lucide"></a>
+                <a href="{% url 'point:point_home' %}"><div class="pointNum"><p>{{ total_point }}P</p></div></a>
             </div>
-          </div>
-
-          <div id="mainBoard">
+        </div>
+        <div class="mainMent">
+                <div class="userFood">
+                    <p>{{ user.addr_level3 }} {{ user.nickname }}님,</p>
+                    <p>어떤 요리를 만드실 건가요?</p>
+                </div>
+        </div>
+        <div id="mainBoard">
             <div class="chatBoard">
-              {% for msg in chat_history %} {% if msg.role == 'user' %}
-              <div class="userMsg"><p>{{ msg.content }}</p></div>
-              {% elif msg.role == 'assistant' %}
-              <div class="gptMsg"><p>{{ msg.content }}</p></div>
-              {% endif %} {% endfor %}
+                {% for msg in chat_history  %}
+                    {% if msg.role == 'user' %}
+                        <div class="userMsg">
+                            <p>{{ msg.content }}</p>
+                        </div>
+                    {% elif msg.role == 'assistant' %}
+                        <div class="gptMsg">
+                            <p>{{ msg.content }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
             </div>
-          </div>
-        </main>
+        </div>
+
 
         <div id="gptBox">
-          <form method="post" class="inputBar">
-            {% csrf_token %}
-            <input
-              type="text"
-              name="message"
-              placeholder="요리명을 입력해주세요"
-              value=""
-              class="gptInput"
-            />
-            <button type="submit" class="rightArrow" aria-label="전송">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M12 5L19 12M19 12L12 19M19 12H5"
-                  stroke="#ACCE58"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </button>
-          </form>
+            <form method="post" class="inputBar">
+                {% csrf_token %}
+                <input type="text" name="message" placeholder="요리명을 입력해주세요" value="" class="gptInput">
+                <button type="submit" class="rightArrow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 5L19 12M19 12L12 19M19 12H5" stroke="#ACCE58" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </form>
         </div>
 
-        {% if latest_recipe %} {% if latest_recipe|length > 0 %}
-        <form
-          method="get"
-          class="ingredientsGet"
-          action="{% url 'food:recipe_ingredients' %}"
-        >
-          {% csrf_token %}
-          <input type="hidden" name="recipe" value="{{ latest_recipe }}" />
-          <button type="submit" class="foodBtn">
-            '{{ latest_recipe }}' 재료 담기
-          </button>
-        </form>
-        {% endif %} {% endif %}
+        
+        {% if latest_recipe %}
+            {% if latest_recipe|length > 0 %}
+                <form method="get" class="ingredientsGet" action="{% url 'food:recipe_ingredients' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="recipe" value="{{ latest_recipe }}">
+                    <button type="submit" class="foodBtn">'{{ latest_recipe }}' 재료 담기</button>
+                </form>
+            {% endif %}
+        {% endif %}
 
-        <!-- 키보드 UI 데모 이미지 (옵션) -->
-        <img
-          src="{% static 'img/iOS.png' %}"
-          alt="keyboard"
-          class="keyboard-icon"
-        />
-      </div>
+        
+        <img src="{% static 'img/iOS.png' %}" alt="keyboard" class="keyboard-icon">
     </div>
-  </body>
+</body>
 </html>

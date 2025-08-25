@@ -6,9 +6,6 @@
   font-style: normal;
 }
 
-/* ================================
-   Root & Reset
-================================ */
 :root {
   --app-max-w: 393px;
   --status-h: 44px;
@@ -23,34 +20,28 @@ body {
   padding: 0;
 }
 
-/* ================================
-   App Shell
-================================ */
 .box {
   position: static;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
   width: min(100vw, var(--app-max-w));
   min-height: 100dvh;
   margin: 0 auto;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
-/* ================================
-   Top Bars
-================================ */
 .status-bar {
   position: sticky;
   top: 0;
   z-index: 50;
+  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: var(--status-h);
   padding: 0 25px;
-  background: #fff;
   font-size: 18px;
   font-weight: 600;
 }
@@ -62,7 +53,6 @@ body {
 }
 
 .status2 img {
-  display: block;
   width: 18px;
   height: 13px;
 }
@@ -71,40 +61,18 @@ body {
   position: sticky;
   top: var(--status-h);
   z-index: 49;
+  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: var(--apptop-h);
   padding: 0 15px;
-  background: #fff;
 }
 
 .top-back img {
-  display: block;
-  width: 32px;
+  width: 24px;
   height: auto;
-}
-
-.basket-container {
-  position: relative;
-  display: inline-block;
-}
-
-.basket-count {
-  position: absolute;
-  right: -6px;
-  bottom: -1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  background: #545454;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 300;
-  border-radius: 50%;
 }
 
 .top-point {
@@ -114,62 +82,33 @@ body {
 }
 
 .point img {
-  display: block;
   width: 22px;
   height: 20px;
 }
 
 .mypoint {
+  font-size: 14px;
+  font-weight: 600;
+  width: 61px;
+  height: 27px;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 61px;
-  height: 27px;
+  background: #f5f5f5;
   border: 1px solid #d9d9d9;
   border-radius: 20px;
-  background: #f5f5f5;
-  font-size: 14px;
-  font-weight: 600;
 }
 
-/* ================================
-   App Body
-================================ */
-.app-body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 12px 0 0;
-  box-sizing: border-box;
-}
-
-.app-body img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-}
-
-.app-body > :last-child {
-  margin-bottom: 0 !important;
-}
-
-/* ================================
-   Point / Summary
-================================ */
 .point-saving {
+  width: 100%;
+  padding: 8px 16px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  padding: 8px 16px 20px;
 }
 
 .point-saving img {
-  display: block;
   width: 96px;
   height: auto;
 }
@@ -179,41 +118,39 @@ body {
   align-items: center;
   gap: 6px;
   padding: 10px 25px;
-  margin-bottom: 3px;
   border: 1px solid #d9d9d9;
-  border-radius: 999px;
   background: #f5f5f5;
+  border-radius: 999px;
   box-shadow: 0 0 3.5px 0 rgba(0, 0, 0, 0.1);
   font-size: 18px;
   font-weight: 800;
 }
 
 .start-point img {
-  display: block;
   width: 24px;
   height: 24px;
 }
 
 .total-point,
 .total-runtime {
+  width: 150px;
   display: flex;
   justify-content: space-between;
-  width: 150px;
   line-height: 20px;
 }
 
 .total-point p,
 .total-runtime p {
+  color: #9a9a9a;
   font-size: 15px;
   font-weight: 600;
-  color: #9a9a9a;
 }
 
 .goto-myactivity {
+  width: 100%;
   display: flex;
   justify-content: center;
   gap: 30px;
-  width: 100%;
   margin-top: 15px;
 }
 
@@ -228,7 +165,6 @@ body {
 
 .saving-history-set img,
 .check-ranking-set img {
-  display: block;
   width: 32px;
   height: 32px;
 }
@@ -244,7 +180,6 @@ body {
 
 .saving-history img,
 .check-ranking img {
-  display: block;
   width: 16px;
   height: 16px;
   margin-top: 4px;
@@ -254,25 +189,31 @@ body {
   margin-left: -15px;
 }
 
-/* ================================
-   Recommendation Section
-================================ */
 .rec-more-place {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+  /* width: 393px;
   max-width: 100%;
   margin-top: 12px;
   padding: 14px 16px;
-  padding-bottom: calc(16px + var(--nav-h) + env(safe-area-inset-bottom) + 3px);
   border-top: 2px solid #d9d9d9;
   background: #f6f6f6;
+  flex: 1;
+  display: flex;
+  flex-direction: column; */
+  max-width:100%;
+  margin-top:12px;
+  padding:14px 16px;
+  padding-bottom: calc(16px + var(--nav-h) + env(safe-area-inset-bottom) + 3px);
+  border-top:2px solid #d9d9d9;
+  background:#f6f6f6;
+  flex:1;
+  display:flex;
+  flex-direction:column;
 }
 
 .rec-header {
   position: relative;
-  flex: 0 0 auto;
   margin: 6px 0 15px;
+  flex:0 0 auto;
 }
 
 .rec-header h3 {
@@ -289,11 +230,11 @@ body {
   transform: translateY(-50%);
   border: 0;
   background: transparent;
+  /* padding: 8px; */
   cursor: pointer;
 }
 
 .rec-refresh img {
-  display: block;
   width: 24px;
   height: 24px;
   opacity: 0.65;
@@ -317,17 +258,17 @@ body {
 .rec-more-place-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  /* width: 357px; */
   width: 100%;
   height: 122px;
+  gap: 12px;
   padding: 12px;
-  border-radius: 20px;
   background: #fff;
+  border-radius: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .rec-more-place-item > img {
-  display: block;
   width: 131px;
   height: 97px;
   flex-shrink: 0;
@@ -336,9 +277,9 @@ body {
 }
 
 .about-place {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  flex: 1;
 }
 
 .rec-place {
@@ -360,8 +301,8 @@ body {
 
 .rec-place-detail p {
   margin: 0;
-  font-size: 16px;
   color: #545454;
+  font-size: 16px;
 }
 
 .rec-place-more {
@@ -399,23 +340,20 @@ body {
   cursor: pointer;
 }
 
-/* ================================
-   Bottom Nav (global)
-================================ */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  z-index: 300;
   display: flex;
+  background-color: #fff;
+  bottom: 0;
+  width: 393px;
+  height: 65px;
+  z-index: 300;
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 1px solid #d9d9d9;
+  gap: 20px;
   justify-content: space-around;
   align-items: center;
-  gap: 20px;
-  width: min(100vw, var(--app-max-w));
-  height: var(--nav-h);
-  border: 1px solid #d9d9d9;
-  background: #fff;
-  box-sizing: border-box;
-  overflow-y: auto;
 }
 
 .bottom-nav-item {
@@ -425,9 +363,9 @@ body {
 }
 
 .bottom-nav-item img {
-  display: block;
   width: 24px;
   height: auto;
+  color: black;
 }
 
 .bottom-nav-item-title {
@@ -435,29 +373,53 @@ body {
   font-weight: 600;
 }
 
-/* ================================
-   Nearby List / Empty State
-================================ */
-#nearby-list {
+.app-body {
   display: flex;
   flex-direction: column;
   flex: 1;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 0 0;
+  box-sizing: border-box;
 }
 
-#nearby-list[hidden] {
-  display: none;
+.app-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.app-body > :last-child {
+  margin-bottom: 0 !important;
+}
+
+#nearby-empty {
+  /* hidden 속성이 있으면 자동으로 display:none 이라서 기본값은 굳이 지정 X */
 }
 
 #nearby-empty:not([hidden]) {
-  display: flex;
+  display: flex;                /* 보여줄 때는 플렉스로 */
   align-items: center;
   justify-content: center;
-  padding: 24px 0;
   text-align: center;
-  font-weight: 600;
   color: #8a8a8a;
-  flex: 1 1 auto;
+  font-weight: 600;
+  /* 필요 시 안내문이 너무 붙지 않게 여백 */
+  padding: 24px 0;
+  flex:1 1 auto; 
+}
+
+/* 리스트/빈상태 중 하나가 공간을 채우도록 */
+#nearby-list{ 
+  margin:0; padding:0; list-style:none; 
+  display:flex; flex-direction:column; flex:1; 
+}
+#nearby-list[hidden]{ display:none; }
+
+#nearby-empty:not([hidden]){
+  display:flex; align-items:center; justify-content:center;
+  text-align:center; color:#8a8a8a; font-weight:600;
+  padding:24px 0;
+  flex:1;                         /* 빈 상태도 공간을 꽉 채움 */
 }
