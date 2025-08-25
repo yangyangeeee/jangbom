@@ -1,20 +1,42 @@
+:root {
+  --app-max-w: 393px;
+  --status-h: 44px;
+  --apptop-h: 44px;
+  --cta-h: 88px;
+  --nav-h: 65px;
+  --gap: 8px;
+  --input-h: 56px;
+  --save-h: 53px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
 .box {
-  width: 100%;
-  position: absolute;
+  position: static;
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex-direction: column;
-  top: 0;
+  align-items: stretch;
+  width: min(100vw, var(--app-max-w));
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #fff;
 }
 
 .status-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 393px;
-  height: 44px;
+  width: 100%;
+  height: var(--status-h);
   padding: 0 25px;
+  background: #fff;
   font-size: 18px;
   font-weight: 600;
 }
@@ -26,21 +48,27 @@
 }
 
 .status2 img {
+  display: block;
   width: 18px;
   height: 13px;
 }
 
 .app-top-bar {
+  position: sticky;
+  top: var(--status-h);
+  z-index: 49;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 393px;
-  height: 44px;
+  width: 100%;
+  height: var(--apptop-h);
   padding: 0 15px;
+  background: #fff;
 }
 
 .top-back img {
-  width: 24px;
+  display: block;
+  width: 32px;
   height: auto;
 }
 
@@ -59,14 +87,16 @@
   color: #000;
 }
 
-.ah_search {
+.addr-inputbar {
   padding: 0 16px;
   box-sizing: border-box;
+  display: flex;
+  justify-content: center;
 }
 
-.input-row {
-  width: 341px;
+.addr-input {
   position: relative;
+  width: 341px;
   height: 37px;
   border: 1px solid #d9d9d9;
   background: #fff;
@@ -74,7 +104,7 @@
   box-shadow: 4px 3px 4px 0 rgba(0, 0, 0, 0.05);
 }
 
-.input-rec {
+.addr-input input[type="text"] {
   width: 80%;
   height: 100%;
   margin-left: 20px;
@@ -85,13 +115,15 @@
   line-height: 35px;
   color: #333;
   text-align: left;
+  border: 0;
+  background: transparent;
 }
 
-.input-rec::placeholder {
+.addr-input input[type="text"]::placeholder {
   color: #c8c8c8;
 }
 
-.input-rec-search {
+.addr-send {
   position: absolute;
   right: 8px;
   top: 50%;
@@ -103,7 +135,8 @@
   padding: 0;
   cursor: pointer;
 }
-.input-rec-search img {
+
+.addr-send img {
   width: 20px;
   height: 20px;
   opacity: 0.5;
@@ -148,8 +181,8 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border-radius: 999px;
   border: 1px solid #e6e6e6;
+  border-radius: 999px;
   background: #f6f6f6;
   color: #4a4a4a;
   font-size: 15px;
@@ -158,8 +191,8 @@
 }
 
 .chip-x {
-  font-size: 14px;
   color: #b4b4b4;
+  font-size: 14px;
 }
 
 .toast {
@@ -231,12 +264,10 @@
   bottom: 0;
 }
 
-/* 전역 숨김 유틸 */
 .hidden {
   display: none !important;
 }
 
-/* 가짜 키패드: 하단 고정, .box 폭에 맞춰 중앙 */
 #dialpad {
   position: fixed;
   left: 0;
@@ -251,7 +282,6 @@
   z-index: 60;
 }
 
-/* 하단 바 기본(페이지 디자인에 맞게 필요 시 조정) */
 .add-mat {
   bottom: 0;
   z-index: 55;
@@ -270,7 +300,6 @@
   align-items: center;
 }
 
-/* 키보드/다이얼 열렸을 때 하단 바를 키패드 위로 띄우기 */
 body.keyboard-open .add-mat.lifted {
   position: fixed;
   right: 0;
@@ -280,15 +309,13 @@ body.keyboard-open .add-mat.lifted {
   z-index: 70;
 }
 
-/* 버튼 폭/정렬이 깨지면 보정 */
 .add-mat .add-item-done {
-  width: 134px; /* ← 이걸로 고정 */
+  width: 134px;
   height: 48px;
   border-radius: 14px;
   font-weight: 700;
 }
 
-/* 기본 비활성(회색) */
 .add-item-done {
   background: #d9d9d9;
   color: #fff;
@@ -299,7 +326,6 @@ body.keyboard-open .add-mat.lifted {
   transition: background 0.15s ease, filter 0.15s ease;
 }
 
-/* 활성(초록) — 입력이 있을 때 JS가 disabled를 해제 */
 .add-item-done:not([disabled]) {
   background: #acce58;
   color: #fff;
@@ -309,21 +335,19 @@ body.keyboard-open .add-mat.lifted {
   align-items: center;
 }
 
-/* 눌렀을 때 약간 눌림 효과(선택) */
 .add-item-done:not([disabled]):active {
   filter: brightness(0.95);
 }
 
-/* ===== 검색 결과 리스트 아이템 ===== */
 .search-result-list{
   padding: 0;
   list-style: none;
 }
-.search-result-item{            /* li */
+.search-result-item{
   margin-top: 8px;
-  text-align: left;            /* 혹시 상위에서 center 먹었을 때 방지 */
+  text-align: left;
 }
-.search-result-item label{      /* label.result-label */
+.search-result-item label{
   display: flex;
   align-items: center;
   width: 303px;
@@ -341,7 +365,6 @@ body.keyboard-open .add-mat.lifted {
   box-shadow: 0 0 0 3px rgba(0,0,0,.08);
 }
 
-/* 네이티브 체크박스 숨김 (label 클릭 영역 전체로) */
 .search-result-item input[type="checkbox"]{
   position: absolute;
   opacity: 0;
@@ -350,9 +373,8 @@ body.keyboard-open .add-mat.lifted {
   pointer-events: none;
 }
 
-/* 텍스트 */
 .result-name{
-  display: flex;               /* 오른쪽 체크 아이콘 밀착을 위해 */
+  display: flex;
   align-items: center;
   gap: 8px;
   flex: 1;
@@ -362,28 +384,25 @@ body.keyboard-open .add-mat.lifted {
   letter-spacing: -0.2px;
 }
 
-/* 체크되면 오른쪽에 ✓ 표시 + 강조 */
 .search-result-item input[type="checkbox"]:checked + .result-name{
   font-weight: 600;
 }
 .search-result-item input[type="checkbox"]:checked + .result-name::after{
   content: "✓";
-  margin-left: auto;           /* 오른쪽 끝으로 밀기 */
+  margin-left: auto;
   font-weight: 700;
 }
 
-/* 체크 상태 배경/테두리 살짝 강조 (지원 브라우저 충분) */
 .search-result-item label:has(input[type="checkbox"]:checked){
   background: #fff;
   border-color: #d7d7d7;
 }
 
-/* ===== 담은 재료 섹션 ===== */
 .selected-section{
   margin-top: 20px;
   width: 393px;
   padding: 15px 40px;
-  box-sizing: border-box;;                    /* 상위 center 무력화 */
+  box-sizing: border-box;
 }
 
 .selected-title{
@@ -393,22 +412,26 @@ body.keyboard-open .add-mat.lifted {
   letter-spacing: -0.3px;
 }
 
-/* 칩 리스트 */
 .selected-list{
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;                           /* 칩 간격 */
+  gap: 10px;
 }
 
-/* li 안에 form이 있으니 inline-block로 칩처럼 취급 */
+.selected-list p{
+  margin-top: 10px;
+  color: #666;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
 .selected-list .selected-item form{
   display: inline-block;
 }
 
-/* 칩 버튼 (삭제 버튼 겸용) */
 .selected-remove-btn{
   display: inline-flex;
   align-items: center;
@@ -428,15 +451,13 @@ body.keyboard-open .add-mat.lifted {
   box-shadow: 0 0 0 3px rgba(0,0,0,.08);
 }
 
-/* 비어 있을 때 문구 */
 .selected-empty{
   margin-top: 10px;
   color: #666;
   line-height: 1.6;
-  white-space: pre-line;               /* 줄바꿈 유지 */
+  white-space: pre-line;
 }
 
-/* 칩은 항상 같은 폰트/크기 사용 */
 button.chip,
 .selected-remove-btn{
   font-family: inherit;
@@ -445,10 +466,9 @@ button.chip,
   line-height: 1;
 }
 
-/* X는 전부 동일 크기/줄높이 */
 .chip .chip-x,
 .selected-remove-btn .chip-x{
-  font-size: 14px;     /* 둘 다 14px로 통일 (원하면 16px로) */
+  font-size: 14px;
   line-height: 1;
   color: #b4b4b4;
   margin-left: 2px;
