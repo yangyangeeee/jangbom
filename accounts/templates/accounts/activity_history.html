@@ -166,8 +166,12 @@
 
             <div class="list-set">
               {% if log_data %} {% for log in log_data %}
-              <div class="history-row" data-id="{{ log.shopping_list_id }}">
-                <div class="recipes_list js-toggle">
+              <div class="history-row"
+                  data-id="{{ log.shopping_list_id|default_if_none:'' }}"
+                  data-point="{{ log.point_earned|default_if_none:'' }}"
+                  data-steps="{{ log.steps|default_if_none:'' }}"
+                  data-travel="{{ log.travel_minutes|default_if_none:'' }}"
+                  data-kcal="{{ log.calories_kcal|default_if_none:'' }}">                <div class="recipes_list js-toggle">
                   <img
                     class="recipes_img"
                     src="{% static 'img/footprints(gray).svg' %}"
@@ -213,6 +217,9 @@
         </div>
       </div>
     </div>
-    <script src="{% static 'js/activity_history.js' %}" defer></script>
-  </body>
+{% now "U" as ts %}
+<script>
+  window.ajaxPattern = "{% url 'accounts:activity_detail_ajax' 0 %}".replace('0','__ID__');
+</script>
+<script src="{% static 'js/activity_history.js' %}?v={{ ts }}" defer></script>
 </html>
