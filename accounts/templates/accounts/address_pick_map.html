@@ -9,7 +9,6 @@
     <title>지도에서 위치 확인</title>
 
     {% if kakao_js_key %}
-      {% comment %} kakao maps sdk {% endcomment %}
       <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_js_key }}&libraries=services"></script>
     {% endif %}
 
@@ -17,7 +16,7 @@
   <body>
     <div class="container">
       <div class="box">
-        {% comment %} 상단바 {% endcomment %}
+        <!--상단바-->
         <div class="status-bar">
           <p>19:20</p>
           <div class="status1">
@@ -27,7 +26,7 @@
           </div>
         </div>
 
-        {% comment %} 앱 자체 상단바 {% endcomment %}
+        <!--앱 자체 상단바-->
         <div class="app-top-bar">
           <a href="{% url 'accounts:address_settings' %}" class="top-back-link" aria-label="뒤로 가기">
             <img class="top-back" src="{% static 'img/chevron-left(gray).svg' %}" alt="뒤로 가기" />

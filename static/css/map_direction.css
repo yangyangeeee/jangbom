@@ -1,11 +1,13 @@
 @font-face {
   font-family: "HSSanTokki20-Regular";
-  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
-    format("woff2");
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
 
+/* ================================
+   Root & Reset
+================================ */
 :root {
   --app-max-w: 393px;
   --status-h: 44px;
@@ -13,12 +15,14 @@
   --cta-h: 88px;
 }
 
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
 }
 
+/* ================================
+   App Shell
+================================ */
 .container {
   display: flex;
   justify-content: center;
@@ -28,21 +32,23 @@ body {
 
 .box {
   position: static !important;
-  width: min(100vw, var(--app-max-w));
-  min-height: 100dvh;
-  margin: 0 auto;
-  background: #fff;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  overflow: hidden;
+  width: min(100vw, var(--app-max-w));
+  min-height: 100dvh;
+  margin: 0 auto;
+  overflow: visible;
+  background: #fff;
 }
 
+/* ================================
+   Top Bars
+================================ */
 .status-bar {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -51,6 +57,7 @@ body {
   padding: 0 25px;
   font-size: 18px;
   font-weight: 600;
+  background: #fff;
 }
 
 .status1 {
@@ -68,13 +75,13 @@ body {
   position: sticky;
   top: var(--status-h);
   z-index: 49;
-  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: var(--apptop-h);
   padding: 0 15px;
+  background: #fff;
 }
 
 .top-back img {
@@ -88,28 +95,31 @@ body {
   gap: 10px;
 }
 
+.point {
+  margin-top: 4px;
+}
+
 .point img {
   width: 22px;
   height: 20px;
 }
 
-.point {
-  margin-top: 4px;
-}
-
 .mypoint {
-  font-size: 14px;
-  font-weight: 600;
-  width: 61px;
-  height: 27px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f5f5f5;
+  width: 61px;
+  height: 27px;
   border: 1px solid #d9d9d9;
   border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #f5f5f5;
 }
 
+/* ================================
+   Scrollable Body
+================================ */
 .app-body {
   flex: 1;
   min-height: 0;
@@ -120,11 +130,14 @@ body {
 }
 
 .app-body img {
+  display: block;
   max-width: 100%;
   height: auto;
-  display: block;
 }
 
+/* ================================
+   Moving/Timer Section
+================================ */
 .moving {
   display: flex;
   flex-direction: column;
@@ -142,36 +155,36 @@ body {
 .middle-line {
   width: 291px;
   height: 12px;
-  background: #c9b899;
-  border-radius: 20px;
   margin: 0 auto;
+  border-radius: 20px;
+  background: #c9b899;
 }
 
 .circle-time {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  z-index: 10;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
   background: #fff;
   box-shadow: 0 -5px 2px rgba(0, 0, 0, 0.2);
-  z-index: 10;
 }
 
 .circle-time p {
-  color: #c4c4c4;
   font-size: 14px;
+  color: #c4c4c4;
 }
 
 .runner-time {
-  font-size: 32px;
   font-family: "HSSanTokki20-Regular", sans-serif;
+  font-size: 32px;
   color: #545454;
 }
 
@@ -179,34 +192,40 @@ body {
   position: absolute;
   right: 6px;
   bottom: 6px;
+  z-index: 2;
   height: 47px;
   pointer-events: none;
-  z-index: 2;
 }
 
 .moving-status {
-  font-size: 23px;
-  font-weight: 600;
-  width: 100%;
-  max-width: 307px;
   position: relative;
   z-index: 11;
+  width: 100%;
+  max-width: 307px;
+  font-size: 23px;
+  font-weight: 600;
 }
 
+/* ================================
+   Hero / Map
+================================ */
 .mart-loc {
+  display: block;
   width: 100%;
   max-width: 374px;
   height: auto;
-  border-radius: 20px;
-  border: 2px solid #d9d9d9;
   margin: 14px auto 0;
+  border: 2px solid #d9d9d9;
+  border-radius: 20px;
 }
 
+/* ================================
+   Expandable Section
+================================ */
 .app-bottom-bar {
-  bottom: 0;
+  margin-top: 15px;
   overflow-y: auto;
   box-sizing: border-box;
-  margin-top: 15px;
 }
 
 .bar-content {
@@ -214,14 +233,7 @@ body {
   box-sizing: border-box;
 }
 
-.bar-list {
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
+.bar-list,
 .mart-dropdown {
   display: flex;
   flex-direction: column;
@@ -229,33 +241,35 @@ body {
 }
 
 .bar-title {
-  font-size: 18px;
-  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
   margin: 15px 0;
   padding: 0 40px;
-  width: 100%;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .more-icon {
   width: 24px;
   height: auto;
+  transition: transform 200ms ease, filter 150ms ease;
 }
 
 .mart-info {
-  width: 100%;
-  max-width: 306px;
-  margin: 0 auto 12px;
-  background: #f5f5f5;
-  border-radius: 20px;
-  padding: 15px 20px;
-  gap: 13px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
+  gap: 13px;
+  width: 100%;
+  max-width: 306px;
+  margin: 0 auto 12px;
+  padding: 15px 20px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  box-sizing: border-box;
 }
 
 .mi-item {
@@ -270,27 +284,28 @@ body {
 }
 
 .mi-name {
-  color: #545454;
   font-size: 15px;
   font-weight: 500;
+  color: #545454;
 }
 
 .mat-block-set {
-  width: 100%;
-  max-width: 306px;
-  background: #f5f5f5;
-  border-radius: 20px;
-  padding: 15px 20px;
-  margin: 0 auto 12px;
   display: flex;
   justify-content: center;
+  width: 100%;
+  max-width: 306px;
+  margin: 0 auto 12px;
+  padding: 15px 20px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  box-sizing: border-box;
 }
 
 .item-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  row-gap: 15px;
   column-gap: 15px;
+  row-gap: 15px;
 }
 
 .item {
@@ -298,19 +313,19 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 15px;
   gap: 5px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .item-pic {
-  background: #d9d9d9;
-  width: 130px;
-  height: 106px;
-  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 130px;
+  height: 106px;
+  border-radius: 20px;
+  background: #d9d9d9;
   font-weight: bold;
 }
 
@@ -323,79 +338,83 @@ body {
 .barBtn {
   width: 108px;
   height: 44px;
+  border: none;
+  border-radius: 20px;
   font-size: 18px;
   font-weight: 600;
   background: #f5f5f5;
-  border-radius: 20px;
-  border: none;
   cursor: pointer;
 }
 
+/* ================================
+   Bottom Sticky CTA
+================================ */
 .start {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  position: sticky;
   bottom: 0;
-  z-index: 55;
-  width: min(100vw, var(--app-max-w));
-  background: #fff;
-  border-top: 1px solid #eee;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  box-sizing: border-box;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
   justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid #eee;
+  background: #fff;
+  box-sizing: border-box;
 }
 
 .start-point {
-  font-size: 15px;
-  font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #d9d9d9;
-  background: #f5f5f5;
-  border-radius: 20px;
   padding: 6px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background: #f5f5f5;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .start-point img {
+  display: block;
   width: 16px;
   height: 16px;
-  display: block;
 }
 
 .startBtn {
-  font-size: 20px;
-  font-weight: 600;
   width: 271px;
   height: 53px;
+  border: 0;
+  border-radius: 15px;
   background: #beda78;
   color: #fff;
-  border-radius: 15px;
-  border: 0;
+  font-size: 20px;
+  font-weight: 600;
   cursor: pointer;
 }
 
+/* ================================
+   Responsive (viewport unit fix)
+================================ */
 @supports (height: 100svh) {
-  .container {
-    min-height: 100svh;
-  }
+  .container { min-height: 100svh; }
 }
 
+/* ================================
+   Behaviors
+================================ */
 .mart-dropdown .mart-info,
 .mart-dropdown .mat-block-set {
   max-height: 0;
-  overflow: hidden;
   padding-top: 0;
   padding-bottom: 0;
   margin-top: 0;
   margin-bottom: 0;
   opacity: 0;
-  transition: max-height 240ms ease, padding 240ms ease, margin 240ms ease,
-    opacity 160ms ease;
+  overflow: hidden;
+  transition: max-height 240ms ease, padding 240ms ease, margin 240ms ease, opacity 160ms ease;
 }
 
 .mart-dropdown.open .mart-info,
@@ -407,39 +426,7 @@ body {
   opacity: 1;
 }
 
-.mart-dropdown .more-icon {
-  transition: transform 200ms ease, filter 150ms ease;
-}
-
 .mart-dropdown.open .more-icon {
   transform: rotate(180deg);
   filter: brightness(0) saturate(100%);
-}
-
-/* martRoute와 동일하게: 스크롤은 app-body, 바들은 sticky */
-.box {
-  overflow: visible;
-} /* overflow: hidden 제거 (sticky 방해 방지) */
-
-.status-bar {
-  position: sticky; /* fixed → sticky */
-  top: 0;
-  z-index: 50;
-}
-
-.app-top-bar {
-  position: sticky; /* fixed → sticky */
-  top: var(--status-h);
-  z-index: 49;
-}
-
-/* 하단 CTA도 martRoute처럼 sticky (이미 padding-bottom 줬으니 가려지지 않음) */
-.start {
-  position: sticky; /* fixed → sticky */
-  bottom: 0;
-  left: auto;
-  transform: none;
-  z-index: 40;
-  width: 100%;
-  border-top: 1px solid #eee;
 }
